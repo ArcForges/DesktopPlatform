@@ -4,9 +4,9 @@
     "net10.0": {
       "Microsoft.CodeAnalysis.NetAnalyzers": {
         "type": "Direct",
-        "requested": "[10.0.400, )",
-        "resolved": "10.0.400",
-        "contentHash": "Uogs/xCuSxYuEYAU7oUPddK3MFcT3A+FkrBcx/wVse6P4joptMAfh/H9jtIhl9IkHARCvJHFjL3jhKFs9YMktA=="
+        "requested": "[10.0.401, )",
+        "resolved": "10.0.401",
+        "contentHash": "qGPLk4hknvVp6j9Lowa0qykw1cK7CyEyyy2aVs4dkOGroOMHJLRsMpUT53IKvYT6q78jxv96FZhzy3BrKCPgmA=="
       },
       "arcforges.contracts.agent": {
         "type": "Project",
@@ -16,13 +16,6 @@
       },
       "arcforges.contracts.foundation": {
         "type": "Project"
-      },
-      "arcforges.contracts.localrpc": {
-        "type": "Project",
-        "dependencies": {
-          "ArcForges.Contracts.Agent": "[1.0.0, )",
-          "ArcForges.Contracts.Foundation": "[1.0.0, )"
-        }
       },
       "arcforges.contracts.publicapi": {
         "type": "Project",
@@ -37,17 +30,6 @@
         "dependencies": {
           "ArcForges.Contracts.Agent": "[1.0.0, )",
           "ArcForges.Contracts.Foundation": "[1.0.0, )",
-          "ArcForges.Contracts.Sync": "[1.0.0, )"
-        }
-      },
-      "arcforges.contracts.serialization": {
-        "type": "Project",
-        "dependencies": {
-          "ArcForges.Contracts.Agent": "[1.0.0, )",
-          "ArcForges.Contracts.Foundation": "[1.0.0, )",
-          "ArcForges.Contracts.LocalRpc": "[1.0.0, )",
-          "ArcForges.Contracts.PublicApi": "[1.0.0, )",
-          "ArcForges.Contracts.Realtime": "[1.0.0, )",
           "ArcForges.Contracts.Sync": "[1.0.0, )"
         }
       },

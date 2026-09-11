@@ -10,18 +10,18 @@
       },
       "Microsoft.CodeAnalysis.NetAnalyzers": {
         "type": "Direct",
-        "requested": "[10.0.400, )",
-        "resolved": "10.0.400",
-        "contentHash": "Uogs/xCuSxYuEYAU7oUPddK3MFcT3A+FkrBcx/wVse6P4joptMAfh/H9jtIhl9IkHARCvJHFjL3jhKFs9YMktA=="
+        "requested": "[10.0.401, )",
+        "resolved": "10.0.401",
+        "contentHash": "qGPLk4hknvVp6j9Lowa0qykw1cK7CyEyyy2aVs4dkOGroOMHJLRsMpUT53IKvYT6q78jxv96FZhzy3BrKCPgmA=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
-        "requested": "[18.9.0, )",
-        "resolved": "18.9.0",
-        "contentHash": "xIzVXa/VpKXqDWzyC/5Hw8JbFY5u9k3Jc53CpcjBiOXvkQGio484LD9FNwOiGUSMDcYL3Rcw9sNgGi5WrswlPQ==",
+        "requested": "[18.10.0, )",
+        "resolved": "18.10.0",
+        "contentHash": "0CZZ688UBvpQFB9HKo7wrNJNVe+AOM4UtipgwpER3TTM+d2DDM6QyKkIJZTR3mpbn9/zFbZEtAgVIz4SPTjQZQ==",
         "dependencies": {
-          "Microsoft.CodeCoverage": "18.9.0",
-          "Microsoft.TestPlatform.TestHost": "18.9.0"
+          "Microsoft.CodeCoverage": "18.10.0",
+          "Microsoft.TestPlatform.TestHost": "18.10.0"
         }
       },
       "NetArchTest.Rules": {
@@ -346,8 +346,8 @@
       },
       "Microsoft.CodeCoverage": {
         "type": "Transitive",
-        "resolved": "18.9.0",
-        "contentHash": "MtegCIKGuG0r/LCdIjoR1HgzCGIUBhR3aNdbtQpts5vMXQuqBDZ2Jsd2uFKoHFM2XrQV6ZrDf3F5oLi3SLTp8w=="
+        "resolved": "18.10.0",
+        "contentHash": "zo1hqV+Nz6FlIwdc+aPfrvGzqfKAPPaZ6OPj1W8C0QQE2xH951AZwTUytL3K7XX8brVBUFd7MhrLDl3CtK3U/A=="
       },
       "Microsoft.Extensions.AI.Abstractions": {
         "type": "Transitive",
@@ -646,15 +646,15 @@
       },
       "Microsoft.TestPlatform.ObjectModel": {
         "type": "Transitive",
-        "resolved": "18.9.0",
-        "contentHash": "Fz/qXC52VXXopzHj7v2reCKcCqSxkTDCkEDfkNAH0vni/7qK/KLMiEYtRmnUanxO2F2g2zZZ60qCpxF0AF7URA=="
+        "resolved": "18.10.0",
+        "contentHash": "aXA7DDbnt6MYu3eLBEDksNdl09QxJ/PpMzrFcSxqEOk3RvRGJzhKI5mezVCEOcvveRhjfw/mvn6xVXC/rTaOog=="
       },
       "Microsoft.TestPlatform.TestHost": {
         "type": "Transitive",
-        "resolved": "18.9.0",
-        "contentHash": "Oq+Pma/J86aZL72t71bcESvDszDsTjUfl6PIsuDdPoKTHZfNMhKamCfLD5fKx51W/u0KozXtJo2/3fnt0sgPxg==",
+        "resolved": "18.10.0",
+        "contentHash": "Spu6C7bgz1PmWN+Y7wS0PfGCw9Kwv5RvJbCwyQaEWjcwpMire+qYMrcZ7qk8agjy6nd0sdHLc3ugCSrGuSbZdw==",
         "dependencies": {
-          "Microsoft.TestPlatform.ObjectModel": "18.9.0"
+          "Microsoft.TestPlatform.ObjectModel": "18.10.0"
         }
       },
       "Microsoft.VisualStudio.Threading.Only": {
@@ -924,7 +924,7 @@
         "dependencies": {
           "ArcChat.Mobile.Contracts": "[1.0.0, )",
           "ArcForges.Testing": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -957,7 +957,7 @@
           "ArcChat.Mobile.Application": "[1.0.0, )",
           "ArcChat.Mobile.Domain": "[1.0.0, )",
           "ArcForges.Testing": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -966,7 +966,7 @@
         "dependencies": {
           "ArcChat.Mobile.Presentation": "[1.0.0, )",
           "ArcForges.Testing": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -982,7 +982,7 @@
         "dependencies": {
           "ArcChat.Infrastructure": "[1.0.0, )",
           "ArcForges.Testing": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -992,7 +992,7 @@
           "ArcChat.Desktop": "[1.0.0, )",
           "ArcChat.Presentation": "[1.0.0, )",
           "ArcForges.Testing": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1002,7 +1002,7 @@
           "ArcChat.Application": "[1.0.0, )",
           "ArcChat.Domain": "[1.0.0, )",
           "ArcForges.Testing": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1215,7 +1215,7 @@
         "dependencies": {
           "ArcForges.Cloud.Host": "[1.0.0, )",
           "ArcForges.Testing": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1375,7 +1375,6 @@
         "dependencies": {
           "ArcForges.Contracts.PublicApi": "[1.0.0, )",
           "ArcForges.Contracts.Realtime": "[1.0.0, )",
-          "ArcForges.Contracts.Serialization": "[1.0.0, )",
           "ArcForges.Web.Application": "[1.0.0, )"
         }
       },
@@ -1484,7 +1483,7 @@
         "dependencies": {
           "ArcForges.Testing": "[1.0.0, )",
           "ArcNotes.Infrastructure": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1494,7 +1493,7 @@
           "ArcForges.Testing": "[1.0.0, )",
           "ArcNotes.Desktop": "[1.0.0, )",
           "ArcNotes.Presentation": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1504,7 +1503,7 @@
           "ArcForges.Testing": "[1.0.0, )",
           "ArcNotes.Application": "[1.0.0, )",
           "ArcNotes.Domain": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1609,7 +1608,7 @@
         "dependencies": {
           "ArcForges.Testing": "[1.0.0, )",
           "ArcScope.Infrastructure": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1619,7 +1618,7 @@
           "ArcForges.Testing": "[1.0.0, )",
           "ArcScope.Desktop": "[1.0.0, )",
           "ArcScope.Presentation": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1629,7 +1628,7 @@
           "ArcForges.Testing": "[1.0.0, )",
           "ArcScope.Application": "[1.0.0, )",
           "ArcScope.Domain": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1762,7 +1761,7 @@
         "dependencies": {
           "ArcForges.Testing": "[1.0.0, )",
           "ArcSlate.Infrastructure": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1772,7 +1771,7 @@
           "ArcForges.Testing": "[1.0.0, )",
           "ArcSlate.Desktop": "[1.0.0, )",
           "ArcSlate.Presentation": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
@@ -1782,7 +1781,7 @@
           "ArcForges.Testing": "[1.0.0, )",
           "ArcSlate.Application": "[1.0.0, )",
           "ArcSlate.Domain": "[1.0.0, )",
-          "Microsoft.NET.Test.Sdk": "[18.9.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.10.0, )",
           "xunit.v3": "[4.0.0, )"
         }
       },
