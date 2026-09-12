@@ -26,8 +26,8 @@ Design authority: `ArcForges/ArcForges-Design` commit `f6e0cd2` (merged final re
 The removed monorepo applications and JSON contract implementation belong to separate repositories.
 Removal is an ownership extraction, not a claim that new product or proto implementations exist.
 Shared placeholder libraries are retained for follow-on implementation but are not release artifacts.
-The first publication supports build policy. Runtime capability NuGets require their own ABI, native
-asset, licence/SBOM and real AOT consumer admission before adding them to the publication allowlist.
+The first publication supported build policy. The subsequent [native package release](native-package-release.md)
+admits the four existing Windows ABIs with their real native closure and package-consumer validation.
 This bootstrap does not close every WP02 obligation across all ten repositories or the WP06 native gates.
 
 ## Local validation evidence
@@ -52,12 +52,14 @@ authenticated through OIDC and uploaded `ArcForges.Build.Policy` `1.0.0-ci.2.1`.
 ## Automatic publication after main updates
 
 The publication workflow now runs on every push to `main`, including merged PRs. It allocates an
-immutable prerelease version, packs and verifies the candidate, tests it in Windows/Linux consumers,
+immutable prerelease version, completes the reusable native/source/package/consumer gate,
 then publishes the tested bytes. No manual release form or approval step is part of the configured
 flow. Independent runs prevent newer merges from replacing queued releases. See the current
 [package production instructions](../eng/packaging/README.md) for numbering, setup and recovery.
 
-The earlier successful upload proves the configured OIDC/push path. The first main push containing the
-automatic trigger is still needed to establish hosted evidence for that trigger. No full capability AOT,
-macOS/ARM64/Linux native release matrix, sandbox, application, mobile-device or commercial-operation
-acceptance is claimed here.
+Main push [run 34675014058](https://github.com/ArcForges/DesktopPlatform/actions/runs/34675014058)
+proved the automatic trigger and upload. It also exposed that the independent native gate finished
+after upload; the subsequent native release change joins them into the ordered gate described above.
+The initial extraction evidence does not establish full product capability, other native RIDs,
+sandbox, application, mobile-device or commercial-operation acceptance. Current ABI/AOT evidence is
+recorded separately in the native release document.

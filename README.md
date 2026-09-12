@@ -10,6 +10,8 @@ Product applications and services build independently from published packages.
   ABI/version/error probes are retained; full product capabilities are still implementation work.
 - Shared C# mechanism and ContentSandbox scaffolds, explicitly excluded from NuGet publication.
 - `ArcForges.Build.Policy`: portable C# build defaults and enforced central package-version rules.
+- Five managed native packages and four Windows x64 runtime packages deliver the existing version,
+  build-information and error APIs, real DLL dependencies, C headers, import libraries and source records.
 - Platform-only managed and Windows IDE solutions, native ABI CI, package verification and NuGet OIDC CI.
 
 See [extraction scope and evidence](docs/platform-bootstrap.md). The accepted product family design is
@@ -23,21 +25,22 @@ Install the .NET SDK selected by `global.json` and Python 3.11 or newer. No Mobi
 dotnet restore DesktopPlatform.slnx --locked-mode
 dotnet build DesktopPlatform.slnx -c Release --no-restore
 dotnet test --project tests/ArchitectureTests/ArcForges.Tests.ArchitectureTests.csproj -c Release --no-build
-python eng/packaging/packages.py pack --version 1.0.0-ci.1
-python eng/packaging/packages.py smoke --directory artifacts/packages --version 1.0.0-ci.1
 ```
 
 CMake 4.3.3, Ninja 1.13.1, sccache and a C++20 compiler are needed only for native producer builds.
 Follow [native prerequisites and commands](deploy/README.md). `win.slnx` additionally builds the native
 Windows projects and stages their DLLs for `NativeAbiTests`; CI uses the independent CMake path.
+After native staging, follow the [complete package verification](eng/packaging/README.md) to pack and
+run independent C#, Native AOT and C17 consumers. See [native package scope and evidence](docs/native-package-release.md).
 
 ## Packages and Contracts
 
 [Package publishing](eng/packaging/README.md) documents the release allowlist, candidate verification,
-NuGet trusted-publisher setup and consumer examples. Only admitted packages are published; current
-shared placeholders and native probes are not advertised as complete runtime packages.
-Every push to `main`, including a merged PR, automatically allocates a prerelease version, builds and
-verifies the candidate on Windows/Linux, then publishes the tested bytes to nuget.org through OIDC.
+NuGet trusted-publisher setup and consumer examples. Only admitted packages are published; shared
+placeholders remain excluded. These runtime packages expose the existing ABI, not future product APIs.
+Every push to `main`, including a merged PR, automatically allocates a prerelease version. Native
+compilation/tests and source checks must finish before packing; isolated package consumers and the
+aggregate gate must pass before the same package bytes are published to nuget.org through OIDC.
 No manual workflow run, version entry or publish checkbox is required.
 
 Contracts is a separate repository with handwritten proto as the business RPC authority. It also owns

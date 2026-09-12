@@ -5,7 +5,10 @@ on:
     inputs:
       version:
         type: string
-        default: ''
+        required: true
+      native_artifact_name:
+        type: string
+        required: true
     outputs:
       version:
         value: ${{ jobs.pack.outputs.version }}
@@ -37,11 +40,16 @@ jobs:
         shell: pwsh
         run: |
           $version = $env:REQUESTED_VERSION
-          if (-not $version) { $version = "1.0.0-ci.$env:GITHUB_RUN_ID.$env:GITHUB_RUN_ATTEMPT" }
           python eng/packaging/packages.py version --version $version
           if ($LASTEXITCODE) { throw 'Invalid package version.' }
           "value=$version" >> $env:GITHUB_OUTPUT
           "artifact_name=nuget-candidate-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT" >> $env:GITHUB_OUTPUT
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: ${{ inputs.native_artifact_name }}
+          path: artifacts/native-packages
+      - name: Verify the native artifact belongs to this source commit
+        run: python eng/packaging/native.py verify --commit "$GITHUB_SHA"
       - run: dotnet restore DesktopPlatform.slnx --locked-mode
       - run: dotnet format DesktopPlatform.slnx --verify-no-changes --no-restore
       - name: Build and test platform ownership
@@ -88,3 +96,18 @@ jobs:
         run: |
           python eng/packaging/packages.py smoke --version $env:PACKAGE_VERSION --commit $env:GITHUB_SHA
           if ($LASTEXITCODE) { throw 'Independent NuGet consumer verification failed.' }
+      - name: Publish and run Native AOT consumers of every actual Windows runtime package
+        if: runner.os == 'Windows'
+        env:
+          PACKAGE_VERSION: ${{ needs.pack.outputs.version }}
+        shell: pwsh
+        run: |
+          python eng/packaging/native_consumer.py --version $env:PACKAGE_VERSION --commit $env:GITHUB_SHA
+          if ($LASTEXITCODE) { throw 'Packaged native C ABI / Native AOT consumer verification failed.' }
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always() && runner.os == 'Windows'
+        with:
+          name: native-consumer-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/native-consumer-evidence/
+          if-no-files-found: ignore
+          retention-days: 30

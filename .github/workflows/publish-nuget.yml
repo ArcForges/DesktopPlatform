@@ -33,7 +33,7 @@ jobs:
           "Package version: $version" >> $env:GITHUB_STEP_SUMMARY
   candidate:
     needs: preflight
-    uses: ./.github/workflows/package-validation.yml
+    uses: ./.github/workflows/pr-gate.yml
     with:
       version: ${{ needs.preflight.outputs.version }}
   publish:

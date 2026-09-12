@@ -11,6 +11,8 @@ import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 
+import native
+
 ROOT = Path(__file__).resolve().parents[2]
 REPOSITORY = "https://github.com/ArcForges/DesktopPlatform"
 VERSION = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?")
@@ -32,12 +34,16 @@ def version(value):
 
 def run(*args, cwd=ROOT, env=None, expected_error=None):
     # Argument arrays avoid shell interpolation of user-selected versions and paths.
-    result = subprocess.run(args, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    print(result.stdout, end="", flush=True)
+    result = subprocess.run(args, cwd=cwd, env=env, text=True, encoding="utf-8", errors="replace",
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     if expected_error:
+        if result.returncode == 0 or expected_error not in result.stdout:
+            print(result.stdout, end="", flush=True)
         require(result.returncode != 0 and expected_error in result.stdout,
                 f"Expected rejection {expected_error}, got exit {result.returncode}.")
+        print(f"PASS: expected rejection: {expected_error}", flush=True)
     else:
+        print(result.stdout, end="", flush=True)
         result.check_returncode()
     return result.stdout
 
@@ -52,7 +58,7 @@ def catalogue():
     packages = document["packages"]
     require(len({p["id"].lower() for p in packages}) == len(packages), "Duplicate package ID.")
     for entry in packages:
-        require(entry["kind"] == "build", "New package kinds require their own admission and consumer proof.")
+        require(entry["kind"] in {"build", "managed", "native"}, "Unreviewed package kind.")
         project = (ROOT / entry["project"]).resolve()
         require(project.is_relative_to(ROOT) and project.is_file(), "Package project escapes the repository or is absent.")
         require(not list(project.parent.rglob("*Placeholder.cs")), "A placeholder cannot be published.")
@@ -78,27 +84,94 @@ def inspect(path, entry, expected_version, commit):
         require(license_node is not None and license_node.get("type") == "expression"
                 and license_node.text == "AGPL-3.0-only", "Package licence mismatch.")
         require(metadata.findtext("{*}readme") == "README.md", "Missing package readme metadata.")
+        expected_dependencies = {name: f"[{expected_version}]" for name in entry.get("dependencies", [])}
+        dependencies = {node.get("id"): node.get("version") for node in metadata.findall(".//{*}dependency")}
+        require(dependencies == expected_dependencies, "Package dependency closure/version mismatch.")
         if entry["kind"] == "build":
             require(not any(name.startswith(("lib/", "ref/", "runtimes/")) for name in names),
                     "Build policy must contain no runtime assets.")
-            require(not list(metadata.iter("{*}dependency")), "Build policy must contain no package dependencies.")
+            require(not metadata.findall(".//{*}dependency"), "Build policy must contain no package dependencies.")
+        elif entry["kind"] == "managed":
+            require(not any(name.startswith("runtimes/") for name in names), "Managed bindings must not bundle native assets.")
+        else:
+            require(not any(name.startswith(("lib/", "ref/")) for name in names), "RID package must not contain managed assemblies.")
+            document = json.loads(archive.read("native-manifest.json"))
+            require(document["sourceCommit"] == commit and document["rid"] == entry["rid"]
+                    and document["library"] == entry["library"], "Native package source/RID/library mismatch.")
+            prefix = f"runtimes/{entry['rid']}/native/"
+            require(archive.read(prefix + entry["library"] + ".manifest.json") == archive.read("native-manifest.json"),
+                    "Runtime deployment manifest differs from audited native manifest.")
+            files = {row["name"].lower(): row for row in document["files"]}
+            require({name[len(prefix):].lower() for name in names if name.startswith(prefix) and name.endswith(".dll")}
+                    == set(files), "Native DLL closure differs from manifest.")
+            require(not any(name.startswith("runtimes/") and not name.startswith(prefix) for name in names),
+                    "Unexpected native RID assets.")
+            for row in files.values():
+                data = archive.read(prefix + row["name"])
+                require(hashlib.sha256(data).hexdigest() == row["sha256"], "Native DLL hash mismatch.")
+                details = native.pe(data)
+                require(details["imports"] == row["imports"] and details["exports"] == row["exports"], "PE manifest mismatch.")
+                require(all(name in files or native.system_dependency(name) for name in details["imports"]),
+                        "Missing non-system native dependency.")
+            owned = files[entry["library"].lower() + ".dll"]
+            require(set(owned["exports"]) == {entry["prefix"] + suffix for suffix in
+                    ["_get_abi_version", "_get_build_info", "_get_last_error"]}, "Owned ABI exports mismatch.")
+            sbom = json.loads(archive.read("sbom.json"))
+            require(sbom["sourceCommit"] == commit and sbom["binaryFiles"] == document["files"], "Native SBOM identity mismatch.")
+            for dependency in sbom["buildDependencies"]:
+                require(dependency["license"] in names and dependency["sbom"] in names, "Missing upstream licence/source record.")
+                if dependency["name"] in {"ffmpeg", "libusb"}:
+                    require(dependency["sourceArchive"] in names, "Missing corresponding native source archive.")
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def pack(directory, package_version):
+def pack(directory, package_version, native_directory=ROOT / "artifacts/native-packages"):
     directory.mkdir(parents=True, exist_ok=True)
     require(not list(directory.glob("*.nupkg")) and not (directory / "manifest.json").exists(),
             "Output already contains a candidate; choose a new empty --directory, never overwrite tested bytes.")
     commit = source_commit()
+    native.verify_stage(native_directory, commit)
     packages = []
     for entry in catalogue():
-        run("dotnet", "pack", entry["project"], "-c", "Release", "--no-restore", "-o", str(directory),
-            f"-p:PackageVersion={package_version}", f"-p:RepositoryCommit={commit}")
+        args = ["dotnet", "pack", entry["project"], "-c", "Release", "--no-restore", "-o", str(directory),
+                f"-p:PackageVersion={package_version}", f"-p:RepositoryCommit={commit}"]
+        if entry["kind"] == "native":
+            args.append(f"-p:NativePayloadRoot={native_directory / entry['id']}")
+        run(*args)
         name = f"{entry['id']}.{package_version}.nupkg"
+        # dotnet pack emits minimum dependency versions. The release set uses exact immutable pairs;
+        # finalize the nuspec before recording hashes or testing any candidate bytes.
+        package_path = directory / name
+        with zipfile.ZipFile(package_path) as original:
+            contents = [(info, original.read(info.filename)) for info in original.infolist()]
+        for index, (info, data) in enumerate(contents):
+            if info.filename.endswith(".nuspec"):
+                specification = ET.fromstring(data)
+                namespace = specification.tag.split("}")[0][1:]
+                ET.register_namespace("", namespace)
+                metadata = specification.find("{*}metadata")
+                dependencies = metadata.find("{*}dependencies")
+                generated = {node.get("id") for node in metadata.findall(".//{*}dependency")}
+                expected = set(entry.get("dependencies", [])) if entry["kind"] == "managed" else set()
+                require(generated == expected, "Generated dependency set differs from the reviewed package closure.")
+                if dependencies is not None:
+                    metadata.remove(dependencies)
+                if entry.get("dependencies"):
+                    dependencies = ET.SubElement(metadata, f"{{{namespace}}}dependencies")
+                    group = ET.SubElement(dependencies, f"{{{namespace}}}group", targetFramework="net10.0")
+                    for dependency in entry["dependencies"]:
+                        ET.SubElement(group, f"{{{namespace}}}dependency", id=dependency, version=f"[{package_version}]")
+                contents[index] = (info, ET.tostring(specification, encoding="utf-8", xml_declaration=True))
+        with zipfile.ZipFile(package_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for info, data in contents:
+                archive.writestr(info, data)
         digest = inspect(directory / name, entry, package_version, commit)
         packages.append({"id": entry["id"], "version": package_version, "file": name, "sha256": digest})
+    native_artifact = (native_directory / "native-artifact.json").read_bytes()
+    (directory / "native-artifact.json").write_bytes(native_artifact)
     manifest = {"schemaVersion": 1, "repository": REPOSITORY, "sourceCommit": commit,
-                "version": package_version, "packages": packages}
+                "version": package_version, "packages": packages,
+                "nativeArtifactSha256": hashlib.sha256(native_artifact).hexdigest()}
     (directory / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     verify(directory, package_version, commit)
 
@@ -108,6 +181,10 @@ def verify(directory, package_version, commit=None):
     commit = commit or source_commit()
     require(manifest["schemaVersion"] == 1 and manifest["repository"] == REPOSITORY, "Unexpected manifest identity.")
     require(manifest["sourceCommit"] == commit and manifest["version"] == package_version, "Manifest source/version mismatch.")
+    native_bytes = (directory / "native-artifact.json").read_bytes()
+    require(hashlib.sha256(native_bytes).hexdigest() == manifest["nativeArtifactSha256"], "Native artifact record hash mismatch.")
+    native_artifact = json.loads(native_bytes)
+    native.verify_identity(native_artifact, commit)
     entries = catalogue()
     rows = manifest["packages"]
     require(len(rows) == len(entries) and {row["id"] for row in rows} == {entry["id"] for entry in entries},
@@ -121,6 +198,12 @@ def verify(directory, package_version, commit=None):
         require(row["file"] == name and row["version"] == package_version, "Manifest package name/version mismatch.")
         digest = inspect(directory / name, entry, package_version, commit)
         require(digest == row["sha256"], f"Package hash mismatch: {name}")
+        if entry["kind"] == "native":
+            producer = next(p for p in native_artifact["packages"] if p["id"] == entry["id"])
+            with zipfile.ZipFile(directory / name) as archive:
+                for file in producer["files"]:
+                    require(hashlib.sha256(archive.read(file["path"])).hexdigest() == file["sha256"],
+                            "Packed native payload differs from the tested producer artifact.")
     print(f"Verified {len(entries)} package(s), version {package_version}, source {commit}.", flush=True)
     return manifest
 
@@ -148,6 +231,8 @@ def smoke(directory, package_version, commit=None):
     ET.SubElement(public, "package", pattern="*")
     ET.ElementTree(configuration).write(temporary_root / "NuGet.config", encoding="utf-8", xml_declaration=True)
     for entry in catalogue():
+        if entry["kind"] != "build":
+            continue
         consumer = temporary_root / entry["id"]
         consumer.mkdir()
         project = consumer / "Consumer.csproj"
@@ -191,11 +276,12 @@ def main():
     parser.add_argument("--version", required=True)
     parser.add_argument("--directory", type=Path, default=ROOT / "artifacts/packages")
     parser.add_argument("--commit")
+    parser.add_argument("--native-directory", type=Path, default=ROOT / "artifacts/native-packages")
     args = parser.parse_args()
     package_version = version(args.version)
     directory = args.directory.resolve()
     if args.command == "pack":
-        pack(directory, package_version)
+        pack(directory, package_version, args.native_directory.resolve())
     elif args.command == "verify":
         verify(directory, package_version, args.commit)
     elif args.command == "smoke":

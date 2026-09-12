@@ -1,23 +1,42 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Release guards exercised against the actual candidate produced by pack."""
+import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import tempfile
 import unittest
+import zipfile
 
 import packages
 
 
 class PackageGuards(unittest.TestCase):
     def fixture(self):
-        source = packages.ROOT / "artifacts/packages"
+        source = Path(os.environ.get("ARCFORGES_PACKAGE_DIRECTORY", packages.ROOT / "artifacts/packages"))
         target = Path(tempfile.mkdtemp(prefix="package-guard-", dir=packages.ROOT / "artifacts")).resolve()
         packages.require(target.is_relative_to(packages.ROOT / "artifacts"), "Fixture escapes artifacts.")
+        self.addCleanup(shutil.rmtree, target)
         for path in source.iterdir():
             if path.is_file():
                 shutil.copyfile(path, target / path.name)
         manifest = json.loads((target / "manifest.json").read_text())
+        return target, manifest
+
+    def mutate_native(self, change):
+        target, manifest = self.fixture()
+        row = next(row for row in manifest["packages"] if row["id"] == "ArcForges.Native.Media.Runtime.win-x64")
+        path = target / row["file"]
+        with zipfile.ZipFile(path) as archive:
+            files = {name: archive.read(name) for name in archive.namelist()}
+        change(files, manifest)
+        with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for name, content in files.items():
+                archive.writestr(name, content)
+        # Bypass only the outer archive checksum: the content/provenance checks must still reject the fixture.
+        row["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        (target / "manifest.json").write_text(json.dumps(manifest))
         return target, manifest
 
     def test_canonical_versions(self):
@@ -53,6 +72,47 @@ class PackageGuards(unittest.TestCase):
         target, manifest = self.fixture()
         with self.assertRaisesRegex(ValueError, "never overwrite"):
             packages.pack(target, manifest["version"])
+
+    def test_missing_transitive_dll_is_rejected(self):
+        target, manifest = self.mutate_native(lambda files, _: files.pop("runtimes/win-x64/native/libvpl.dll"))
+        with self.assertRaisesRegex(ValueError, "DLL closure"):
+            packages.verify(target, manifest["version"], manifest["sourceCommit"])
+
+    def test_changed_native_binary_is_rejected(self):
+        def tamper(files, _):
+            files["runtimes/win-x64/native/ArcMediaNative.dll"] += b"altered"
+        target, manifest = self.mutate_native(tamper)
+        with self.assertRaisesRegex(ValueError, "Native DLL hash mismatch"):
+            packages.verify(target, manifest["version"], manifest["sourceCommit"])
+
+    def test_wrong_native_rid_is_rejected(self):
+        def tamper(files, _):
+            data = json.loads(files["native-manifest.json"])
+            data["rid"] = "win-arm64"
+            files["native-manifest.json"] = json.dumps(data).encode()
+        target, manifest = self.mutate_native(tamper)
+        with self.assertRaisesRegex(ValueError, "source/RID/library"):
+            packages.verify(target, manifest["version"], manifest["sourceCommit"])
+
+    def test_inexact_managed_runtime_pair_is_rejected(self):
+        def tamper(files, manifest):
+            name = next(name for name in files if name.endswith(".nuspec"))
+            files[name] = files[name].replace(f'[{manifest["version"]}]'.encode(), manifest["version"].encode())
+        target, manifest = self.mutate_native(tamper)
+        with self.assertRaisesRegex(ValueError, "dependency closure/version"):
+            packages.verify(target, manifest["version"], manifest["sourceCommit"])
+
+    def test_changed_header_is_rejected_against_native_artifact(self):
+        def tamper(files, _):
+            files["include/arc/arc_native_abi.h"] += b"// altered"
+        target, manifest = self.mutate_native(tamper)
+        with self.assertRaisesRegex(ValueError, "differs from the tested producer artifact"):
+            packages.verify(target, manifest["version"], manifest["sourceCommit"])
+
+    def test_missing_upstream_notice_is_rejected(self):
+        target, manifest = self.mutate_native(lambda files, _: files.pop("licenses/ffmpeg-x64-windows.txt"))
+        with self.assertRaisesRegex(ValueError, "Missing upstream licence/source"):
+            packages.verify(target, manifest["version"], manifest["sourceCommit"])
 
 
 if __name__ == "__main__":
