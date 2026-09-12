@@ -37,14 +37,43 @@ The package identities follow the Design package registry: `ArcForges.Native.Abs
 
 ## Closure evidence
 
-Development checks completed: locked managed restore/build, four architecture checks, formatting and
-actionlint. Ten real development packages (`1.0.0-ci.native.4`) passed the twelve package guards and
-isolated Build.Policy checks. All four native bindings independently and together executed through
-Native AOT; a separate C17 caller linked the packaged headers/import libraries and called all entry
-points. Missing owned/transitive DLLs, modified DLLs and an incompatible RID were rejected. These early
-fixtures used the existing installed libraries and are not the final dependency-provenance evidence.
+Validated implementation commit: `a0d52c508c598b0bd7929baddafe78fa7fbbb49d`.
 
-Final isolated dependency rebuild and hosted PR validation are in progress. Record their actual
-results before marking the PR ready. No new native package is claimed as uploaded to nuget.org yet.
-Existing ABI queries do not establish decode/encode, image processing, timeline editing, hostile-content
-sandbox or GPU functionality. Those APIs and their product acceptance remain separate implementation work.
+- Locked managed restore/build, four architecture checks, dotnet format, actionlint 1.7.12 and
+  pre-commit passed. Local tools were .NET SDK 10.0.400, CMake 4.4.3 and MSVC 19.51.36256.
+- A fresh isolated vcpkg installation completed at the pinned commit. Both CMake profiles were
+  configured with `--fresh`, rebuilt and staged; all 1 + 3 CTests passed. The independent
+  `win.slnx Release|x64` pre-push gate and its app-local C# ABI test also passed.
+- Native staging verified installed recipe versions/hashes, release-library hashes, DLL import/export
+  closure, LGPL configuration and corresponding source archives. Media contains 12 DLLs and 15
+  upstream records; Colour 4/12; Image 4/21; Otio 3/5. These counts include CRT and build dependencies,
+  and do not imply every build dependency has a separate shipped DLL.
+- The final local ten-package set `1.0.0-ci.native.6` passed all twelve package guards and independent
+  JIT/Native AOT execution for each capability and all four together. The C17 consumer used only
+  packaged headers/import libraries. Missing owned/transitive DLLs, tampering and wrong RID were
+  rejected, including attempted working-directory fallback. Projects, locks and the success report
+  are retained under `artifacts/native-consumer-evidence`.
+
+[Hosted PR run 34677477555](https://github.com/ArcForges/DesktopPlatform/actions/runs/34677477555)
+passed every gate with CI's pinned CMake 4.3.3. It built PR merge source
+`105be7ea21d63addf57e0f259a4d57d8a29b7f6c`, packed version `1.0.0-ci.34677477555.1` on Linux,
+and consumed the same archives on Windows and Linux. Windows ran all five JIT/AOT cases, C17 and
+the failure fixtures. The downloaded candidate was independently re-verified against that merge SHA.
+
+| Gate | Started (UTC, 2026-09-12) | Finished |
+|---|---|---|
+| Native build, tests, provenance and artifact | 06:11:25 | 06:15:20 |
+| Managed build, packing and package guards | 06:15:22 | 06:16:54 |
+| Windows package consumers, Native AOT and C17 | 06:16:56 | 06:19:41 |
+| Aggregate success | 06:19:51 | 06:19:59 |
+
+The retained candidate contains ten actual NuGets. Runtime archive sizes in that hosted run were
+approximately Media 26.9 MiB, Colour 0.93 MiB, Image 4.67 MiB and Otio 176 KiB; Build.Policy remains
+about 16.5 KiB. Runtime archives include the DLLs, headers/import libraries, manifests, notices,
+recipes and relevant source archives. Sizes vary with the compiler and dependency release.
+
+The main publication job depends on the entire reusable gate and rechecks the candidate before OIDC
+authentication. PR runs do not upload to nuget.org. Public upload/indexing of the newly admitted native
+packages remains a main-merge release outcome; the earlier Build.Policy upload does not prove that
+new package IDs are publicly available. No other native RID, decode/encode, image processing, timeline
+editing, hostile-content sandbox, GPU, application or commercial-operation acceptance is claimed.

@@ -50,6 +50,8 @@ CI records source commit/version/package SHA256 and native artifact digest in `m
 those bytes. Consumers use an empty NuGet cache and source mapping forcing ArcForges
 packages to the candidate feed. Their build/run and negative central-version/compiler/lock fixtures
 must pass. CI retains the candidate as `nuget-candidate-<run-id>-<producer-attempt>` for 30 days.
+Windows also retains consumer projects, locks and the hashed success report as
+`native-consumer-evidence-<run-id>-<attempt>`; a failed run may retain partial fixtures without a success report.
 The producer exports that exact artifact name to consumers and publication, so retrying a consumer
 continues to use the original tested bytes and rebuilding in another attempt has a distinct artifact. These artifacts are
 internal test inputs, not stable public feed availability. Local builds with uncommitted changes are
