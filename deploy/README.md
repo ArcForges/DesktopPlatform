@@ -1,13 +1,17 @@
 # Native producer builds
 
 DesktopPlatform owns native compilation and capability packaging. Application deployment belongs to each
-product repository. These instructions build the retained ABI foundations, not product release artifacts.
+product repository. These instructions build the existing ABI used by the Windows x64 NuGet release.
+Product API and installer acceptance remain separate.
 
 ## Native dependency toolchain
 
-ArcForges uses a normal vcpkg installation. It does not use repository manifests, custom triplets, or
-repository-local installed trees. The reviewed Windows toolchain is `C:\vcpkg` at commit
+ArcForges uses classic vcpkg with standard triplets and a pinned source checkout. The reviewed Windows toolchain is `C:\vcpkg` at commit
 `36677bbd0b3bf11da7376e62e14bffcc54d2eaeb`.
+Windows dependencies install into this checkout's ignored `artifacts/vcpkg-installed` directory.
+Both CMake and the x64 Visual Studio projects use that directory, so unrelated global installations
+cannot supply stale dependency versions. Binary caches still accelerate installation. Native package
+staging checks installed versions and recipe hashes against the pinned checkout and reviewed overlay.
 
 ```powershell
 git -C C:\vcpkg checkout --detach 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb
@@ -20,7 +24,8 @@ Install the shared runtime dependencies:
 & C:\vcpkg\vcpkg.exe install `
   'ffmpeg[core,avcodec,avfilter,avformat,swresample,swscale,vulkan,qsv,nvcodec,amf]:x64-windows' `
   'libusb[core]:x64-windows' `
-  'miniaudio[core]:x64-windows'
+  'miniaudio[core]:x64-windows' `
+  "--x-install-root=$PWD/artifacts/vcpkg-installed"
 ```
 
 Install the static implementation dependencies used inside the owned ABI shims:
@@ -32,7 +37,8 @@ Install the static implementation dependencies used inside the owned ABI shims:
   'openimageio[core]:x64-windows-static-md' `
   'openexr[core]:x64-windows-static-md' `
   'imath[core]:x64-windows-static-md' `
-  '--overlay-ports=eng/native/vcpkg/ports'
+  '--overlay-ports=eng/native/vcpkg/ports' `
+  "--x-install-root=$PWD/artifacts/vcpkg-installed"
 ```
 
 Then enable Visual Studio/MSBuild once for the current Windows user:
@@ -44,7 +50,8 @@ Then enable Visual Studio/MSBuild once for the current Windows user:
 
 Restart Visual Studio and terminals after changing the user environment. `win.slnx` consumes this user-wide
 integration. CMake remains independent of the Visual Studio integration and reads the toolchain from
-`$env:VCPKG_ROOT` through `CMakePresets.json`.
+`$env:VCPKG_ROOT` through `CMakePresets.json`. Configure with `--fresh` once when moving an existing
+CMake build from the global installed tree to this isolated tree.
 
 The CMake presets use Ninja, so a Windows CMake build has to run from an MSVC environment. `vcvars64.bat`
 overwrites `VCPKG_ROOT` with the vcpkg copy bundled inside Visual Studio, which is not the pinned baseline
@@ -81,4 +88,11 @@ cmake --preset win-x64-shim-static
 cmake --build --preset win-x64-shim-static
 ctest --preset win-x64-shim-static
 cmake --install artifacts/cmake/win-x64/shim-static
+python eng/packaging/native.py stage --vcpkg-root C:/vcpkg
 ```
+
+The final command audits the PE import/export closure, supplies app-local Visual C++ runtime files,
+copies licences/SBOMs and matching upstream sources, then seals `artifacts/native-packages` with hashes
+and the source commit. It rejects an existing populated output; use a new `--directory` for another
+development candidate. Continue with [package production](../eng/packaging/README.md). This stage is
+an input to NuGet packing; public upload waits for the independent package consumers as well.

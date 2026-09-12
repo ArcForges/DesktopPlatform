@@ -2,16 +2,44 @@
 name: PR gate
 on:
   pull_request:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        default: ''
+    outputs:
+      version:
+        value: ${{ jobs.managed-packages.outputs.version }}
+      artifact_name:
+        value: ${{ jobs.managed-packages.outputs.artifact_name }}
 permissions:
   contents: read
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  allocate-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        shell: pwsh
+        run: |
+          $version = $env:REQUESTED_VERSION
+          if (-not $version) { $version = "1.0.0-ci.$env:GITHUB_RUN_ID.$env:GITHUB_RUN_ATTEMPT" }
+          python eng/packaging/packages.py version --version $version
+          if ($LASTEXITCODE) { throw 'Invalid package version.' }
+          "value=$version" >> $env:GITHUB_OUTPUT
   managed-packages:
+    needs: [allocate-version, native, secret-scan, repository-hooks]
     uses: ./.github/workflows/package-validation.yml
+    with:
+      version: ${{ needs.allocate-version.outputs.version }}
+      native_artifact_name: ${{ needs.native.outputs.artifact_name }}
   native:
     uses: ./.github/workflows/native-abi.yml
   secret-scan:
@@ -45,7 +73,7 @@ jobs:
 
   ci:
     if: always()
-    needs: [managed-packages, native, secret-scan, repository-hooks]
+    needs: [allocate-version, managed-packages, native, secret-scan, repository-hooks]
     runs-on: ubuntu-latest
     env:
       CI_NEEDS: ${{ toJSON(needs) }}

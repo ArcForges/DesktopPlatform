@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- SPDX-License-Identifier: AGPL-3.0-only -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>true</IsPackable>
+    <PackageId>ArcForges.Native.Abstractions</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Shared ArcForges native ABI status, version, error values and verified app-local loading.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="../../../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="../../../NOTICE.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

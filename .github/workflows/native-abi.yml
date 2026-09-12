@@ -2,6 +2,9 @@
 name: Native ABI
 on:
   workflow_call:
+    outputs:
+      artifact_name:
+        value: ${{ jobs.native-win-x64.outputs.artifact_name }}
   workflow_dispatch:
 permissions:
   contents: read
@@ -14,6 +17,8 @@ env:
 jobs:
   native-win-x64:
     runs-on: windows-latest
+    outputs:
+      artifact_name: ${{ steps.native-artifact.outputs.name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
@@ -89,6 +94,7 @@ jobs:
             'openimageio[core]:x64-windows-static-md' `
             'openexr[core]:x64-windows-static-md' `
             'imath[core]:x64-windows-static-md' `
+            "--x-install-root=${{ github.workspace }}/artifacts/vcpkg-installed" `
             "--overlay-ports=${{ github.workspace }}/eng/native/vcpkg/ports"
           if ($LASTEXITCODE) { throw 'vcpkg install failed.' }
       - name: Install the pinned sccache
@@ -165,3 +171,16 @@ jobs:
           } finally {
             $nativeDlls | ForEach-Object { Remove-Item -LiteralPath (Join-Path $testOutput $_.Name) -Force -ErrorAction SilentlyContinue }
           }
+      - name: Stage audited native runtime packages from the tested CMake outputs
+        id: native-artifact
+        shell: pwsh
+        run: |
+          python eng/packaging/native.py stage --vcpkg-root $env:VCPKG_ROOT
+          if ($LASTEXITCODE) { throw 'Native dependency/ABI/source closure failed.' }
+          "name=native-stage-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT" >> $env:GITHUB_OUTPUT
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ${{ steps.native-artifact.outputs.name }}
+          path: artifacts/native-packages/
+          if-no-files-found: error
+          retention-days: 30

@@ -12,6 +12,192 @@
         "LICENSE",
         "NOTICE.md"
       ]
+    },
+    {
+      "id": "ArcForges.Native.Abstractions",
+      "project": "src/Native/ArcForges.Native.Abstractions/ArcForges.Native.Abstractions.csproj",
+      "kind": "managed",
+      "dependencies": [],
+      "requiredFiles": [
+        "lib/net10.0/ArcForges.Native.Abstractions.dll",
+        "README.md",
+        "LICENSE",
+        "NOTICE.md"
+      ]
+    },
+    {
+      "id": "ArcForges.Native.Media",
+      "project": "src/Native/ArcForges.Native.Media/ArcForges.Native.Media.csproj",
+      "kind": "managed",
+      "dependencies": [
+        "ArcForges.Native.Abstractions"
+      ],
+      "requiredFiles": [
+        "lib/net10.0/ArcForges.Native.Media.dll",
+        "README.md",
+        "LICENSE",
+        "NOTICE.md"
+      ]
+    },
+    {
+      "id": "ArcForges.Native.Colour",
+      "project": "src/Native/ArcForges.Native.Colour/ArcForges.Native.Colour.csproj",
+      "kind": "managed",
+      "dependencies": [
+        "ArcForges.Native.Abstractions"
+      ],
+      "requiredFiles": [
+        "lib/net10.0/ArcForges.Native.Colour.dll",
+        "README.md",
+        "LICENSE",
+        "NOTICE.md"
+      ]
+    },
+    {
+      "id": "ArcForges.Native.Image",
+      "project": "src/Native/ArcForges.Native.Image/ArcForges.Native.Image.csproj",
+      "kind": "managed",
+      "dependencies": [
+        "ArcForges.Native.Abstractions"
+      ],
+      "requiredFiles": [
+        "lib/net10.0/ArcForges.Native.Image.dll",
+        "README.md",
+        "LICENSE",
+        "NOTICE.md"
+      ]
+    },
+    {
+      "id": "ArcForges.Native.Otio",
+      "project": "src/Native/ArcForges.Native.Otio/ArcForges.Native.Otio.csproj",
+      "kind": "managed",
+      "dependencies": [
+        "ArcForges.Native.Abstractions"
+      ],
+      "requiredFiles": [
+        "lib/net10.0/ArcForges.Native.Otio.dll",
+        "README.md",
+        "LICENSE",
+        "NOTICE.md"
+      ]
+    },
+    {
+      "id": "ArcForges.Native.Media.Runtime.win-x64",
+      "project": "src/Native/ArcForges.Native.Media.Runtime.win-x64/ArcForges.Native.Media.Runtime.win-x64.csproj",
+      "kind": "native",
+      "dependencies": [
+        "ArcForges.Native.Media"
+      ],
+      "rid": "win-x64",
+      "library": "ArcMediaNative",
+      "prefix": "arc_media",
+      "header": "native/arcmedia-ffmpeg-abi/include/arc/arc_media_abi.h",
+      "triplet": "x64-windows",
+      "vcpkgRoots": [
+        "ffmpeg",
+        "libusb",
+        "miniaudio"
+      ],
+      "requiredFiles": [
+        "README.md",
+        "LICENSE",
+        "NOTICE.md",
+        "native-manifest.json",
+        "sbom.json",
+        "runtimes/win-x64/native/ArcMediaNative.dll",
+        "runtimes/win-x64/native/ArcMediaNative.manifest.json",
+        "include/arc/arc_media_abi.h",
+        "include/arc/arc_native_abi.h",
+        "sdk/win-x64/lib/ArcMediaNative.lib",
+        "buildTransitive/ArcForges.Native.Media.Runtime.win-x64.targets"
+      ]
+    },
+    {
+      "id": "ArcForges.Native.Colour.Runtime.win-x64",
+      "project": "src/Native/ArcForges.Native.Colour.Runtime.win-x64/ArcForges.Native.Colour.Runtime.win-x64.csproj",
+      "kind": "native",
+      "dependencies": [
+        "ArcForges.Native.Colour"
+      ],
+      "rid": "win-x64",
+      "library": "ArcSlateColorNative",
+      "prefix": "arc_color",
+      "header": "native/arcslate-color-abi/include/arc/arc_slate_color_abi.h",
+      "triplet": "x64-windows-static-md",
+      "vcpkgRoots": [
+        "opencolorio"
+      ],
+      "requiredFiles": [
+        "README.md",
+        "LICENSE",
+        "NOTICE.md",
+        "native-manifest.json",
+        "sbom.json",
+        "runtimes/win-x64/native/ArcSlateColorNative.dll",
+        "runtimes/win-x64/native/ArcSlateColorNative.manifest.json",
+        "include/arc/arc_slate_color_abi.h",
+        "include/arc/arc_native_abi.h",
+        "sdk/win-x64/lib/ArcSlateColorNative.lib",
+        "buildTransitive/ArcForges.Native.Colour.Runtime.win-x64.targets"
+      ]
+    },
+    {
+      "id": "ArcForges.Native.Image.Runtime.win-x64",
+      "project": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+      "kind": "native",
+      "dependencies": [
+        "ArcForges.Native.Image"
+      ],
+      "rid": "win-x64",
+      "library": "ArcSlateImageNative",
+      "prefix": "arc_image",
+      "header": "native/arcslate-image-abi/include/arc/arc_slate_image_abi.h",
+      "triplet": "x64-windows-static-md",
+      "vcpkgRoots": [
+        "openimageio"
+      ],
+      "requiredFiles": [
+        "README.md",
+        "LICENSE",
+        "NOTICE.md",
+        "native-manifest.json",
+        "sbom.json",
+        "runtimes/win-x64/native/ArcSlateImageNative.dll",
+        "runtimes/win-x64/native/ArcSlateImageNative.manifest.json",
+        "include/arc/arc_slate_image_abi.h",
+        "include/arc/arc_native_abi.h",
+        "sdk/win-x64/lib/ArcSlateImageNative.lib",
+        "buildTransitive/ArcForges.Native.Image.Runtime.win-x64.targets"
+      ]
+    },
+    {
+      "id": "ArcForges.Native.Otio.Runtime.win-x64",
+      "project": "src/Native/ArcForges.Native.Otio.Runtime.win-x64/ArcForges.Native.Otio.Runtime.win-x64.csproj",
+      "kind": "native",
+      "dependencies": [
+        "ArcForges.Native.Otio"
+      ],
+      "rid": "win-x64",
+      "library": "ArcSlateOtioNative",
+      "prefix": "arc_otio",
+      "header": "native/arcslate-otio-abi/include/arc/arc_slate_otio_abi.h",
+      "triplet": "x64-windows-static-md",
+      "vcpkgRoots": [
+        "opentimelineio"
+      ],
+      "requiredFiles": [
+        "README.md",
+        "LICENSE",
+        "NOTICE.md",
+        "native-manifest.json",
+        "sbom.json",
+        "runtimes/win-x64/native/ArcSlateOtioNative.dll",
+        "runtimes/win-x64/native/ArcSlateOtioNative.manifest.json",
+        "include/arc/arc_slate_otio_abi.h",
+        "include/arc/arc_native_abi.h",
+        "sdk/win-x64/lib/ArcSlateOtioNative.lib",
+        "buildTransitive/ArcForges.Native.Otio.Runtime.win-x64.targets"
+      ]
     }
   ]
 }

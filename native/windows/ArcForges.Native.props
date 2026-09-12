@@ -3,6 +3,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ArcForgesRepositoryRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..\..\'))</ArcForgesRepositoryRoot>
+    <VcpkgInstalledDir Condition="'$(Platform)' == 'x64'">$(ArcForgesRepositoryRoot)artifacts\vcpkg-installed\</VcpkgInstalledDir>
     <ArcForgesTargetRid Condition="'$(Platform)' == 'x64'">win-x64</ArcForgesTargetRid>
     <ArcForgesTargetRid Condition="'$(Platform)' == 'ARM64'">win-arm64</ArcForgesTargetRid>
     <OutDir>$(ArcForgesRepositoryRoot)artifacts\msbuild\native\$(ArcForgesTargetRid)\$(Configuration)\</OutDir>

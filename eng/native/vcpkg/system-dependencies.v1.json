@@ -1,6 +1,17 @@
 {
   "schemaVersion": 1,
-  "status": "awaiting-native-package-admission",
+  "status": "windows-x64-abi-preamble",
   "owner": "DesktopPlatform",
-  "entries": []
+  "minimumOs": "Windows 10 x64",
+  "windowsApiSetPrefixes": ["api-ms-win-", "ext-ms-win-"],
+  "windowsDlls": [
+    "advapi32.dll", "avicap32.dll", "bcrypt.dll", "cfgmgr32.dll", "comdlg32.dll",
+    "crypt32.dll", "d3d11.dll", "d3d12.dll", "dnsapi.dll", "dwmapi.dll", "dxgi.dll",
+    "gdi32.dll", "imm32.dll", "iphlpapi.dll", "kernel32.dll", "mf.dll", "mfplat.dll",
+    "mfreadwrite.dll", "mfuuid.dll", "msvcrt.dll", "ncrypt.dll", "ntdll.dll", "ole32.dll",
+    "oleaut32.dll", "powrprof.dll", "propsys.dll", "psapi.dll", "rpcrt4.dll", "secur32.dll",
+    "setupapi.dll", "shell32.dll", "shlwapi.dll", "ucrtbase.dll", "user32.dll", "userenv.dll",
+    "uuid.dll", "version.dll", "vfw32.dll", "winhttp.dll", "winmm.dll", "winspool.drv",
+    "wintrust.dll", "ws2_32.dll", "wtsapi32.dll"
+  ]
 }
