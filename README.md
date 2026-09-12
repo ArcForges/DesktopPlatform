@@ -36,6 +36,9 @@ Windows projects and stages their DLLs for `NativeAbiTests`; CI uses the indepen
 [Package publishing](eng/packaging/README.md) documents the release allowlist, candidate verification,
 NuGet trusted-publisher setup and consumer examples. Only admitted packages are published; current
 shared placeholders and native probes are not advertised as complete runtime packages.
+Every push to `main`, including a merged PR, automatically allocates a prerelease version, builds and
+verifies the candidate on Windows/Linux, then publishes the tested bytes to nuget.org through OIDC.
+No manual workflow run, version entry or publish checkbox is required.
 
 Contracts is a separate repository with handwritten proto as the business RPC authority. It also owns
 schema validation, compatibility checks, generators and generated SDK packaging:
