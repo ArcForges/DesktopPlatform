@@ -1,6 +1,6 @@
 # DesktopPlatform extraction and package pipeline
 
-## Plan fixed before changes
+## Initial extraction plan
 
 Base: `99bfe7d695ed0d65a0d035af7d219fc9b86100f5` in `ArcForges/DesktopPlatform`.
 Design authority: `ArcForges/ArcForges-Design` commit `f6e0cd2` (merged final review),
@@ -15,7 +15,8 @@ Design authority: `ArcForges/ArcForges-Design` commit `f6e0cd2` (merged final re
    explicitly non-packable. NativeInterop remains an internal ABI probe, pending capability separation.
 4. Add the real `ArcForges.Build.Policy` package and an explicit release allowlist. Build and pack with
    an allocated version; verify metadata/hash and restore in an isolated consumer with a private cache.
-   PRs retain candidates; a main-branch manual release publishes those tested bytes using NuGet OIDC.
+   PRs retain candidates. Initial delivery used a manually triggered main-branch NuGet OIDC release;
+   the current automatic publication behavior is recorded below.
 5. Validate locked restore, warnings-as-errors build, policy and native checks, package consumer and
    negative fixtures, workflow syntax and final diff. Record actual evidence separately from pending
    NuGet account setup and future capability/RID acceptance.
@@ -43,7 +44,20 @@ This bootstrap does not close every WP02 obligation across all ten repositories 
   Hosted CI still pins CMake 4.3.3; local evidence does not substitute for that exact hosted toolchain.
 - actionlint 1.7.12, pre-commit clang-format, local Markdown file links and Git whitespace checks passed.
 
-NuGet account setup is intentionally deferred by the user. `YOUR_NUGET_USERNAME` is the explicit
-placeholder; dry-run candidate validation works without credentials, while actual publication rejects
-it. No NuGet/npm package was published. No full capability AOT, macOS/ARM64/Linux native release matrix,
-sandbox, application, mobile-device or commercial-operation acceptance is claimed here.
+At extraction time, NuGet account setup was deferred and no NuGet/npm package was published. Subsequent
+setup completed NuGet trusted publishing and the GitHub `nuget` environment. Main-branch
+[run 34673898986](https://github.com/ArcForges/DesktopPlatform/actions/runs/34673898986) successfully
+authenticated through OIDC and uploaded `ArcForges.Build.Policy` `1.0.0-ci.2.1`.
+
+## Automatic publication after main updates
+
+The publication workflow now runs on every push to `main`, including merged PRs. It allocates an
+immutable prerelease version, packs and verifies the candidate, tests it in Windows/Linux consumers,
+then publishes the tested bytes. No manual release form or approval step is part of the configured
+flow. Independent runs prevent newer merges from replacing queued releases. See the current
+[package production instructions](../eng/packaging/README.md) for numbering, setup and recovery.
+
+The earlier successful upload proves the configured OIDC/push path. The first main push containing the
+automatic trigger is still needed to establish hosted evidence for that trigger. No full capability AOT,
+macOS/ARM64/Linux native release matrix, sandbox, application, mobile-device or commercial-operation
+acceptance is claimed here.

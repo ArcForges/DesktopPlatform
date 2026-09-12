@@ -1,22 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 name: Publish NuGet
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Optional override; leave empty for automatic prerelease version'
-        type: string
-        required: false
-        default: ''
-      publish:
-        description: Publish the verified candidate to nuget.org (main only)
-        type: boolean
-        default: false
+  push:
+    branches: [main]
 permissions:
   contents: read
-concurrency:
-  group: nuget-publication
-  cancel-in-progress: false
+# Each main push owns a distinct version. Keep runs independent so a later merge
+# cannot replace a pending release in a shared concurrency group.
 jobs:
   preflight:
     runs-on: ubuntu-latest
@@ -27,32 +17,27 @@ jobs:
       - name: Allocate release version and validate publisher setup
         id: release
         env:
-          PACKAGE_VERSION: ${{ inputs.version }}
-          PUBLISH: ${{ inputs.publish }}
-          NUGET_USER: ${{ vars.NUGET_USER || 'YOUR_NUGET_USERNAME' }}
+          NUGET_USER: ${{ vars.NUGET_USER }}
         shell: pwsh
         run: |
-          $version = $env:PACKAGE_VERSION
-          if ([string]::IsNullOrWhiteSpace($version)) {
-            $version = "1.0.0-ci.$env:GITHUB_RUN_NUMBER.$env:GITHUB_RUN_ATTEMPT"
+          if ($env:GITHUB_EVENT_NAME -ne 'push' -or $env:GITHUB_REF -ne 'refs/heads/main' -or $env:GITHUB_REPOSITORY -ne 'ArcForges/DesktopPlatform') {
+            throw 'Public NuGet publication is restricted to pushes to ArcForges/DesktopPlatform main.'
           }
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_USER) -or $env:NUGET_USER -eq 'YOUR_NUGET_USERNAME') {
+            throw 'Set repository variable NUGET_USER and the documented nuget.org trusted publisher.'
+          }
+          $version = "1.0.0-ci.$env:GITHUB_RUN_NUMBER.$env:GITHUB_RUN_ATTEMPT"
           python eng/packaging/packages.py version --version $version
           if ($LASTEXITCODE) { throw 'Invalid package version.' }
           "version=$version" >> $env:GITHUB_OUTPUT
           "Package version: $version" >> $env:GITHUB_STEP_SUMMARY
-          if ($env:PUBLISH -eq 'true') {
-            if ($env:GITHUB_REF -ne 'refs/heads/main' -or $env:GITHUB_REPOSITORY -ne 'ArcForges/DesktopPlatform') {
-              throw 'Public NuGet publication is restricted to ArcForges/DesktopPlatform main.'
-            }
-            if ($env:NUGET_USER -eq 'YOUR_NUGET_USERNAME') { throw 'Set repository variable NUGET_USER and the documented nuget.org trusted publisher.' }
-          }
   candidate:
     needs: preflight
     uses: ./.github/workflows/package-validation.yml
     with:
       version: ${{ needs.preflight.outputs.version }}
   publish:
-    if: inputs.publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ArcForges/DesktopPlatform'
     needs: candidate
     runs-on: ubuntu-latest
     environment: nuget
@@ -76,7 +61,7 @@ jobs:
         id: login
         uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
         with:
-          user: ${{ vars.NUGET_USER || 'YOUR_NUGET_USERNAME' }}
+          user: ${{ vars.NUGET_USER }}
       - name: Publish the same verified bytes
         env:
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
