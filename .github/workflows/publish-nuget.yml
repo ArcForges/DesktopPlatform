@@ -4,9 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Exact package version (e.g. 1.0.0-ci.1 or 1.0.0)
+        description: 'Optional override; leave empty for automatic prerelease version'
         type: string
-        required: true
+        required: false
+        default: ''
       publish:
         description: Publish the verified candidate to nuget.org (main only)
         type: boolean
@@ -19,17 +20,26 @@ concurrency:
 jobs:
   preflight:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Validate requested release and publisher setup
+      - name: Allocate release version and validate publisher setup
+        id: release
         env:
           PACKAGE_VERSION: ${{ inputs.version }}
           PUBLISH: ${{ inputs.publish }}
           NUGET_USER: ${{ vars.NUGET_USER || 'YOUR_NUGET_USERNAME' }}
         shell: pwsh
         run: |
-          python eng/packaging/packages.py version --version $env:PACKAGE_VERSION
+          $version = $env:PACKAGE_VERSION
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            $version = "1.0.0-ci.$env:GITHUB_RUN_NUMBER.$env:GITHUB_RUN_ATTEMPT"
+          }
+          python eng/packaging/packages.py version --version $version
           if ($LASTEXITCODE) { throw 'Invalid package version.' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "Package version: $version" >> $env:GITHUB_STEP_SUMMARY
           if ($env:PUBLISH -eq 'true') {
             if ($env:GITHUB_REF -ne 'refs/heads/main' -or $env:GITHUB_REPOSITORY -ne 'ArcForges/DesktopPlatform') {
               throw 'Public NuGet publication is restricted to ArcForges/DesktopPlatform main.'
@@ -40,7 +50,7 @@ jobs:
     needs: preflight
     uses: ./.github/workflows/package-validation.yml
     with:
-      version: ${{ inputs.version }}
+      version: ${{ needs.preflight.outputs.version }}
   publish:
     if: inputs.publish
     needs: candidate
@@ -56,11 +66,11 @@ jobs:
           global-json-file: global.json
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: nuget-candidate
+          name: ${{ needs.candidate.outputs.artifact_name }}
           path: artifacts/packages
       - name: Recheck source identity, allowlist, contents and hashes before authentication
         env:
-          PACKAGE_VERSION: ${{ inputs.version }}
+          PACKAGE_VERSION: ${{ needs.candidate.outputs.version }}
         run: python eng/packaging/packages.py verify --version "$PACKAGE_VERSION" --commit "$GITHUB_SHA"
       - name: Exchange GitHub OIDC identity for a short-lived NuGet API key
         id: login
