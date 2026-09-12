@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "id": "ArcForges.Build.Policy",
+      "project": "src/Build/ArcForges.Build.Policy/ArcForges.Build.Policy.csproj",
+      "kind": "build",
+      "requiredFiles": [
+        "build/ArcForges.Build.Policy.props",
+        "build/ArcForges.Build.Policy.targets",
+        "README.md",
+        "LICENSE",
+        "NOTICE.md"
+      ]
+    }
+  ]
+}

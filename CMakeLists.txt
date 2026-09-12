@@ -13,7 +13,7 @@ foreach(_required IN ITEMS CMAKE_TOOLCHAIN_FILE VCPKG_TARGET_TRIPLET)
     endif()
 endforeach()
 
-project(ArcForges VERSION 0.1.0 LANGUAGES C CXX)
+project(DesktopPlatform VERSION 0.1.0 LANGUAGES C CXX)
 
 option(ARCFORGES_BUILD_TESTS "Build native ABI smoke tests" ON)
 option(ARCFORGES_BUILD_FUZZERS "Build Clang libFuzzer ABI boundary targets" OFF)

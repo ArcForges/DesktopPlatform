@@ -1,7 +1,0 @@
-<!-- SPDX-License-Identifier: AGPL-3.0-only -->
-<!-- file: ArcForges.Cloud.Modules.Chat.csproj -->
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="../ArcForges.Cloud.Modules.Notes/ArcForges.Cloud.Modules.Notes.csproj" />
-  </ItemGroup>
-</Project>

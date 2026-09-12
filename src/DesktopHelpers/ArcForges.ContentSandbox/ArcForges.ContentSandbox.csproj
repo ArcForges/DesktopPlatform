@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- SPDX-License-Identifier: AGPL-3.0-only -->
   <!--
-    Parent-bound one-shot helper. implementation-repository-layout.md §13 requires the same
+    Parent-bound one-shot helper. implementation-repository-layout.md Â§13 requires the same
     self-contained Native AOT publish mode and the same five desktop RIDs as the four desktop
     heads, so it imports the same property files instead of restating them.
   -->

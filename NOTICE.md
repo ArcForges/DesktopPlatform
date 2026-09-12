@@ -1,22 +1,24 @@
-# ArcForges Notices
+# DesktopPlatform notices
 
-ArcForges is licensed under AGPL-3.0-only. Corresponding Source is published at
-<https://github.com/ArcForges/ArcForges>.
+DesktopPlatform is licensed under AGPL-3.0-only. Corresponding Source, including the source commit
+recorded in each package, is available at https://github.com/ArcForges/DesktopPlatform.
 
-Third-party code and assets must be recorded here and in `docs/compliance/` before distribution.
+The current `ArcForges.Build.Policy` NuGet contains only first-party policy sources and no third-party
+runtime binaries. Native source/build dependencies below are retained for producer development; their
+actual distributable closure, licences and source records must accompany any future runtime package.
 
-| Component | Version/source | License | Use | Notice/source offer |
-|---|---|---|---|---|
-| .NET, ASP.NET Core, and MAUI | 10 | MIT | Managed runtime, Cloud, Web, and Mobile hosts | Microsoft notices ship with published runtimes |
-| Avalonia | 12.1.1 | MIT | Native desktop UI | Upstream license included in release notices |
-| FFmpeg | 8.1.2#3 | LGPL-2.1-or-later | Shared runtime libraries behind `ArcMediaNative` | Dynamic linking and corresponding upstream source/version are preserved |
-| libusb | 1.0.30 | LGPL-2.1-or-later | Shared device-access runtime | Dynamic linking and upstream notice preserved |
-| miniaudio | 0.11.25 | Unlicense OR MIT-0 | Audio abstraction | Upstream notice preserved |
-| OpenTimelineIO | 0.18.1#2 | Apache-2.0 | Statically linked into owned OTIO shim | License and NOTICE are copied from the locked source |
-| OpenColorIO / OpenEXR / Imath | 2.5.2 / 3.4.13 / 3.2.2 | BSD-3-Clause | Statically linked color and image shims | Upstream notices preserved |
-| OpenImageIO | 3.1.14.0#1 | Apache-2.0 | Statically linked image shim | Upstream notice preserved |
-| mdflib | 2.3.0 | MIT | Statically linked MDF shim | License and third-party notice are copied from the locked source |
+| Component | Selected version | Licence | Use |
+|---|---|---|---|
+| .NET SDK/runtime and Microsoft analyzers | Pinned SDK and package locks | MIT | Managed build and tests |
+| xUnit | Package locks | Apache-2.0 | Tests only |
+| FFmpeg | 9.0.1 | LGPL-2.1-or-later configuration | Shared media runtime behind owned C ABI |
+| libusb | 1.0.30 | LGPL-2.1-or-later | Device-access runtime |
+| miniaudio | 0.11.25 | Unlicense OR MIT-0 | Audio foundation |
+| OpenTimelineIO | 0.18.1, pinned overlay | Apache-2.0 | Owned OTIO shim |
+| OpenColorIO / OpenEXR / Imath | 2.5.2 / 3.4.13 / 3.2.2 | BSD-3-Clause | Colour/image shim dependencies |
+| OpenImageIO | 3.1.14.0 | Apache-2.0 | Owned image shim |
 
-The resolved transitive inventory and license texts are emitted as SPDX JSON by the release workflow. Exact
-managed versions are locked in `packages.lock.json`; reviewed native versions and install features are recorded
-in `deploy/README.md`, with the two custom ports retained under `eng/native/vcpkg/ports`.
+Exact native inputs use vcpkg `36677bbd0b3bf11da7376e62e14bffcc54d2eaeb` and the retained OTIO overlay.
+MDF was removed from both producer build graphs. See [native builds](deploy/README.md) and the
+[dependency register](docs/compliance/third-party-license-register.md). A source dependency list is not
+a completed binary SBOM or proof of native redistribution readiness.

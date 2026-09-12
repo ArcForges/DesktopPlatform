@@ -1,16 +1,16 @@
-# Deployment
+# Native producer builds
 
-Aspire development topology, containers, Azure, static Web, self-host, promotion, and rollback definitions are
-owned here. Production deployment content arrives only with its tested release step.
+DesktopPlatform owns native compilation and capability packaging. Application deployment belongs to each
+product repository. These instructions build the retained ABI foundations, not product release artifacts.
 
 ## Native dependency toolchain
 
 ArcForges uses a normal vcpkg installation. It does not use repository manifests, custom triplets, or
 repository-local installed trees. The reviewed Windows toolchain is `C:\vcpkg` at commit
-`9e593bb18ea69cc5095e012465dcd675a822ed0d`.
+`36677bbd0b3bf11da7376e62e14bffcc54d2eaeb`.
 
 ```powershell
-git -C C:\vcpkg checkout --detach 9e593bb18ea69cc5095e012465dcd675a822ed0d
+git -C C:\vcpkg checkout --detach 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb
 & C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
 ```
 
@@ -32,7 +32,6 @@ Install the static implementation dependencies used inside the owned ABI shims:
   'openimageio[core]:x64-windows-static-md' `
   'openexr[core]:x64-windows-static-md' `
   'imath[core]:x64-windows-static-md' `
-  'mdflib[core]:x64-windows-static-md' `
   '--overlay-ports=eng/native/vcpkg/ports'
 ```
 
@@ -70,3 +69,16 @@ CI never builds `win.slnx`; the hosted Windows job builds the CMake presets only
 `Release|x64` locally, which is what keeps the two Windows entry points from drifting apart. It locates
 MSBuild through `vswhere` and skips itself on non-Windows hosts, so the Ubuntu repository-hooks job is
 unaffected.
+
+Build, test and stage each profile from the configured compiler shell:
+
+```powershell
+cmake --preset win-x64-runtime-shared
+cmake --build --preset win-x64-runtime-shared
+ctest --preset win-x64-runtime-shared
+cmake --install artifacts/cmake/win-x64/runtime-shared
+cmake --preset win-x64-shim-static
+cmake --build --preset win-x64-shim-static
+ctest --preset win-x64-shim-static
+cmake --install artifacts/cmake/win-x64/shim-static
+```

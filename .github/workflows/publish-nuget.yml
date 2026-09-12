@@ -1,0 +1,81 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: Publish NuGet
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact package version (e.g. 1.0.0-ci.1 or 1.0.0)
+        type: string
+        required: true
+      publish:
+        description: Publish the verified candidate to nuget.org (main only)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: nuget-publication
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Validate requested release and publisher setup
+        env:
+          PACKAGE_VERSION: ${{ inputs.version }}
+          PUBLISH: ${{ inputs.publish }}
+          NUGET_USER: ${{ vars.NUGET_USER || 'YOUR_NUGET_USERNAME' }}
+        shell: pwsh
+        run: |
+          python eng/packaging/packages.py version --version $env:PACKAGE_VERSION
+          if ($LASTEXITCODE) { throw 'Invalid package version.' }
+          if ($env:PUBLISH -eq 'true') {
+            if ($env:GITHUB_REF -ne 'refs/heads/main' -or $env:GITHUB_REPOSITORY -ne 'ArcForges/DesktopPlatform') {
+              throw 'Public NuGet publication is restricted to ArcForges/DesktopPlatform main.'
+            }
+            if ($env:NUGET_USER -eq 'YOUR_NUGET_USERNAME') { throw 'Set repository variable NUGET_USER and the documented nuget.org trusted publisher.' }
+          }
+  candidate:
+    needs: preflight
+    uses: ./.github/workflows/package-validation.yml
+    with:
+      version: ${{ inputs.version }}
+  publish:
+    if: inputs.publish
+    needs: candidate
+    runs-on: ubuntu-latest
+    environment: nuget
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: nuget-candidate
+          path: artifacts/packages
+      - name: Recheck source identity, allowlist, contents and hashes before authentication
+        env:
+          PACKAGE_VERSION: ${{ inputs.version }}
+        run: python eng/packaging/packages.py verify --version "$PACKAGE_VERSION" --commit "$GITHUB_SHA"
+      - name: Exchange GitHub OIDC identity for a short-lived NuGet API key
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        with:
+          user: ${{ vars.NUGET_USER || 'YOUR_NUGET_USERNAME' }}
+      - name: Publish the same verified bytes
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        shell: pwsh
+        run: |
+          $manifest = Get-Content -LiteralPath artifacts/packages/manifest.json -Raw | ConvertFrom-Json
+          foreach ($package in $manifest.packages) {
+            $path = Join-Path artifacts/packages $package.file
+            dotnet nuget push $path --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+            if ($LASTEXITCODE) { throw "NuGet publication failed for $($package.id). Existing versions are never overwritten or silently skipped." }
+          }
+          "Published version $($manifest.version) from source $($manifest.sourceCommit)." >> $env:GITHUB_STEP_SUMMARY

@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: Package validation
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        default: ''
+    outputs:
+      version:
+        value: ${{ jobs.pack.outputs.version }}
+permissions:
+  contents: read
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  TESTINGPLATFORM_TELEMETRY_OPTOUT: '1'
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Allocate version before compilation
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        shell: pwsh
+        run: |
+          $version = $env:REQUESTED_VERSION
+          if (-not $version) { $version = "1.0.0-ci.$env:GITHUB_RUN_ID.$env:GITHUB_RUN_ATTEMPT" }
+          python eng/packaging/packages.py version --version $version
+          if ($LASTEXITCODE) { throw 'Invalid package version.' }
+          "value=$version" >> $env:GITHUB_OUTPUT
+      - run: dotnet restore DesktopPlatform.slnx --locked-mode
+      - run: dotnet format DesktopPlatform.slnx --verify-no-changes --no-restore
+      - name: Build and test platform ownership
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.value }}
+        shell: pwsh
+        run: |
+          dotnet build DesktopPlatform.slnx -c Release --no-restore "-p:PackageVersion=$env:PACKAGE_VERSION"
+          if ($LASTEXITCODE) { throw 'Platform build failed.' }
+          dotnet test --project tests/ArchitectureTests/ArcForges.Tests.ArchitectureTests.csproj -c Release --no-build
+          if ($LASTEXITCODE) { throw 'Platform ownership tests failed.' }
+      - name: Pack explicit release allowlist and verify immutable manifest
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.value }}
+        run: python eng/packaging/packages.py pack --version "$PACKAGE_VERSION"
+      - name: Verify rejection of invalid versions and altered candidates
+        run: python -m unittest discover -s eng/packaging -p 'test_*.py' -v
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: nuget-candidate
+          path: artifacts/packages/
+          if-no-files-found: error
+          retention-days: 30
+  consumer:
+    needs: pack
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: nuget-candidate
+          path: artifacts/packages
+      - name: Consume exact candidate outside the repository with an empty cache
+        env:
+          PACKAGE_VERSION: ${{ needs.pack.outputs.version }}
+        shell: pwsh
+        run: |
+          python eng/packaging/packages.py smoke --version $env:PACKAGE_VERSION --commit $env:GITHUB_SHA
+          if ($LASTEXITCODE) { throw 'Independent NuGet consumer verification failed.' }

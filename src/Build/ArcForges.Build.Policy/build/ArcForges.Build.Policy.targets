@@ -1,0 +1,25 @@
+<Project>
+  <!-- SPDX-License-Identifier: AGPL-3.0-only -->
+  <Target Name="ArcForgesVerifyPackagePolicy" BeforeTargets="CollectPackageReferences"
+          Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <ItemGroup>
+      <_ArcForgesInlineVersion Include="@(PackageReference)"
+        Condition="('%(PackageReference.Version)' != '' Or '%(PackageReference.VersionOverride)' != '') And '%(PackageReference.IsImplicitlyDefined)' != 'true'" />
+      <_ArcForgesFloatingVersion Include="@(PackageVersion)"
+        Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageVersion.Version)', '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$'))" />
+    </ItemGroup>
+    <Error Code="AFP001" Condition="'$(ManagePackageVersionsCentrally)' != 'true'"
+           Text="Enable ManagePackageVersionsCentrally in this repository's Directory.Packages.props." />
+    <Error Code="AFP002" Condition="'@(_ArcForgesInlineVersion)' != ''"
+           Text="Inline NuGet versions are forbidden. Use Directory.Packages.props: @(_ArcForgesInlineVersion)" />
+    <Error Code="AFP003" Condition="'@(_ArcForgesFloatingVersion)' != ''"
+           Text="Use exact central package versions and commit package locks: @(_ArcForgesFloatingVersion)" />
+  </Target>
+  <Target Name="ArcForgesVerifyCompilerPolicy" BeforeTargets="PrepareForBuild"
+          Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <Error Code="AFP004" Condition="'$(LangVersion)' != '14' Or '$(Nullable)' != 'enable' Or '$(Deterministic)' != 'true' Or '$(TreatWarningsAsErrors)' != 'true'"
+           Text="ArcForges requires C# 14, nullable enabled, deterministic compilation and warnings-as-errors." />
+    <Error Code="AFP005" Condition="'$(RestorePackagesWithLockFile)' != 'true' Or ('$(CI)' == 'true' And '$(RestoreLockedMode)' != 'true')"
+           Text="Commit per-project package locks and restore locked in CI." />
+  </Target>
+</Project>

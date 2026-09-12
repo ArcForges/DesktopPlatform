@@ -7,21 +7,20 @@
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <IsPackable>false</IsPackable>
     <Authors>ArcForges</Authors>
     <Company>ArcForges</Company>
-    <Copyright>Copyright © ArcForges contributors</Copyright>
+    <Copyright>Copyright ArcForges contributors</Copyright>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/ArcForges/ArcForges</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ArcForges/DesktopPlatform</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageProjectUrl>https://github.com/ArcForges/ArcForges</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/ArcForges/DesktopPlatform</PackageProjectUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <AnalysisLevel>latest-all</AnalysisLevel>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
-    <!-- Workload library packs are host-specific; restore NuGet packages from the pinned feed so one lock is portable. -->
-    <DisableImplicitLibraryPacksFolder>true</DisableImplicitLibraryPacksFolder>
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
     <WarningsAsErrors>$(WarningsAsErrors);NU1605;IL2026;IL3050</WarningsAsErrors>
@@ -37,4 +36,5 @@
     <DefaultExcludesInProjectFolder>$(DefaultExcludesInProjectFolder);**/bin/**;**/obj/**;$(MSBuildThisFileDirectory)artifacts/**</DefaultExcludesInProjectFolder>
   </PropertyGroup>
 
+  <Import Project="src/Build/ArcForges.Build.Policy/build/ArcForges.Build.Policy.props" />
 </Project>

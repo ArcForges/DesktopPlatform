@@ -61,3 +61,7 @@ lcov.info
 *.binlog
 .DS_Store
 Thumbs.db
+
+# Python packaging tooling
+__pycache__/
+*.py[cod]

@@ -19,7 +19,7 @@ env:
   VCPKG_COMMIT: 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb
   SCCACHE_VERSION: 0.17.0
   SCCACHE_SHA256: 67c4a96dd237c1f518f6b36083f270f9976d516f1e57fce891755ea782e50006
-  VCPKG_LINUX_X64_GRAPH_REVISION: runtime-gpu-and-static-shims-v1
+  VCPKG_LINUX_X64_GRAPH_REVISION: platform-no-mdf-v2
 
 jobs:
   codeql:
@@ -38,9 +38,8 @@ jobs:
           global-json-file: global.json
       - name: Build C#
         run: |
-          dotnet workload install maui-android wasm-tools --skip-manifest-update
-          dotnet restore ArcForges.slnx --locked-mode
-          dotnet build ArcForges.slnx -c Release --no-restore
+          dotnet restore DesktopPlatform.slnx --locked-mode
+          dotnet build DesktopPlatform.slnx -c Release --no-restore
       - uses: github/codeql-action/analyze@24c7eb380a2dc368f2d129e4c65e51d172983a1e # v4
 
   native-quality:
@@ -75,6 +74,7 @@ jobs:
           key: vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-${{ env.VCPKG_LINUX_X64_GRAPH_REVISION }}-${{ hashFiles('eng/native/vcpkg/ports/**') }}
           restore-keys: |
             vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-${{ env.VCPKG_LINUX_X64_GRAPH_REVISION }}-
+            vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-runtime-gpu-and-static-shims-v1-
       - name: Install the pinned sccache
         run: |
           set -euo pipefail
@@ -112,7 +112,6 @@ jobs:
             'openimageio[core]:x64-linux' \
             'openexr[core]:x64-linux' \
             'imath[core]:x64-linux' \
-            'mdflib[core]:x64-linux' \
             "--overlay-ports=$GITHUB_WORKSPACE/eng/native/vcpkg/ports"
       - name: Run clang-tidy, ASan, UBSan, tests, and fuzzers
         run: |

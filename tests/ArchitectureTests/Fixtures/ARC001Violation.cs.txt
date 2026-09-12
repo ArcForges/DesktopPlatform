@@ -1,7 +1,0 @@
-<!-- SPDX-License-Identifier: AGPL-3.0-only -->
-<!-- file: ArcChat.Domain.csproj -->
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" />
-  </ItemGroup>
-</Project>
