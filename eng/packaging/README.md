@@ -15,7 +15,9 @@ The smoke retains a temporary directory outside the repository for inspecting lo
 PR CI builds and packs once, records source commit/version/package SHA256 in `manifest.json`, and tests
 those bytes on Windows and Linux. Consumers use an empty NuGet cache and source mapping forcing ArcForges
 packages to the candidate feed. Their build/run and negative central-version/compiler/lock fixtures
-must pass. CI retains the candidate as the `nuget-candidate` artifact for 30 days. These artifacts are
+must pass. CI retains the candidate as `nuget-candidate-<run-id>-<producer-attempt>` for 30 days.
+The producer exports that exact artifact name to consumers and publication, so retrying a consumer
+continues to use the original tested bytes and rebuilding in another attempt has a distinct artifact. These artifacts are
 internal test inputs, not stable public feed availability. Local builds with uncommitted changes are
 only development evidence; public candidates always come from a clean CI checkout.
 
@@ -43,10 +45,19 @@ prerequisites; committing YAML does not configure a NuGet account.
 
 ## Release
 
-Run **Publish NuGet** from GitHub Actions on `main`. Set an exact version and keep `publish=false` to
-exercise the full candidate flow without publishing. Set `publish=true` for an actual publication.
-The same run builds/tests the allocated version, verifies its manifest again, obtains a temporary OIDC
-credential and pushes the same `.nupkg` bytes. The account must own or be allowed to create the package ID.
+Run **Publish NuGet** from GitHub Actions on `main`. Leave `version` empty for automatic prerelease
+numbering: `1.0.0-ci.<workflow-run-number>.<run-attempt>`, for example `1.0.0-ci.1.1`, then
+`1.0.0-ci.2.1`. GitHub increments the workflow run number on every new run, including dry runs and
+failed runs, so published numbers can have gaps. Re-running all jobs uses the new attempt suffix.
+Retrying only failed downstream jobs retains the already allocated version and producer artifact.
+The `1.0.0` release line stays explicit; CI does not infer compatibility or a new major/minor version.
+
+An explicit `version`, such as `1.0.0` for a stable release, overrides automatic numbering. The version
+is validated and allocated once before build, then passed through package creation, independent consumer
+verification and publication. The run summary displays it; consumers do not need to guess it.
+Keep `publish=false` to exercise the candidate flow, or check `publish=true` to actually upload.
+Manual publication and the main-branch restriction remain in effect. The same run obtains an OIDC
+credential and pushes the same tested `.nupkg` bytes. The account must own or be allowed to create the package ID.
 
 Versions are immutable. `1.0.0-ci.1` cannot be renamed/promoted to `1.0.0`: the latter is a new candidate
 and must run through all gates. No automatic push occurs on PRs, branch pushes, tags or ordinary builds.
