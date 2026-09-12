@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "skeleton",
-  "ownerStep": "30",
+  "status": "awaiting-native-package-admission",
+  "owner": "DesktopPlatform",
   "entries": []
 }

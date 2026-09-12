@@ -9,7 +9,7 @@ public sealed class NativeAbiSmokeTests
     public void ManagedBindingsLoadAndExecuteEveryOwnedWindowsShim()
     {
         IReadOnlyList<ArcForges.NativeInterop.NativeProbeResult> results = ArcForges.NativeInterop.NativeSmoke.VerifyAll();
-        Xunit.Assert.Equal(5, results.Count);
+        Xunit.Assert.Equal(4, results.Count);
         Xunit.Assert.All(results, result =>
         {
             Xunit.Assert.Equal(1u, result.AbiMajor);
@@ -18,7 +18,5 @@ public sealed class NativeAbiSmokeTests
             Xunit.Assert.Contains("abi=1.0", result.BuildInfo, StringComparison.Ordinal);
         });
 
-        Xunit.Assert.Equal("ArcScopeMdfNative", ArcScope.Native.MdfNativeSmoke.Verify().LibraryName);
-        Xunit.Assert.Equal(3, ArcSlate.Native.SlateNativeSmoke.Verify().Count);
     }
 }

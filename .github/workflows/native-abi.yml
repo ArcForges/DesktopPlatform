@@ -1,0 +1,166 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: Native ABI
+on:
+  workflow_call:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  VCPKG_COMMIT: 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb
+  VCPKG_WINDOWS_X64_GRAPH_REVISION: platform-no-mdf-v2
+  SCCACHE_VERSION: 0.17.0
+jobs:
+  native-win-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
+        with:
+          cmakeVersion: '4.3.3'
+          ninjaVersion: '1.13.1'
+      - name: Pin vcpkg checkout
+        shell: pwsh
+        run: |
+          $root = $env:VCPKG_INSTALLATION_ROOT
+          if ([string]::IsNullOrWhiteSpace($root)) { throw 'Runner vcpkg installation was not found.' }
+          git -C $root fetch --depth 1 origin $env:VCPKG_COMMIT
+          if ($LASTEXITCODE) { throw 'vcpkg fetch failed.' }
+          git -C $root checkout --detach --force $env:VCPKG_COMMIT
+          if ($LASTEXITCODE) { throw 'vcpkg checkout failed.' }
+          & "$root/bootstrap-vcpkg.bat" -disableMetrics
+          if ($LASTEXITCODE) { throw 'vcpkg bootstrap failed.' }
+          $actual = (git -C $root rev-parse HEAD).Trim()
+          if ($actual -ne $env:VCPKG_COMMIT) { throw "Unexpected vcpkg commit: $actual" }
+          "VCPKG_ROOT=$root" >> $env:GITHUB_ENV
+      - name: Resolve vcpkg toolchain fingerprint
+        id: vcpkg-toolchain
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path -LiteralPath $vswhere)) { throw 'vswhere was not found.' }
+          $installationPath = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath).Trim()
+          $installationVersion = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationVersion).Trim()
+          if (-not $installationPath -or -not $installationVersion) { throw 'Visual Studio C++ tools were not found.' }
+          $vcToolsVersion = (Get-Content -LiteralPath (Join-Path $installationPath 'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt') -Raw).Trim()
+          $compiler = Join-Path $installationPath "VC\Tools\MSVC\$vcToolsVersion\bin\Hostx64\x64\cl.exe"
+          $compilerVersion = (Get-Item -LiteralPath $compiler).VersionInfo.FileVersion
+          $sdkRoot = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\Include'
+          $sdkVersion = (Get-ChildItem -LiteralPath $sdkRoot -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name
+          $cmakeVersion = ((cmake --version | Select-Object -First 1) -replace '^cmake version\s+', '').Trim()
+          $ninjaVersion = (ninja --version).Trim()
+          $identity = [ordered]@{
+            visualStudio = $installationVersion
+            vcTools = $vcToolsVersion
+            compiler = $compilerVersion
+            windowsSdk = $sdkVersion
+            cmake = $cmakeVersion
+            ninja = $ninjaVersion
+          } | ConvertTo-Json -Compress
+          $bytes = [Text.Encoding]::UTF8.GetBytes($identity)
+          $fingerprint = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+          "fingerprint=$fingerprint" >> $env:GITHUB_OUTPUT
+          "vcpkg toolchain: $identity"
+          "vcpkg toolchain fingerprint: $fingerprint"
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ${{ runner.temp }}/vcpkg-archives
+          key: vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-${{ env.VCPKG_WINDOWS_X64_GRAPH_REVISION }}-${{ hashFiles('eng/native/vcpkg/ports/**') }}
+          restore-keys: |
+            vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-${{ env.VCPKG_WINDOWS_X64_GRAPH_REVISION }}-
+      - name: Install native dependencies
+        shell: pwsh
+        run: |
+          $root = $env:VCPKG_ROOT
+          $archives = Join-Path $env:RUNNER_TEMP 'vcpkg-archives'
+          New-Item -ItemType Directory -Force $archives | Out-Null
+          $env:VCPKG_BINARY_SOURCES = "clear;files,$archives,readwrite"
+          & "$root/vcpkg.exe" install `
+            'ffmpeg[core,avcodec,avfilter,avformat,swresample,swscale,vulkan,qsv,nvcodec,amf]:x64-windows' `
+            'libusb[core]:x64-windows' `
+            'miniaudio[core]:x64-windows' `
+            'opentimelineio[core]:x64-windows-static-md' `
+            'opencolorio[core]:x64-windows-static-md' `
+            'openimageio[core]:x64-windows-static-md' `
+            'openexr[core]:x64-windows-static-md' `
+            'imath[core]:x64-windows-static-md' `
+            "--overlay-ports=${{ github.workspace }}/eng/native/vcpkg/ports"
+          if ($LASTEXITCODE) { throw 'vcpkg install failed.' }
+      - name: Install the pinned sccache
+        shell: pwsh
+        run: |
+          # Scoop pins the version explicitly so a compiler cache upgrade is a reviewed change, not a
+          # silent one that invalidates every cached object.
+          iwr -useb get.scoop.sh | iex
+          scoop install sccache@${{ env.SCCACHE_VERSION }}
+          if ($LASTEXITCODE) { throw 'sccache install failed.' }
+          "$env:USERPROFILE\scoop\shims" >> $env:GITHUB_PATH
+          "SCCACHE_DIR=$env:RUNNER_TEMP\sccache" >> $env:GITHUB_ENV
+      - name: Restore the sccache objects
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ${{ runner.temp }}/sccache
+          key: sccache-${{ runner.os }}-${{ runner.arch }}-${{ env.SCCACHE_VERSION }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ hashFiles('native/**', 'CMakePresets.json') }}
+          restore-keys: |
+            sccache-${{ runner.os }}-${{ runner.arch }}-${{ env.SCCACHE_VERSION }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-
+      - run: dotnet restore DesktopPlatform.slnx --locked-mode
+      - name: Build, test, and stage both CMake profiles
+        shell: cmd
+        run: |
+          @echo on
+          rem vcvars64 is required because the presets use Ninja, which needs cl.exe on PATH. It also
+          rem overwrites VCPKG_ROOT with the Visual Studio bundled vcpkg, so the pinned checkout is
+          rem captured first and restored after: deploy/README.md pins one vcpkg
+          rem baseline and lock as the only dependency root, and the bundled copy resolves a different graph.
+          set "ARCFORGES_VCPKG_ROOT=%VCPKG_ROOT%"
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set "ARCFORGES_VS=%%i"
+          if not defined ARCFORGES_VS exit /b 1
+          call "%ARCFORGES_VS%\VC\Auxiliary\Build\vcvars64.bat" || exit /b 1
+          set "VCPKG_ROOT=%ARCFORGES_VCPKG_ROOT%"
+          if /i not "%VCPKG_ROOT%"=="%ARCFORGES_VCPKG_ROOT%" exit /b 1
+          echo VCPKG_ROOT=%VCPKG_ROOT%
+
+          sccache --start-server || exit /b 1
+          sccache --zero-stats || exit /b 1
+
+          for %%p in (runtime-shared shim-static) do (
+            cmake --preset win-x64-%%p || exit /b 1
+            cmake --build --preset win-x64-%%p || exit /b 1
+            ctest --preset win-x64-%%p || exit /b 1
+            cmake --install artifacts/cmake/win-x64/%%p || exit /b 1
+          )
+
+          sccache --show-stats || exit /b 1
+      - name: Prove sccache actually cached
+        shell: pwsh
+        run: |
+          # A launcher that is configured but never consulted is worthless, and a build that produces only
+          # non-cacheable calls looks green while caching nothing. Both are checked, not assumed.
+          $stats = sccache --show-stats | Out-String
+          $stats | Write-Host
+          $requests = [int]([regex]::Match($stats, 'Compile requests\s+(\d+)').Groups[1].Value)
+          $nonCacheable = [int]([regex]::Match($stats, 'Non-cacheable compilations\s+(\d+)').Groups[1].Value)
+          if ($requests -le 0) { throw 'sccache saw no compile requests; the launcher is not wired up.' }
+          if ($nonCacheable -gt 0) {
+            throw "sccache reported $nonCacheable non-cacheable compilations; debug information must stay Embedded."
+          }
+      - name: Run managed P/Invoke over app-local CMake artifacts
+        shell: pwsh
+        run: |
+          dotnet build tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj -c Release --no-restore
+          if ($LASTEXITCODE) { throw 'Managed native ABI test build failed.' }
+          $runtime = Join-Path '${{ github.workspace }}' 'artifacts/stage/native/win-x64/native'
+          $testOutput = Join-Path '${{ github.workspace }}' 'artifacts/bin/dotnet/windows/ArcForges.Tests.NativeAbiTests/Release/net10.0'
+          $nativeDlls = @(Get-ChildItem -LiteralPath $runtime -File -Filter '*.dll')
+          if (-not $nativeDlls.Count) { throw 'CMake staged no native runtime DLLs.' }
+          try {
+            Copy-Item -LiteralPath $nativeDlls.FullName -Destination $testOutput
+            & (Join-Path $testOutput 'ArcForges.Tests.NativeAbiTests.exe')
+            if ($LASTEXITCODE) { throw 'Managed P/Invoke over CMake artifacts failed.' }
+          } finally {
+            $nativeDlls | ForEach-Object { Remove-Item -LiteralPath (Join-Path $testOutput $_.Name) -Force -ErrorAction SilentlyContinue }
+          }

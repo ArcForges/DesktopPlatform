@@ -39,21 +39,6 @@ internal static partial class ArcMediaNative
     internal static partial int GetLastError(ref ArcErrorInfo output);
 }
 
-internal static partial class ArcScopeMdfNative
-{
-    [LibraryImport("ArcScopeMdfNative", EntryPoint = "arc_mdf_get_abi_version")]
-    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-    internal static unsafe partial int GetAbiVersion(uint* major, uint* minor);
-
-    [LibraryImport("ArcScopeMdfNative", EntryPoint = "arc_mdf_get_build_info")]
-    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-    internal static partial int GetBuildInfo(ref ArcMutableBuffer output);
-
-    [LibraryImport("ArcScopeMdfNative", EntryPoint = "arc_mdf_get_last_error")]
-    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-    internal static partial int GetLastError(ref ArcErrorInfo output);
-}
-
 internal static partial class ArcSlateNative
 {
     [LibraryImport("ArcSlateOtioNative", EntryPoint = "arc_otio_get_abi_version")]

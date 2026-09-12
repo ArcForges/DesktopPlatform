@@ -1,0 +1,208 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+"""Build, inspect and independently consume the explicitly admitted NuGet packages."""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import tempfile
+import xml.etree.ElementTree as ET
+import zipfile
+
+ROOT = Path(__file__).resolve().parents[2]
+REPOSITORY = "https://github.com/ArcForges/DesktopPlatform"
+VERSION = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?")
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def version(value):
+    match = VERSION.fullmatch(value)
+    require(match is not None, "Use canonical major.minor.patch[-prerelease]; no prefix, range or build metadata.")
+    if match.group(4):
+        require(all(not (part.isdigit() and len(part) > 1 and part[0] == "0")
+                    for part in match.group(4).split(".")), "Prerelease numeric identifiers cannot have leading zeroes.")
+    return value
+
+
+def run(*args, cwd=ROOT, env=None, expected_error=None):
+    # Argument arrays avoid shell interpolation of user-selected versions and paths.
+    result = subprocess.run(args, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(result.stdout, end="", flush=True)
+    if expected_error:
+        require(result.returncode != 0 and expected_error in result.stdout,
+                f"Expected rejection {expected_error}, got exit {result.returncode}.")
+    else:
+        result.check_returncode()
+    return result.stdout
+
+
+def source_commit():
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+
+
+def catalogue():
+    document = json.loads((ROOT / "eng/packaging/packages.json").read_text())
+    require(document["schemaVersion"] == 1 and document["packages"], "Invalid/empty publication allowlist.")
+    packages = document["packages"]
+    require(len({p["id"].lower() for p in packages}) == len(packages), "Duplicate package ID.")
+    for entry in packages:
+        require(entry["kind"] == "build", "New package kinds require their own admission and consumer proof.")
+        project = (ROOT / entry["project"]).resolve()
+        require(project.is_relative_to(ROOT) and project.is_file(), "Package project escapes the repository or is absent.")
+        require(not list(project.parent.rglob("*Placeholder.cs")), "A placeholder cannot be published.")
+    return packages
+
+
+def inspect(path, entry, expected_version, commit):
+    with zipfile.ZipFile(path) as archive:
+        names = archive.namelist()
+        require(len(names) == len(set(names)), "Duplicate archive entries.")
+        require(all(not name.startswith("/") and ".." not in Path(name).parts and "\\" not in name
+                    for name in names), "Unsafe archive paths.")
+        require(set(entry["requiredFiles"]).issubset(names), f"Missing package content: {path.name}")
+        specs = [name for name in names if name.endswith(".nuspec")]
+        require(len(specs) == 1, "Expected one nuspec.")
+        metadata = ET.fromstring(archive.read(specs[0])).find("{*}metadata")
+        require(metadata.findtext("{*}id") == entry["id"], "Unexpected package ID.")
+        require(metadata.findtext("{*}version") == expected_version, "Unexpected package version.")
+        repository = metadata.find("{*}repository")
+        require(repository is not None and repository.get("url") == REPOSITORY
+                and repository.get("commit") == commit, "Repository source identity mismatch.")
+        license_node = metadata.find("{*}license")
+        require(license_node is not None and license_node.get("type") == "expression"
+                and license_node.text == "AGPL-3.0-only", "Package licence mismatch.")
+        require(metadata.findtext("{*}readme") == "README.md", "Missing package readme metadata.")
+        if entry["kind"] == "build":
+            require(not any(name.startswith(("lib/", "ref/", "runtimes/")) for name in names),
+                    "Build policy must contain no runtime assets.")
+            require(not list(metadata.iter("{*}dependency")), "Build policy must contain no package dependencies.")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def pack(directory, package_version):
+    directory.mkdir(parents=True, exist_ok=True)
+    require(not list(directory.glob("*.nupkg")) and not (directory / "manifest.json").exists(),
+            "Output already contains a candidate; choose a new empty --directory, never overwrite tested bytes.")
+    commit = source_commit()
+    packages = []
+    for entry in catalogue():
+        run("dotnet", "pack", entry["project"], "-c", "Release", "--no-restore", "-o", str(directory),
+            f"-p:PackageVersion={package_version}", f"-p:RepositoryCommit={commit}")
+        name = f"{entry['id']}.{package_version}.nupkg"
+        digest = inspect(directory / name, entry, package_version, commit)
+        packages.append({"id": entry["id"], "version": package_version, "file": name, "sha256": digest})
+    manifest = {"schemaVersion": 1, "repository": REPOSITORY, "sourceCommit": commit,
+                "version": package_version, "packages": packages}
+    (directory / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    verify(directory, package_version, commit)
+
+
+def verify(directory, package_version, commit=None):
+    manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+    commit = commit or source_commit()
+    require(manifest["schemaVersion"] == 1 and manifest["repository"] == REPOSITORY, "Unexpected manifest identity.")
+    require(manifest["sourceCommit"] == commit and manifest["version"] == package_version, "Manifest source/version mismatch.")
+    entries = catalogue()
+    rows = manifest["packages"]
+    require(len(rows) == len(entries) and {row["id"] for row in rows} == {entry["id"] for entry in entries},
+            "Manifest does not match publication allowlist.")
+    expected_files = {f"{entry['id']}.{package_version}.nupkg" for entry in entries}
+    actual_files = {p.name for p in directory.iterdir() if p.suffix in (".nupkg", ".snupkg")}
+    require(actual_files == expected_files, "Unexpected or missing package files.")
+    for entry in entries:
+        row = next(row for row in rows if row["id"] == entry["id"])
+        name = f"{entry['id']}.{package_version}.nupkg"
+        require(row["file"] == name and row["version"] == package_version, "Manifest package name/version mismatch.")
+        digest = inspect(directory / name, entry, package_version, commit)
+        require(digest == row["sha256"], f"Package hash mismatch: {name}")
+    print(f"Verified {len(entries)} package(s), version {package_version}, source {commit}.", flush=True)
+    return manifest
+
+
+def smoke(directory, package_version, commit=None):
+    verify(directory, package_version, commit)
+    # Outside every checkout, with no inherited Directory.Build files or shared package cache.
+    temporary_root = Path(tempfile.mkdtemp(prefix="arcforges-package-consumer-")).resolve()
+    require(not temporary_root.is_relative_to(ROOT), "Consumer must be outside the producer checkout.")
+    print(f"Isolated consumer and evidence: {temporary_root}", flush=True)
+    env = os.environ.copy()
+    env["NUGET_PACKAGES"] = str(temporary_root / ".packages")
+    env["NUGET_HTTP_CACHE_PATH"] = str(temporary_root / ".http-cache")
+    env["CI"] = "false"  # First fixture restore creates its lock; the next is explicitly locked.
+    (temporary_root / "global.json").write_bytes((ROOT / "global.json").read_bytes())
+    configuration = ET.Element("configuration")
+    sources = ET.SubElement(configuration, "packageSources")
+    ET.SubElement(sources, "clear")
+    ET.SubElement(sources, "add", key="candidate", value=str(directory))
+    ET.SubElement(sources, "add", key="nuget.org", value="https://api.nuget.org/v3/index.json")
+    mapping = ET.SubElement(configuration, "packageSourceMapping")
+    local = ET.SubElement(mapping, "packageSource", key="candidate")
+    ET.SubElement(local, "package", pattern="ArcForges.*")
+    public = ET.SubElement(mapping, "packageSource", key="nuget.org")
+    ET.SubElement(public, "package", pattern="*")
+    ET.ElementTree(configuration).write(temporary_root / "NuGet.config", encoding="utf-8", xml_declaration=True)
+    for entry in catalogue():
+        consumer = temporary_root / entry["id"]
+        consumer.mkdir()
+        project = consumer / "Consumer.csproj"
+        project_text = f'''<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><PackageReference Include="{entry['id']}" PrivateAssets="all" /></ItemGroup>
+</Project>
+'''
+        project.write_text(project_text, encoding="utf-8")
+        central = consumer / "Directory.Packages.props"
+        central_text = f'''<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup>
+<ItemGroup><PackageVersion Include="{entry['id']}" Version="{package_version}" /></ItemGroup></Project>
+'''
+        central.write_text(central_text, encoding="utf-8")
+        (consumer / "Program.cs").write_text('Console.WriteLine("package-consumer-ok");\n', encoding="utf-8")
+        run("dotnet", "restore", str(project), "--use-lock-file", "--configfile", str(temporary_root / "NuGet.config"), cwd=consumer, env=env)
+        env["CI"] = "true"
+        run("dotnet", "restore", str(project), "--locked-mode", "--configfile", str(temporary_root / "NuGet.config"), cwd=consumer, env=env)
+        run("dotnet", "build", str(project), "-c", "Release", "--no-restore", cwd=consumer, env=env)
+        output = run("dotnet", str(consumer / "bin/Release/net10.0/Consumer.dll"), cwd=consumer, env=env)
+        require("package-consumer-ok" in output, "Consumer did not execute.")
+        # Actual SDK operations against the installed package, not source-text tests.
+        project.write_text(project_text.replace('PrivateAssets="all"', 'PrivateAssets="all" VersionOverride="1.0.0"'), encoding="utf-8")
+        run("dotnet", "msbuild", str(project), "-t:ArcForgesVerifyPackagePolicy", cwd=consumer, env=env, expected_error="AFP002")
+        project.write_text(project_text, encoding="utf-8")
+        central.write_text(central_text.replace(f'Version="{package_version}"', 'Version="1.*"'), encoding="utf-8")
+        run("dotnet", "msbuild", str(project), "-t:ArcForgesVerifyPackagePolicy", cwd=consumer, env=env, expected_error="AFP003")
+        central.write_text(central_text, encoding="utf-8")
+        run("dotnet", "build", str(project), "-c", "Release", "--no-restore", "-p:LangVersion=preview", cwd=consumer, env=env, expected_error="AFP004")
+        run("dotnet", "build", str(project), "-c", "Release", "--no-restore", "-p:RestoreLockedMode=false", cwd=consumer, env=env, expected_error="AFP005")
+        installed = temporary_root / ".packages" / entry["id"].lower() / package_version.lower()
+        restored = installed / f"{entry['id'].lower()}.{package_version.lower()}.nupkg"
+        original = directory / f"{entry['id']}.{package_version}.nupkg"
+        require(restored.read_bytes() == original.read_bytes(), "Consumer did not restore the tested candidate bytes.")
+    print("Independent package consumption and negative policy fixtures passed.", flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("command", choices=["version", "pack", "verify", "smoke"])
+    parser.add_argument("--version", required=True)
+    parser.add_argument("--directory", type=Path, default=ROOT / "artifacts/packages")
+    parser.add_argument("--commit")
+    args = parser.parse_args()
+    package_version = version(args.version)
+    directory = args.directory.resolve()
+    if args.command == "pack":
+        pack(directory, package_version)
+    elif args.command == "verify":
+        verify(directory, package_version, args.commit)
+    elif args.command == "smoke":
+        smoke(directory, package_version, args.commit)
+    else:
+        print(package_version)
+
+
+if __name__ == "__main__":
+    main()

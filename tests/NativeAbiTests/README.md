@@ -1,5 +1,5 @@
-<!-- SPDX-License-Identifier: AGPL-3.0-only -->
+# Native ABI probes
 
-# ArcForges.Tests.NativeAbiTests
-
-Compile-ready Step 01 skeleton for **ArcForges Tests NativeAbiTests**. Business behavior belongs to its owning numbered step.
+After staging native libraries app-local, this suite exercises ABI/version/build-info/error calls through
+LibraryImport for media, OTIO, colour and image. It proves the retained ABI foundation, not full media
+behavior, sandbox enforcement or a published runtime NuGet. The native workflow stages and runs it.

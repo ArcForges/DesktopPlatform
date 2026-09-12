@@ -20,9 +20,6 @@ public static unsafe class NativeSmoke
     public static NativeProbeResult VerifyMedia() => Verify(
         "ArcMediaNative", ArcMediaNative.GetAbiVersion, ArcMediaNative.GetBuildInfo, ArcMediaNative.GetLastError);
 
-    public static NativeProbeResult VerifyMdf() => Verify(
-        "ArcScopeMdfNative", ArcScopeMdfNative.GetAbiVersion, ArcScopeMdfNative.GetBuildInfo, ArcScopeMdfNative.GetLastError);
-
     public static NativeProbeResult VerifyOtio() => Verify(
         "ArcSlateOtioNative", ArcSlateNative.GetOtioAbiVersion, ArcSlateNative.GetOtioBuildInfo, ArcSlateNative.GetOtioLastError);
 
@@ -33,7 +30,7 @@ public static unsafe class NativeSmoke
         "ArcSlateImageNative", ArcSlateNative.GetImageAbiVersion, ArcSlateNative.GetImageBuildInfo, ArcSlateNative.GetImageLastError);
 
     public static IReadOnlyList<NativeProbeResult> VerifyAll() =>
-        [VerifyMedia(), VerifyMdf(), VerifyOtio(), VerifyColor(), VerifyImage()];
+        [VerifyMedia(), VerifyOtio(), VerifyColor(), VerifyImage()];
 
     private static unsafe NativeProbeResult Verify(
         string libraryName,
