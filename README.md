@@ -33,6 +33,12 @@ Windows projects and stages their DLLs for `NativeAbiTests`; CI uses the indepen
 After native staging, follow the [complete package verification](eng/packaging/README.md) to pack and
 run independent C#, Native AOT and C17 consumers. See [native package scope and evidence](docs/native-package-release.md).
 
+The scheduled/manual [Deep check](.github/workflows/deep-check.yml) runs C# CodeQL only.
+C++ verification uses the PR/release native compilation, CMake/CTest, managed ABI tests and isolated
+package consumers; Deep check no longer runs native clang-tidy, sanitizers or fuzzers. To validate the
+current configuration, use Actions → Deep check → Run workflow and select the desired branch.
+Re-running a historical workflow uses its original commit and can still execute the removed jobs.
+
 ## Packages and Contracts
 
 [Package publishing](eng/packaging/README.md) documents the release allowlist, candidate verification,
