@@ -5,4 +5,8 @@
     <AssemblyName>ArcForges.Desktop.Text</AssemblyName>
     <RootNamespace>ArcForges.Desktop.Text</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup>
+    <LicenceBoundary>AGPL</LicenceBoundary>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+  </PropertyGroup>
 </Project>

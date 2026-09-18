@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
+set(ARCFORGES_SPDX_LICENSE "AGPL-3.0-only")
+set(ARCFORGES_LICENCE_BOUNDARY "AGPL")
 cmake_minimum_required(VERSION 4.3.3)
 
 set(ARCFORGES_NATIVE_PROFILE "" CACHE STRING "Native component set: runtime-shared, shim-static, or host-tools")
@@ -22,4 +24,9 @@ if(ARCFORGES_BUILD_TESTS)
     enable_testing()
 endif()
 
+# CTest creates dashboard utility targets; record those before adding owned targets.
+get_property(_arcforges_ctest_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+set_property(DIRECTORY PROPERTY ARCFORGES_EXTERNAL_TARGETS "${_arcforges_ctest_targets}")
+include(eng/cmake/LicenceBoundary.cmake)
 add_subdirectory(native)
+cmake_language(DEFER CALL arcforges_verify_native_licences)

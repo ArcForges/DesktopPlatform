@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
+set(ARCFORGES_SPDX_LICENSE "AGPL-3.0-only")
+set(ARCFORGES_LICENCE_BOUNDARY "AGPL")
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
@@ -17,6 +19,7 @@ function(arcforges_add_abi_fuzzer name library prefix)
         message(FATAL_ERROR "ARCFORGES_BUILD_FUZZERS requires Clang on Linux or macOS")
     endif()
     add_executable(${name} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/shared/fuzz/arc_native_abi_fuzzer.cpp")
+    arcforges_declare_target_licence(${name})
     target_compile_features(${name} PRIVATE cxx_std_20)
     target_include_directories(${name} PRIVATE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/shared/include")
     target_compile_definitions(${name} PRIVATE
@@ -50,4 +53,5 @@ elseif(ARCFORGES_NATIVE_PROFILE STREQUAL "host-tools")
         COMMAND "${GLSLANG_VALIDATOR_EXECUTABLE}" --version
         COMMAND "${SPIRV_CROSS_EXECUTABLE}" --version
         COMMENT "Verifying the locked shader host-tool graph")
+    arcforges_declare_target_licence(arcforges_host_tools)
 endif()

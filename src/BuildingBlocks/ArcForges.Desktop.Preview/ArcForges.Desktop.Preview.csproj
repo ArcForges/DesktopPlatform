@@ -5,4 +5,8 @@
     <AssemblyName>ArcForges.Desktop.Preview</AssemblyName>
     <RootNamespace>ArcForges.Desktop.Preview</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup>
+    <LicenceBoundary>AGPL</LicenceBoundary>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+  </PropertyGroup>
 </Project>

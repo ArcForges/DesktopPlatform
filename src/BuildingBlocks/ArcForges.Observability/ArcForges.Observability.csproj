@@ -5,4 +5,8 @@
     <AssemblyName>ArcForges.Observability</AssemblyName>
     <RootNamespace>ArcForges.Observability</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup>
+    <LicenceBoundary>AGPL</LicenceBoundary>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+  </PropertyGroup>
 </Project>

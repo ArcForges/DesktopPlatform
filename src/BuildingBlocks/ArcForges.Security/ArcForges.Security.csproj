@@ -5,4 +5,8 @@
     <AssemblyName>ArcForges.Security</AssemblyName>
     <RootNamespace>ArcForges.Security</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup>
+    <LicenceBoundary>AGPL</LicenceBoundary>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+  </PropertyGroup>
 </Project>

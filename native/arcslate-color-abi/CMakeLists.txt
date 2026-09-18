@@ -1,10 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
+set(ARCFORGES_SPDX_LICENSE "AGPL-3.0-only")
+set(ARCFORGES_LICENCE_BOUNDARY "AGPL")
 file(GLOB_RECURSE ARCFORGES_SHIM_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE ARCFORGES_SHIM_HEADERS CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
 add_library(arcslate_color_abi SHARED ${ARCFORGES_SHIM_SOURCES} ${ARCFORGES_SHIM_HEADERS} ${ARCFORGES_SHARED_ABI_SOURCE})
+arcforges_declare_target_licence(arcslate_color_abi)
 target_compile_features(arcslate_color_abi PRIVATE cxx_std_20)
 set_target_properties(arcslate_color_abi PROPERTIES
     CXX_EXTENSIONS OFF
@@ -39,6 +42,7 @@ install(TARGETS arcslate_color_abi
 
 if(ARCFORGES_BUILD_TESTS)
     add_executable(arcslate_color_abi_tests "tests/arcslate_color_abi_tests.cpp")
+    arcforges_declare_target_licence(arcslate_color_abi_tests)
     target_compile_features(arcslate_color_abi_tests PRIVATE cxx_std_20)
     target_link_libraries(arcslate_color_abi_tests PRIVATE arcslate_color_abi)
     add_test(NAME arcslate_color_abi.hello COMMAND arcslate_color_abi_tests)

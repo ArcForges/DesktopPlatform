@@ -35,7 +35,7 @@ jobs:
           if ($LASTEXITCODE) { throw 'Invalid package version.' }
           "value=$version" >> $env:GITHUB_OUTPUT
   managed-packages:
-    needs: [allocate-version, native, secret-scan, repository-hooks, design-policy]
+    needs: [allocate-version, native, secret-scan, repository-hooks, design-policy, licence-policy]
     uses: ./.github/workflows/package-validation.yml
     with:
       version: ${{ needs.allocate-version.outputs.version }}
@@ -94,9 +94,37 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  licence-policy:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
+        with:
+          cmakeVersion: '4.3.3'
+          ninjaVersion: '1.13.1'
+      - name: Reject incomplete declarations and invalid reference graphs
+        run: python -m unittest discover -s eng -p test_licence_boundary.py -v
+      - name: Verify actual managed build declarations
+        run: python eng/licence_boundary.py --evaluate-managed --report artifacts/evidence/licence-managed.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: licence-policy-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/evidence/licence-*.json
+          if-no-files-found: error
+          retention-days: 30
+
   ci:
     if: always()
-    needs: [allocate-version, managed-packages, native, secret-scan, repository-hooks, design-policy]
+    needs: [allocate-version, managed-packages, native, secret-scan, repository-hooks, design-policy, licence-policy]
     runs-on: ubuntu-latest
     env:
       CI_NEEDS: ${{ toJSON(needs) }}
