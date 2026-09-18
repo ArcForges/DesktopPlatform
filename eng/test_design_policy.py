@@ -266,6 +266,7 @@ class SourceTests(Fixture):
         for old, new, diagnostic in [
             ('**ArcNotes.Document** / **ArcNotes.Note**', '**Workspace**', 'duplicate canonical term'),
             ('**ArcNotes.Document** / **ArcNotes.Note**', '**Document**', 'unqualified product'),
+            ('### 5.1 Notes\n| **ArcNotes.Document** / **ArcNotes.Note**', '| **Document**', 'unqualified product'),
             ('| domain, wire |', '| mystery |', 'invalid term spaces'),
             ('| domain, wire |', '|  |', 'invalid term spaces'),
         ]:
@@ -365,6 +366,7 @@ class GraphTests(Fixture):
             (INDEX, '| 20 | Future | — |', '| 20 | Future | `01` |', 'inactive phase edges'),
             (SEQUENCE, '| 02 | `01` |', '| 02 | `20` |', 'inactive producer'),
             ('docs/planning/work-packages/20-future.md', 'No active edges.', '> Upstream: `01`', 'inactive package edges'),
+            ('docs/planning/work-packages/20-future.md', 'No active edges.', '> Downstream: `01`', 'inactive package edges'),
         ]
         for path, old, new, diagnostic in cases:
             with self.subTest(diagnostic=diagnostic):

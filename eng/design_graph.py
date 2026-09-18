@@ -38,7 +38,7 @@ def graph(root, docs=None):
         if not m:continue
         if m[1] in INACTIVE:
             for line in text.splitlines():
-                if re.match(r'^(?:> Upstream:|\*\*(?:Upstream|Downstream):\*\*)',line) and ids(line):
+                if re.match(r'^(?:> (?:Upstream|Downstream):|\*\*(?:Upstream|Downstream):\*\*)',line) and ids(line):
                     errors.append([p,'inactive package edges'])
             continue
         key=m[1]
