@@ -1,0 +1,2074 @@
+{
+  "schemaVersion": 1,
+  "license": "AGPL-3.0-only",
+  "source": {
+    "repository": "ArcForges/ArcForges-Design",
+    "commit": "1607374e81955f0a47f319cd6cc8ba1c6e254157",
+    "path": "docs/requirements/01-normative-glossary-and-invariants.md",
+    "sha256": "fa60f160fe6c28685cd904f590f8d74ed1ead03295e4b9e42023f2a8f2b09a88"
+  },
+  "spaces": [
+    {
+      "name": "domain",
+      "label": "**Domain**",
+      "rule": "The product's own model. Never serialized directly; never a database row; never a view model."
+    },
+    {
+      "name": "wire",
+      "label": "**Wire**",
+      "rule": "Contract DTOs and identifiers. Never a domain entity; never persisted as-is as the canonical store."
+    },
+    {
+      "name": "UI",
+      "label": "**UI**",
+      "rule": "View state and presentation. Never a transport DTO; never a domain object."
+    },
+    {
+      "name": "storage",
+      "label": "**Storage**",
+      "rule": "Database schema, native file format, cache format. Distinct from both Domain and Wire."
+    },
+    {
+      "name": "commercial",
+      "label": "**Commercial**",
+      "rule": "Plan, Offer, Price, Entitlement, Credit, Ledger. Never a Feature Flag; never a Permission."
+    }
+  ],
+  "terms": [
+    {
+      "section": "1",
+      "line": 25,
+      "term": "**Realm**",
+      "names": [
+        "Realm"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "An independent deployment of ArcForges Cloud that is its own authority: the Official realm, or a self-hosted realm. Objects are never identical across realms even when the account email matches. Every cross-device and cross-application reference is realm-aware."
+    },
+    {
+      "section": "1",
+      "line": 26,
+      "term": "**User**",
+      "names": [
+        "User"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A cloud account identity within a realm."
+    },
+    {
+      "section": "1",
+      "line": 27,
+      "term": "**Local Anonymous User**",
+      "names": [
+        "Local Anonymous User"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A signed-out native operator without a Cloud UserId. May use product-specific native functions; has no official AI access or account-free notebook service."
+    },
+    {
+      "section": "1",
+      "line": 28,
+      "term": "**Workspace**",
+      "names": [
+        "Workspace"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A single-user Cloud data, device, sync, billing and permission boundary. One owner in a realm; never a team/member container or panel layout."
+    },
+    {
+      "section": "1",
+      "line": 29,
+      "term": "**Layout**",
+      "names": [
+        "Layout"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "UI"
+      ],
+      "status": "active",
+      "definition": "A desktop panel/window arrangement. The mandatory term for what some products elsewhere call a \"workspace\"."
+    },
+    {
+      "section": "1",
+      "line": 30,
+      "term": "**Organization**",
+      "names": [
+        "Organization"
+      ],
+      "namespace": "shared",
+      "spaces": [],
+      "status": "retired",
+      "definition": "Excluded by [P2-006](../decisions/phase-2-specification-decisions.md#rule-p2-006): no organization, team, membership, invitation or collaboration-specific schema reservation."
+    },
+    {
+      "section": "1",
+      "line": 31,
+      "term": "**Device**",
+      "names": [
+        "Device"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A registered client machine or handset within a realm."
+    },
+    {
+      "section": "1",
+      "line": 32,
+      "term": "**Installation** / `InstallationId`",
+      "names": [
+        "Installation",
+        "InstallationId"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "One installed copy of one product on one device. Long-lived."
+    },
+    {
+      "section": "1",
+      "line": 33,
+      "term": "**Instance** / `InstanceId`",
+      "names": [
+        "Instance",
+        "InstanceId"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "One running process of one product. Per-launch."
+    },
+    {
+      "section": "1",
+      "line": 34,
+      "term": "**App** / `AppId`, `ProductId`",
+      "names": [
+        "App",
+        "AppId",
+        "ProductId"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "The stable product identity: `arcnotes`, `arcscope`, `arcslate`, `companion`. Never a process id, never a product-scope, never a licence unit."
+    },
+    {
+      "section": "1",
+      "line": 35,
+      "term": "**Window**",
+      "names": [
+        "Window"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "UI"
+      ],
+      "status": "active",
+      "definition": "An OS window belonging to an Instance. An Instance may own several."
+    },
+    {
+      "section": "1",
+      "line": 36,
+      "term": "**Session**",
+      "names": [
+        "Session"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "An authenticated interaction lifetime. Distinct from Connection, from Device and from Subscription."
+    },
+    {
+      "section": "1",
+      "line": 37,
+      "term": "**Connection**",
+      "names": [
+        "Connection"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A transport-level link (Named Pipe/UDS stream, HTTP connection, realtime connection). Carries no identity of its own."
+    },
+    {
+      "section": "1",
+      "line": 38,
+      "term": "**Identity**",
+      "names": [
+        "Identity"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Who a principal is."
+    },
+    {
+      "section": "1",
+      "line": 39,
+      "term": "**Actor**",
+      "names": [
+        "Actor"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "On whose authority an operation runs."
+    },
+    {
+      "section": "1",
+      "line": 40,
+      "term": "**Executor**",
+      "names": [
+        "Executor"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "What actually performs an operation."
+    },
+    {
+      "section": "1",
+      "line": 41,
+      "term": "**Caller Instance** / **Caller Process**",
+      "names": [
+        "Caller Instance",
+        "Caller Process"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "Which process issued a call. Never a substitute for Actor."
+    },
+    {
+      "section": "1",
+      "line": 42,
+      "term": "**Principal**",
+      "names": [
+        "Principal"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A security subject that may hold permissions: a human User, or a scoped delegate."
+    },
+    {
+      "section": "1",
+      "line": 43,
+      "term": "**Agent Actor**",
+      "names": [
+        "Agent Actor"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An agent acting on behalf of a user session. Never an independent superuser identity, never a security principal in its own right."
+    },
+    {
+      "section": "1",
+      "line": 44,
+      "term": "**Local OS User**",
+      "names": [
+        "Local OS User"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The operating-system account that owns local IPC endpoints and secure storage."
+    },
+    {
+      "section": "2",
+      "line": 52,
+      "term": "**Resource**",
+      "names": [
+        "Resource"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A durable business object owned by exactly one product in exactly one realm."
+    },
+    {
+      "section": "2",
+      "line": 53,
+      "term": "**ResourceRef**",
+      "names": [
+        "ResourceRef"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A stable, realm-aware, typed reference to a Resource: identity plus metadata. Never resource content, never a file path, never a capability token, never a permission token, never a universal domain entity, never a selection."
+    },
+    {
+      "section": "2",
+      "line": 54,
+      "term": "**ResourceId**",
+      "names": [
+        "ResourceId"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "The stable identifier inside a ResourceRef. Never reused."
+    },
+    {
+      "section": "2",
+      "line": 55,
+      "term": "**ResourceKind**",
+      "names": [
+        "ResourceKind"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "The namespaced type of a Resource, e.g. `arcnotes.document`, `arcscope.session`, `arcslate.project`."
+    },
+    {
+      "section": "2",
+      "line": 56,
+      "term": "**External Locator**",
+      "names": [
+        "External Locator"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "storage"
+      ],
+      "status": "active",
+      "definition": "A path, URI or device address by which external content is reached. Never a Resource Identity."
+    },
+    {
+      "section": "2",
+      "line": 57,
+      "term": "**Managed Asset**",
+      "names": [
+        "Managed Asset"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "storage"
+      ],
+      "status": "active",
+      "definition": "Content whose bytes ArcForges owns and garbage-collects."
+    },
+    {
+      "section": "2",
+      "line": 58,
+      "term": "**External Reference**",
+      "names": [
+        "External Reference"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "storage"
+      ],
+      "status": "active",
+      "definition": "Content that remains under the user's own control, referenced but not owned."
+    },
+    {
+      "section": "2",
+      "line": 59,
+      "term": "**Artifact**",
+      "names": [
+        "Artifact"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A meaningful work result produced by a Task, Agent or App — a document, report, session, rendered video, project or ordinary file. Never \"an ArcChat file\"."
+    },
+    {
+      "section": "2",
+      "line": 60,
+      "term": "**ArtifactRef**",
+      "names": [
+        "ArtifactRef"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A reference to an Artifact, carrying provenance and task relationship. Distinct from `ResourceRef`. Never a permission token."
+    },
+    {
+      "section": "2",
+      "line": 61,
+      "term": "**Artifact Preview**",
+      "names": [
+        "Artifact Preview"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "UI"
+      ],
+      "status": "active",
+      "definition": "A rendered or summarised view of an Artifact. Never the Artifact's authority."
+    },
+    {
+      "section": "2",
+      "line": 62,
+      "term": "**Deep Link**",
+      "names": [
+        "Deep Link"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire",
+        "UI"
+      ],
+      "status": "active",
+      "definition": "A user-directed navigation address into a product surface. Never a command. Never a permission token."
+    },
+    {
+      "section": "2",
+      "line": 63,
+      "term": "**Provenance**",
+      "names": [
+        "Provenance"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The recorded origin of a derived object: source resource, task, actor, revision."
+    },
+    {
+      "section": "3",
+      "line": 71,
+      "term": "**Capability**",
+      "names": [
+        "Capability"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A semantic, versioned, strongly typed operation a product exposes to the platform. Identified by a `capabilityId` string used only for discovery, display, policy, tool selection, routing and audit — never as the call mechanism."
+    },
+    {
+      "section": "3",
+      "line": 72,
+      "term": "**CapabilityDescriptor**",
+      "names": [
+        "CapabilityDescriptor"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "The declared metadata of a Capability: identity, provider app/instance, typed method identity, contract version and feature flags, input/output summary, whether it writes state, required scope, risk level, whether confirmation is mandatory, dry-run/undo/cancel support, resource size, expected duration and concurrency limits."
+    },
+    {
+      "section": "3",
+      "line": 73,
+      "term": "**Action**",
+      "names": [
+        "Action"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A user- or agent-visible intent that may be fulfilled by one or more Capability invocations. Not itself a Capability."
+    },
+    {
+      "section": "3",
+      "line": 74,
+      "term": "**UI Command**",
+      "names": [
+        "UI Command"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "UI"
+      ],
+      "status": "active",
+      "definition": "A menu item, button or shortcut. Never a Capability."
+    },
+    {
+      "section": "3",
+      "line": 75,
+      "term": "**Invocation** / `InvocationId`",
+      "names": [
+        "Invocation",
+        "InvocationId"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "One call of one Capability. Distinct from `CommandId`, and distinct from a Task Step."
+    },
+    {
+      "section": "3",
+      "line": 76,
+      "term": "**CommandId**",
+      "names": [
+        "CommandId"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire",
+        "storage"
+      ],
+      "status": "active",
+      "definition": "The idempotency key of a write command. Distinct from `InvocationId` and from `AttemptId`."
+    },
+    {
+      "section": "3",
+      "line": 77,
+      "term": "**Context**",
+      "names": [
+        "Context"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "What the caller is currently working on. References Resources; is not itself a Resource."
+    },
+    {
+      "section": "3",
+      "line": 78,
+      "term": "**Context Provider**",
+      "names": [
+        "Context Provider"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A product-side component that answers \"what is the user looking at / has selected\". Not a search engine, not a resource database."
+    },
+    {
+      "section": "3",
+      "line": 79,
+      "term": "**Context Pack**",
+      "names": [
+        "Context Pack"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A bounded, frozen set of context handed to a run. Never an entire knowledge source, never a copy of all data."
+    },
+    {
+      "section": "3",
+      "line": 80,
+      "term": "**Current Selection**",
+      "names": [
+        "Current Selection"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "UI"
+      ],
+      "status": "active",
+      "definition": "Volatile UI state. Never a durable resource identity."
+    },
+    {
+      "section": "3",
+      "line": 81,
+      "term": "**Capability Token**",
+      "names": [
+        "Capability Token"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A short-lived, narrowly scoped credential authorising one controlled access. Distinct from `ResourceRef`."
+    },
+    {
+      "section": "3",
+      "line": 82,
+      "term": "**Semantic Contract**",
+      "names": [
+        "Semantic Contract"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The meaning and obligations of a Capability."
+    },
+    {
+      "section": "3",
+      "line": 83,
+      "term": "**Wire Contract**",
+      "names": [
+        "Wire Contract"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "The serialized shape by which a Capability is called. Distinct from the Semantic Contract."
+    },
+    {
+      "section": "4",
+      "line": 93,
+      "term": "**Intent**",
+      "names": [
+        "Intent"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "What the user asked for, before any plan exists."
+    },
+    {
+      "section": "4",
+      "line": 94,
+      "term": "**Task**",
+      "names": [
+        "Task"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "Durable Cloud agent work with a lifecycle and persistent record. Ordinary render, capture, import or simulation jobs are not agent Tasks."
+    },
+    {
+      "section": "4",
+      "line": 95,
+      "term": "**Run**",
+      "names": [
+        "Run"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "One execution of a Task. A Task may have several Runs."
+    },
+    {
+      "section": "4",
+      "line": 96,
+      "term": "**Step**",
+      "names": [
+        "Step"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "One planned unit inside a Run."
+    },
+    {
+      "section": "4",
+      "line": 97,
+      "term": "**Attempt** / `AttemptId`",
+      "names": [
+        "Attempt",
+        "AttemptId"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "One execution try of a Step. Distinct from `CommandId`."
+    },
+    {
+      "section": "4",
+      "line": 98,
+      "term": "**Task Owner**",
+      "names": [
+        "Task Owner"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The Cloud agent module holding authoritative Task/Run/Step/Attempt state. A desktop tool owner is not a Task Owner."
+    },
+    {
+      "section": "4",
+      "line": 99,
+      "term": "**Orchestrator**",
+      "names": [
+        "Orchestrator"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The single Cloud harness sequencing agent work and authorized tools. Each application's assistant presents its tasks and bridges only its own local tools; it does not run another orchestrator."
+    },
+    {
+      "section": "4",
+      "line": 100,
+      "term": "**Execution Location**",
+      "names": [
+        "Execution Location"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Cloud for the AI runtime. Desktop/Cloud/Hybrid labels on a task describe tool locality only; they never select another model loop."
+    },
+    {
+      "section": "4",
+      "line": 101,
+      "term": "**TaskHandle**",
+      "names": [
+        "TaskHandle"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A stable Cloud Agent Task reference for query/correlation, never an RPC connection or product job identity."
+    },
+    {
+      "section": "4",
+      "line": 102,
+      "term": "**TaskSnapshot**",
+      "names": [
+        "TaskSnapshot"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "An authoritative point-in-time projection of Task state, retrievable over HTTP."
+    },
+    {
+      "section": "4",
+      "line": 103,
+      "term": "**Progress Event**",
+      "names": [
+        "Progress Event"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A best-effort realtime notification. Never task authority."
+    },
+    {
+      "section": "4",
+      "line": 104,
+      "term": "**Checkpoint**",
+      "names": [
+        "Checkpoint"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "storage"
+      ],
+      "status": "active",
+      "definition": "A resumable execution marker inside a Run. Never an Undo entry; never a Recovery Journal."
+    },
+    {
+      "section": "4",
+      "line": 105,
+      "term": "**Compensation**",
+      "names": [
+        "Compensation"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A forward action that reverses the observable effect of a completed step. Never a transaction rollback."
+    },
+    {
+      "section": "4",
+      "line": 106,
+      "term": "**Approval**",
+      "names": [
+        "Approval"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A bounded, parameter-bound, time-limited human authorisation of a specific pending operation. Never a persistent permission grant, never step-up authentication, never steering."
+    },
+    {
+      "section": "4",
+      "line": 107,
+      "term": "**Steering**",
+      "names": [
+        "Steering"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "wire"
+      ],
+      "status": "active",
+      "definition": "A user's execution-direction update to an active Task. Never an approval, never an ordinary conversation message."
+    },
+    {
+      "section": "4",
+      "line": 108,
+      "term": "**Needs Attention**",
+      "names": [
+        "Needs Attention"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "UI"
+      ],
+      "status": "active",
+      "definition": "A derived presentation flag over one or more pending Approvals or errors. Never a Task state."
+    },
+    {
+      "section": "4",
+      "line": 109,
+      "term": "**Budget**",
+      "names": [
+        "Budget"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A per-task or per-automation ceiling on cost, credits, time or steps. Never an Entitlement."
+    },
+    {
+      "section": "4",
+      "line": 110,
+      "term": "**Automation**",
+      "names": [
+        "Automation"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A durable definition that creates Tasks when a Trigger fires. Never itself a Task."
+    },
+    {
+      "section": "4",
+      "line": 111,
+      "term": "**Automation Occurrence**",
+      "names": [
+        "Automation Occurrence"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "One firing of an Automation. Never a Task retry."
+    },
+    {
+      "section": "4",
+      "line": 112,
+      "term": "**Trigger Definition**",
+      "names": [
+        "Trigger Definition"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The configured rule."
+    },
+    {
+      "section": "4",
+      "line": 113,
+      "term": "**Trigger Occurrence**",
+      "names": [
+        "Trigger Occurrence"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "One event matching the rule."
+    },
+    {
+      "section": "4",
+      "line": 114,
+      "term": "**Operational Trace**",
+      "names": [
+        "Operational Trace"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The recorded sequence of steps, invocations, decisions and results for a Run, safe to show. Never model chain-of-thought; never an Audit record."
+    },
+    {
+      "section": "4.1",
+      "line": 120,
+      "term": "**Product Job / Activity**",
+      "names": [
+        "Product Job",
+        "Activity"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "UI"
+      ],
+      "status": "active",
+      "definition": "Bounded non-agent work owned by a product or Cloud module: capture, render, import, indexing, simulation. It has its own progress/cancel/recovery contract, never a second model loop."
+    },
+    {
+      "section": "4.1",
+      "line": 121,
+      "term": "**ProductJobHandle**",
+      "names": [
+        "ProductJobHandle"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "wire"
+      ],
+      "status": "active",
+      "definition": "Typed, owner-qualified reference to a product job that a Cloud Task may observe through tools. Not a TaskHandle."
+    },
+    {
+      "section": "4.1",
+      "line": 122,
+      "term": "**Measured Usage**",
+      "names": [
+        "Measured Usage"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "domain",
+        "storage"
+      ],
+      "status": "active",
+      "definition": "Normalized actual provider usage per attempt/category, with provenance and settled/unknown status; not a prompt-size estimate."
+    },
+    {
+      "section": "4.1",
+      "line": 123,
+      "term": "**Supplier Cost**",
+      "names": [
+        "Supplier Cost"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "commercial"
+      ],
+      "status": "active",
+      "definition": "Actual billable provider units multiplied by the applicable supplier-rate snapshot, independently reconciled against provider charges."
+    },
+    {
+      "section": "4.1",
+      "line": 124,
+      "term": "**Customer Tariff**",
+      "names": [
+        "Customer Tariff"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "commercial"
+      ],
+      "status": "active",
+      "definition": "Versioned rates converting eligible usage to customer service units; distinct from supplier cost and payment price."
+    },
+    {
+      "section": "4.1",
+      "line": 125,
+      "term": "**Included Capacity**",
+      "names": [
+        "Included Capacity"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "commercial"
+      ],
+      "status": "active",
+      "definition": "A bounded recoverable service-unit balance replenishing during eligible service time. Not a monthly cash or purchased-credit lot."
+    },
+    {
+      "section": "4.1",
+      "line": 126,
+      "term": "**Additional Credits**",
+      "names": [
+        "Additional Credits"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "commercial"
+      ],
+      "status": "active",
+      "definition": "Separate purchased/compensation lots consumed only with explicit consent and an eligible service term. Credit ownership alone grants no official AI access."
+    },
+    {
+      "section": "4.1",
+      "line": 127,
+      "term": "**Policy Publication**",
+      "names": [
+        "Policy Publication"
+      ],
+      "namespace": "shared",
+      "spaces": [
+        "storage"
+      ],
+      "status": "active",
+      "definition": "One validated, immutable version/hash of operator deployment configuration, archived for audit; not a mutable rewrite of historical usage or paid grants."
+    },
+    {
+      "section": "5.1",
+      "line": 145,
+      "term": "`ArcChat.Conversation`",
+      "names": [
+        "ArcChat.Conversation"
+      ],
+      "namespace": "ArcChat",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An ordered thread of Messages. Not a Task."
+    },
+    {
+      "section": "5.1",
+      "line": 146,
+      "term": "`ArcChat.Message`",
+      "names": [
+        "ArcChat.Message"
+      ],
+      "namespace": "ArcChat",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "One turn in a Conversation. Not a Tool Call."
+    },
+    {
+      "section": "5.1",
+      "line": 147,
+      "term": "`ArcChat.Project`",
+      "names": [
+        "ArcChat.Project"
+      ],
+      "namespace": "ArcChat",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An ArcChat-scoped grouping of conversations, context references and settings. **Not** a Workspace, **not** an `ArcScope.Project`, **not** an `ArcSlate.Project`."
+    },
+    {
+      "section": "5.1",
+      "line": 148,
+      "term": "`ArcForges.Assistant.CloudProfile`",
+      "names": [
+        "ArcForges.Assistant.CloudProfile"
+      ],
+      "namespace": "ArcForges.Assistant",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A saved configuration of model, tools, instructions and limits. Not a running agent; not a model; not a security principal."
+    },
+    {
+      "section": "5.1",
+      "line": 149,
+      "term": "`ArcChat.Skill`",
+      "names": [
+        "ArcChat.Skill"
+      ],
+      "namespace": "ArcChat",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Reusable guidance and configuration that shapes agent behaviour. Not a Capability; not extension code; not MCP; not a permission grant."
+    },
+    {
+      "section": "5.1",
+      "line": 150,
+      "term": "`ArcChat.PersonalMemory`",
+      "names": [
+        "ArcChat.PersonalMemory"
+      ],
+      "namespace": "ArcChat",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "ArcChat-owned durable user-preference recall. Not ArcNotes knowledge; not a conversation summary."
+    },
+    {
+      "section": "5.1",
+      "line": 151,
+      "term": "`ArcForges.Capabilities`",
+      "names": [
+        "ArcForges.Capabilities"
+      ],
+      "namespace": "ArcForges",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The local platform coordination plane hosted inside the owning professional application process."
+    },
+    {
+      "section": "5.1",
+      "line": 152,
+      "term": "`ArcChat.Artifact`",
+      "names": [
+        "ArcChat.Artifact"
+      ],
+      "namespace": "ArcChat",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An `ArtifactRef` held by ArcChat. Never the underlying owned object."
+    },
+    {
+      "section": "5.2",
+      "line": 160,
+      "term": "`ArcNotes.Notebook`",
+      "names": [
+        "ArcNotes.Notebook"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The top-level ArcNotes container. **Not** a Workspace."
+    },
+    {
+      "section": "5.2",
+      "line": 161,
+      "term": "`ArcNotes.Folder`",
+      "names": [
+        "ArcNotes.Folder"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A hierarchical container. **Not** a Tag."
+    },
+    {
+      "section": "5.2",
+      "line": 162,
+      "term": "`ArcNotes.Document`",
+      "names": [
+        "ArcNotes.Document"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The canonical document object. **Not** a file; **not** a Markdown file."
+    },
+    {
+      "section": "5.2",
+      "line": 163,
+      "term": "`ArcNotes.Block`",
+      "names": [
+        "ArcNotes.Block"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The addressable unit inside a Document, with a stable `BlockId`. **Not** a Markdown line."
+    },
+    {
+      "section": "5.2",
+      "line": 164,
+      "term": "`ArcNotes.Property`",
+      "names": [
+        "ArcNotes.Property"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Typed metadata on a Document or Block. **Not** document content."
+    },
+    {
+      "section": "5.2",
+      "line": 165,
+      "term": "`ArcNotes.Tag`",
+      "names": [
+        "ArcNotes.Tag"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A non-hierarchical label."
+    },
+    {
+      "section": "5.2",
+      "line": 166,
+      "term": "`ArcNotes.SavedView`",
+      "names": [
+        "ArcNotes.SavedView"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A stored query and presentation over typed properties. Confers **no ownership** of the objects it lists."
+    },
+    {
+      "section": "5.2",
+      "line": 167,
+      "term": "`ArcNotes.Attachment`",
+      "names": [
+        "ArcNotes.Attachment"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A referenced binary managed by ArcNotes. Never base64 embedded in canonical content."
+    },
+    {
+      "section": "5.2",
+      "line": 168,
+      "term": "`ArcNotes.Canvas` (Edgeless)",
+      "names": [
+        "ArcNotes.Canvas"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [],
+      "status": "retired",
+      "definition": "Retired by [P2-006](../decisions/phase-2-specification-decisions.md#rule-p2-006). Edgeless, whiteboard, shape/connector/frame workspaces are excluded."
+    },
+    {
+      "section": "5.2",
+      "line": 169,
+      "term": "`ArcNotes.Database`",
+      "names": [
+        "ArcNotes.Database"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Bounded note organization through scalar properties, queries and table/list Saved Views; not the SQLite/D1 storage schema or a formula/relation/rollup platform."
+    },
+    {
+      "section": "5.2",
+      "line": 170,
+      "term": "`ArcNotes.Slides`",
+      "names": [
+        "ArcNotes.Slides"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [],
+      "status": "retired",
+      "definition": "Retired by [P2-006](../decisions/phase-2-specification-decisions.md#rule-p2-006). Presentations, slide generation, frame ordering and presentation navigation are excluded."
+    },
+    {
+      "section": "5.2",
+      "line": 171,
+      "term": "`ArcNotes.ChecklistItem`",
+      "names": [
+        "ArcNotes.ChecklistItem"
+      ],
+      "namespace": "ArcNotes",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A document-local task item. **Not** an ArcChat Agent Task."
+    },
+    {
+      "section": "5.3",
+      "line": 177,
+      "term": "`ArcScope.Project`",
+      "names": [
+        "ArcScope.Project"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An ArcScope-scoped container of sources, sessions and analyses. **Not** an ArcForges Workspace."
+    },
+    {
+      "section": "5.3",
+      "line": 178,
+      "term": "`ArcScope.Device`",
+      "names": [
+        "ArcScope.Device"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Physical or logical hardware. **Not** a DataSource."
+    },
+    {
+      "section": "5.3",
+      "line": 179,
+      "term": "`ArcScope.DataSource`",
+      "names": [
+        "ArcScope.DataSource"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A configured source definition."
+    },
+    {
+      "section": "5.3",
+      "line": 180,
+      "term": "`ArcScope.ConnectionProfile`",
+      "names": [
+        "ArcScope.ConnectionProfile"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Stored connection settings. **Not** a live Connection."
+    },
+    {
+      "section": "5.3",
+      "line": 181,
+      "term": "`ArcScope.Session`",
+      "names": [
+        "ArcScope.Session"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An observation lifetime. **Not** a Connection; **not** a Capture."
+    },
+    {
+      "section": "5.3",
+      "line": 182,
+      "term": "`ArcScope.Capture`",
+      "names": [
+        "ArcScope.Capture"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A recorded data acquisition within a Session."
+    },
+    {
+      "section": "5.3",
+      "line": 183,
+      "term": "`ArcScope.Channel`",
+      "names": [
+        "ArcScope.Channel"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A transport-level stream of values. **Not** a Signal."
+    },
+    {
+      "section": "5.3",
+      "line": 184,
+      "term": "`ArcScope.Signal`",
+      "names": [
+        "ArcScope.Signal"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A semantically typed, named quantity. **Not** an Event."
+    },
+    {
+      "section": "5.3",
+      "line": 185,
+      "term": "`ArcScope.Event`",
+      "names": [
+        "ArcScope.Event"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A discrete occurrence in time."
+    },
+    {
+      "section": "5.3",
+      "line": 186,
+      "term": "`ArcScope.RawSignal` / `ArcScope.DerivedSignal`",
+      "names": [
+        "ArcScope.RawSignal",
+        "ArcScope.DerivedSignal"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Acquired versus computed. Never conflated."
+    },
+    {
+      "section": "5.3",
+      "line": 187,
+      "term": "`ArcScope.Measurement`",
+      "names": [
+        "ArcScope.Measurement"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A quantified reading with units and uncertainty. **Not** an Analysis."
+    },
+    {
+      "section": "5.3",
+      "line": 188,
+      "term": "`ArcScope.Analysis`",
+      "names": [
+        "ArcScope.Analysis"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An interpretation over measurements."
+    },
+    {
+      "section": "5.3",
+      "line": 189,
+      "term": "`ArcScope.Decoder`",
+      "names": [
+        "ArcScope.Decoder"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A protocol interpreter producing Decoder Output. **Decoder Output ≠ Raw Data.**"
+    },
+    {
+      "section": "5.3",
+      "line": 190,
+      "term": "`ArcScope.Annotation`",
+      "names": [
+        "ArcScope.Annotation"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A non-destructive marking. **Never** a data mutation."
+    },
+    {
+      "section": "5.3",
+      "line": 191,
+      "term": "`ArcScope.Comparison`",
+      "names": [
+        "ArcScope.Comparison"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A side-by-side relation between sessions or captures. **Not** a merge."
+    },
+    {
+      "section": "5.3",
+      "line": 192,
+      "term": "`ArcScope.Report`",
+      "names": [
+        "ArcScope.Report"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An ArcScope-owned report artifact. **Not** an ArcNotes Document."
+    },
+    {
+      "section": "5.3",
+      "line": 193,
+      "term": "`ArcScope.LiveView`",
+      "names": [
+        "ArcScope.LiveView"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "UI"
+      ],
+      "status": "active",
+      "definition": "Display state. Pausing the view never pauses the capture."
+    },
+    {
+      "section": "5.3",
+      "line": 194,
+      "term": "`ArcScope.Recording`",
+      "names": [
+        "ArcScope.Recording"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "storage"
+      ],
+      "status": "active",
+      "definition": "Persisted capture data, distinct from LiveView display state."
+    },
+    {
+      "section": "5.3",
+      "line": 195,
+      "term": "`ArcScope.DisplayDecimation`",
+      "names": [
+        "ArcScope.DisplayDecimation"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Downsampling for rendering only. Never the measurement data."
+    },
+    {
+      "section": "5.3",
+      "line": 201,
+      "term": "`ArcScope.SimulationDefinition`",
+      "names": [
+        "ArcScope.SimulationDefinition"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A Cloud-owned simulator definition."
+    },
+    {
+      "section": "5.3",
+      "line": 202,
+      "term": "`ArcScope.ScenarioVersion`",
+      "names": [
+        "ArcScope.ScenarioVersion"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An immutable scenario version."
+    },
+    {
+      "section": "5.3",
+      "line": 203,
+      "term": "`ArcScope.SimulationRun`",
+      "names": [
+        "ArcScope.SimulationRun"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A non-agent simulator product job."
+    },
+    {
+      "section": "5.3",
+      "line": 204,
+      "term": "`ArcScope.SimulationSegment`",
+      "names": [
+        "ArcScope.SimulationSegment"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An immutable segment of a simulation result."
+    },
+    {
+      "section": "5.3",
+      "line": 205,
+      "term": "`ArcScope.SimulationEvent`",
+      "names": [
+        "ArcScope.SimulationEvent"
+      ],
+      "namespace": "ArcScope",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An ordered event in a simulation run."
+    },
+    {
+      "section": "5.4",
+      "line": 211,
+      "term": "`ArcSlate.Project`",
+      "names": [
+        "ArcSlate.Project"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The editing project. **Not** a Sequence; **not** a media folder."
+    },
+    {
+      "section": "5.4",
+      "line": 212,
+      "term": "`ArcSlate.Sequence`",
+      "names": [
+        "ArcSlate.Sequence"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A timeline composition. **Not** a Timeline Clip."
+    },
+    {
+      "section": "5.4",
+      "line": 213,
+      "term": "`ArcSlate.Timeline`",
+      "names": [
+        "ArcSlate.Timeline"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The temporal arrangement inside a Sequence."
+    },
+    {
+      "section": "5.4",
+      "line": 214,
+      "term": "`ArcSlate.Track`",
+      "names": [
+        "ArcSlate.Track"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A lane within a Timeline."
+    },
+    {
+      "section": "5.4",
+      "line": 215,
+      "term": "`ArcSlate.Clip`",
+      "names": [
+        "ArcSlate.Clip"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A placed reference to source media with in/out points. **Not** the source media."
+    },
+    {
+      "section": "5.4",
+      "line": 216,
+      "term": "`ArcSlate.MediaAsset`",
+      "names": [
+        "ArcSlate.MediaAsset"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The managed identity of a piece of media. **Not** a file path; **not** a Clip."
+    },
+    {
+      "section": "5.4",
+      "line": 217,
+      "term": "`ArcSlate.SourceTime` / `ArcSlate.TimelineTime`",
+      "names": [
+        "ArcSlate.SourceTime",
+        "ArcSlate.TimelineTime"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Source-relative versus composition-relative time. Never interchangeable."
+    },
+    {
+      "section": "5.4",
+      "line": 218,
+      "term": "`ArcSlate.VideoFrameTime` / `ArcSlate.AudioSampleTime`",
+      "names": [
+        "ArcSlate.VideoFrameTime",
+        "ArcSlate.AudioSampleTime"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Distinct rate domains. Never the same clock."
+    },
+    {
+      "section": "5.4",
+      "line": 219,
+      "term": "`ArcSlate.Transition`",
+      "names": [
+        "ArcSlate.Transition"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A declared relation between adjacent clips. **Not** an incidental overlap."
+    },
+    {
+      "section": "5.4",
+      "line": 220,
+      "term": "`ArcSlate.EffectDefinition` / `ArcSlate.EffectInstance`",
+      "names": [
+        "ArcSlate.EffectDefinition",
+        "ArcSlate.EffectInstance"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Type versus applied instance with parameters."
+    },
+    {
+      "section": "5.4",
+      "line": 221,
+      "term": "`ArcSlate.Keyframe`",
+      "names": [
+        "ArcSlate.Keyframe"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "A time-anchored parameter value. **Not** the current parameter value."
+    },
+    {
+      "section": "5.4",
+      "line": 222,
+      "term": "`ArcSlate.Proxy`",
+      "names": [
+        "ArcSlate.Proxy"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "storage"
+      ],
+      "status": "active",
+      "definition": "A lower-cost stand-in for original media. **Not** the original; **not** a render cache."
+    },
+    {
+      "section": "5.4",
+      "line": 223,
+      "term": "`ArcSlate.RenderCache`",
+      "names": [
+        "ArcSlate.RenderCache"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "storage"
+      ],
+      "status": "active",
+      "definition": "Rebuildable rendered output. **Never** project authority."
+    },
+    {
+      "section": "5.4",
+      "line": 224,
+      "term": "`ArcSlate.RenderJob`",
+      "names": [
+        "ArcSlate.RenderJob"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "An ArcSlate-owned native product render/export Job, distinct from a Cloud Agent Task and UI progress dialog."
+    },
+    {
+      "section": "5.4",
+      "line": 225,
+      "term": "`ArcSlate.RenderedArtifact`",
+      "names": [
+        "ArcSlate.RenderedArtifact"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "The produced media file. **Not** the ArcSlate Project."
+    },
+    {
+      "section": "5.4",
+      "line": 226,
+      "term": "`ArcSlate.Transcript` / `ArcSlate.Subtitle`",
+      "names": [
+        "ArcSlate.Transcript",
+        "ArcSlate.Subtitle"
+      ],
+      "namespace": "ArcSlate",
+      "spaces": [
+        "domain"
+      ],
+      "status": "active",
+      "definition": "Machine text versus authored, timed, styled display text."
+    }
+  ],
+  "forbiddenAliases": [
+    {
+      "section": "8",
+      "line": 752,
+      "term": "`ArcCanvas`, `ArcMusic`, `ArcImage`",
+      "reason": "`SUPERSEDED` product names (**[D-002](../decisions/phase-1-foundation-decisions.md#rule-d-002)**)",
+      "instead": "No replacement product or runtime alias. ArcScope is independently defined; image-editor concepts do not migrate into it."
+    },
+    {
+      "section": "8",
+      "line": 753,
+      "term": "`ArcVideo`",
+      "reason": "`SUPERSEDED` product name; reference-repository identity only",
+      "instead": "ArcSlate retains product direction only, not a model, identity or automatic migration."
+    },
+    {
+      "section": "8",
+      "line": 754,
+      "term": "\"Workspace\" meaning a panel layout",
+      "reason": "Collides with the cloud tenancy boundary",
+      "instead": "**Layout**"
+    },
+    {
+      "section": "8",
+      "line": 755,
+      "term": "Bare \"Project\" in shared family text",
+      "reason": "Three incompatible product meanings",
+      "instead": "`ArcChat.Project` / `ArcScope.Project` / `ArcSlate.Project`"
+    },
+    {
+      "section": "8",
+      "line": 756,
+      "term": "Bare \"Scope\"",
+      "reason": "Eight distinct meanings exist",
+      "instead": "Name the scope explicitly: Knowledge Scope, Sync Scope, Permission Scope, Policy Scope, Product Scope, Search Scope, Egress Scope, Resource Scope"
+    },
+    {
+      "section": "8",
+      "line": 757,
+      "term": "\"ArcForges Suite 2.0\" as a version",
+      "reason": "No mandatory suite release train",
+      "instead": "Per-product versions plus an optional release campaign name"
+    },
+    {
+      "section": "8",
+      "line": 758,
+      "term": "\"Central desktop service\", `ArcForgesService.exe`",
+      "reason": "Prohibited architecture",
+      "instead": "application-owned assistant"
+    },
+    {
+      "section": "8",
+      "line": 759,
+      "term": "Unqualified \"Unlimited AI\" / \"unlimited storage\"",
+      "reason": "Prohibited unbounded commercial claims",
+      "instead": "Disclosed AI capacity recovery/rate/concurrency/model limits and storage tier"
+    },
+    {
+      "section": "8",
+      "line": 760,
+      "term": "\".NET AOT\" applied to Kotlin Android",
+      "reason": "Kotlin/Jetpack Compose is its own runtime under [P2-009](../decisions/phase-2-specification-decisions.md#rule-p2-009)",
+      "instead": "\"Kotlin/Jetpack Compose release build\""
+    },
+    {
+      "section": "8",
+      "line": 761,
+      "term": "\"Cloud may remain JIT\"",
+      "reason": "Superseded by [P2-009](../decisions/phase-2-specification-decisions.md#rule-p2-009)",
+      "instead": "\"C# Cloud publishes Native AOT\""
+    },
+    {
+      "section": "8",
+      "line": 762,
+      "term": "\"A realtime connection is durable authority\"",
+      "reason": "Hints are projections",
+      "instead": "\"Reconcile using the typed authoritative read\""
+    },
+    {
+      "section": "8",
+      "line": 763,
+      "term": "Waffo Pancake and every Waffo-specific mechanic",
+      "reason": "`SUPERSEDED` provider (**[D-005](../decisions/phase-1-foundation-decisions.md#rule-d-005)**)",
+      "instead": "Paddle (MoR) and Payoneer (payout destination)"
+    },
+    {
+      "section": "8",
+      "line": 764,
+      "term": "\"License key unlock\" in Android companion",
+      "reason": "Excluded by the accepted Android companion entitlement/distribution policy and **[D-022](../decisions/phase-1-foundation-decisions.md#rule-d-022)**",
+      "instead": "Cloud-resolved entitlement"
+    },
+    {
+      "section": "8",
+      "line": 765,
+      "term": "`InvokeAsync(string, object)` / `Dictionary<string,object>` capability calls",
+      "reason": "Bypasses contracts, permissions and versioning",
+      "instead": "Strongly typed capability interfaces"
+    },
+    {
+      "section": "8",
+      "line": 766,
+      "term": "`ArcForges.Foundation.Document`, `.VideoTimeline`, `.TelemetrySession`",
+      "reason": "Shared foundation must not hold domain",
+      "instead": "Product-owned domain types"
+    },
+    {
+      "section": "8",
+      "line": 767,
+      "term": "`ArcProductBase` domain hierarchy",
+      "reason": "Product classification is not inheritance",
+      "instead": "Independent domains + platform contracts"
+    }
+  ]
+}

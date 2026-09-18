@@ -17,6 +17,23 @@ Product applications and services build independently from published packages.
 See [extraction scope and evidence](docs/platform-bootstrap.md). The accepted product family design is
 maintained in [ArcForges-Design](https://github.com/ArcForges/ArcForges-Design).
 
+## Design policy data
+
+`eng/policy` contains generated glossary and invariant data from the exact Design
+commit in `design-source.json`. The portable checker compares fresh exports and
+validates document links, scoped citations, occurrence classifications and the
+work-package graph. CI requires these checks on Windows and Linux before packaging.
+
+```text
+python -m unittest discover -s eng -p test_design_policy.py -v
+python eng/design_policy.py
+```
+
+The second command fetches only the pinned public documentation into a temporary
+checkout and retains a report under `artifacts/evidence/design-policy.json`. It
+does not execute Design code examples. For reviewed source changes and read-only
+pre-merge checks, see [policy maintenance and evidence](docs/design-policy.md).
+
 ## Build and verify
 
 Install the .NET SDK selected by `global.json` and Python 3.11 or newer. No Mobile/Web workloads are needed.

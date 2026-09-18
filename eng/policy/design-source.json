@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "license": "AGPL-3.0-only",
+  "repository": "ArcForges/ArcForges-Design",
+  "commit": "1607374e81955f0a47f319cd6cc8ba1c6e254157",
+  "sourceHashes": {
+    "docs/requirements/01-normative-glossary-and-invariants.md": "fa60f160fe6c28685cd904f590f8d74ed1ead03295e4b9e42023f2a8f2b09a88",
+    "docs/assurance/invariant-coverage.md": "aa5880fc655e1e3da8f748f2c627d9c57ce1405c9b5fcb1ef7d3c2a6396e417a",
+    "docs/assurance/citation-classifications.json": "d12fbf63d0e0008e63df2fdc951a984179ff99a829c95f448174b31d2844820d"
+  },
+  "corpusSha256": "d37bea6dc9a4ff3ccaa5cc2596949337921aa054fe77c13d1e797c68c1138ca0"
+}
