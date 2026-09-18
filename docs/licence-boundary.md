@@ -31,10 +31,12 @@ dirty state, targets and configure-time link expressions in
 `artifacts/cmake/<rid>/<profile>/licence-boundary.json`. Imported dependencies keep
 their own licences; CTest's generated utility targets are identified separately.
 The existing native-stage audit still verifies the actual third-party binary,
-notice and source closure. Declaration checks do not replace it.
+notice and source closure. Declaration checks do not replace it. Only targets created
+by the CTest module are exempt; owned targets added before it still require declarations,
+with both native-test settings covered by a regression using the actual root CMake file.
 
 CI requires both operating systems' source/managed checks and the Windows native
-IDE/CMake reports before packaging. Ten negative/positive test groups include real
+IDE/CMake reports before packaging. Eleven negative/positive test groups include real
 MSBuild global overrides, real CMake target changes and malformed reference graphs.
 The current Design exports are refreshed to the same accepted baseline; glossary
 content and forbidden-alias digests are unchanged.
