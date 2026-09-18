@@ -129,6 +129,7 @@ def pack(directory, package_version, native_directory=ROOT / "artifacts/native-p
     directory.mkdir(parents=True, exist_ok=True)
     require(not list(directory.glob("*.nupkg")) and not (directory / "manifest.json").exists(),
             "Output already contains a candidate; choose a new empty --directory, never overwrite tested bytes.")
+    run("python", str(ROOT / "eng/licence_boundary.py"))
     commit = source_commit()
     native.verify_stage(native_directory, commit)
     packages = []

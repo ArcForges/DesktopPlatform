@@ -18,4 +18,8 @@
   <Target Name="RequireVerifiedNativePayload" BeforeTargets="GenerateNuspec">
     <Error Condition="!Exists('$(NativePayloadRoot)/native-manifest.json')" Text="Build and verify the native artifact before packing ArcForges.Native.Otio.Runtime.win-x64." />
   </Target>
+  <PropertyGroup>
+    <LicenceBoundary>AGPL</LicenceBoundary>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+  </PropertyGroup>
 </Project>

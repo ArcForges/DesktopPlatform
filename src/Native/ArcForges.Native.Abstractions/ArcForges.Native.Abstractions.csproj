@@ -13,4 +13,8 @@
     <None Include="../../../LICENSE" Pack="true" PackagePath="/" />
     <None Include="../../../NOTICE.md" Pack="true" PackagePath="/" />
   </ItemGroup>
+  <PropertyGroup>
+    <LicenceBoundary>AGPL</LicenceBoundary>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+  </PropertyGroup>
 </Project>

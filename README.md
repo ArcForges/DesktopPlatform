@@ -34,6 +34,17 @@ checkout and retains a report under `artifacts/evidence/design-policy.json`. It
 does not execute Design code examples. For reviewed source changes and read-only
 pre-merge checks, see [policy maintenance and evidence](docs/design-policy.md).
 
+## Project licence boundaries
+
+The [WP00.02 profile](docs/licence-boundary.md) checks all 35 owned build scopes,
+effective managed/IDE properties and native target declarations. A read-only family
+audit can inspect explicitly supplied roots without importing or building them.
+
+```text
+python -m unittest discover -s eng -p test_licence_boundary.py -v
+python eng/licence_boundary.py --evaluate-managed
+```
+
 ## Build and verify
 
 Install the .NET SDK selected by `global.json` and Python 3.11 or newer. No Mobile/Web workloads are needed.
@@ -72,14 +83,15 @@ schema validation, compatibility checks, generators and generated SDK packaging:
 | Consumer | Published dependency |
 |---|---|
 | C# desktop / Cloud | `ArcForges.Contracts.*` NuGets: generated protobuf messages and gRPC stubs |
-| TypeScript Web / Mobile | `@arcforges/proto`, `@arcforges/api-client`; Mobile also `@arcforges/rn-transport` |
+| TypeScript Web | `@arcforges/proto`, `@arcforges/api-client` |
+| Kotlin Android Mobile | `io.github.arcforges:contracts-proto`, `io.github.arcforges:contracts-connect-client` from Maven Central |
 | AI / Cloud internal integration | Separate internal schema/client package; never imported by public SDKs |
 
-Consumers reference exact NuGet/npm versions and commit their locks. They neither clone Contracts nor
-run its generators during ordinary builds. Contracts CI publishes both ecosystems from one reviewed
+Consumers reference exact NuGet/npm/Maven versions and commit their locks. They neither clone Contracts nor
+run its generators during ordinary builds. Contracts CI publishes all three ecosystems from one reviewed
 schema commit and records descriptor/package hashes. Compatible additive changes can roll out without
 simultaneously updating every consumer; breaking changes require a new protocol major and migration.
-There are no Git submodules. This extraction does not create or publish the separate Contracts repository.
+There are no Git submodules. Contracts publishes independently from its own reviewed source commit.
 
 ## Licence
 
