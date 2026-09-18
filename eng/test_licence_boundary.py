@@ -126,6 +126,24 @@ cmake_language(DEFER CALL arcforges_verify_native_licences)
             self.write('CMakeLists.txt', source + addition + '\n')
             self.assertIn('AFL001', self.run_tool('cmake', '-S', '.', '-B', directory, success=False))
 
+    def test_real_root_does_not_exempt_owned_targets_before_ctest(self):
+        source = (policy.ROOT / 'CMakeLists.txt').read_text(encoding='utf-8')
+        source = source.replace('LANGUAGES C CXX', 'LANGUAGES NONE')
+        source = source.replace('include(eng/cmake/LicenceBoundary.cmake)',
+                                f'include("{(policy.ROOT / "eng/cmake/LicenceBoundary.cmake").as_posix()}")')
+        source = source.replace('add_subdirectory(native)',
+                                'add_custom_target(registered)\narcforges_declare_target_licence(registered)')
+        source = source.replace('option(ARCFORGES_BUILD_TESTS',
+                                'add_custom_target(early_unregistered)\noption(ARCFORGES_BUILD_TESTS')
+        self.write('CMakeLists.txt', source)
+        self.write('toolchain.cmake', '# Empty toolchain for a LANGUAGES NONE policy fixture.\n')
+        for enabled in ('ON', 'OFF'):
+            output = self.run_tool('cmake', '-S', '.', '-B', 'ctest-' + enabled,
+                '-DARCFORGES_NATIVE_PROFILE=runtime-shared', '-DVCPKG_TARGET_TRIPLET=fixture',
+                '-DCMAKE_TOOLCHAIN_FILE=' + str(self.root / 'toolchain.cmake'),
+                '-DARCFORGES_BUILD_TESTS=' + enabled, success=False)
+            self.assertIn('AFL001: missing or incorrect native target licence: early_unregistered', output)
+
 
 if __name__ == '__main__':
     unittest.main()
