@@ -135,7 +135,7 @@ def glossary(docs, commit):
             require(retired or term_spaces, f'missing term spaces at {number}')
             namespaces = {name.rsplit('.', 1)[0] if '.' in name else 'shared' for name in names}
             require(len(namespaces) == 1, f'mixed term namespaces at {number}')
-            if section.startswith('5.'):
+            if section.split('.', 1)[0] == '5':
                 require(all('.' in name for name in names), f'unqualified product term at {number}')
             terms.append({'section': section, 'line': number, 'term': cs[0], 'names': names,
                           'namespace': next(iter(namespaces)), 'spaces': term_spaces,
