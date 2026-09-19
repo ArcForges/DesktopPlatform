@@ -203,11 +203,13 @@ class NativeClosureTests(unittest.TestCase):
             with patch.object(native, "profile", return_value=self.value):
                 result = native.verify(self.package, self.files.__getitem__, set(self.files), root)
                 self.assertEqual(result["result"], "passed")
-                self.files["unregistered/new-file.txt"] = b"unexpected resource"
-                with self.assertRaisesRegex(ValueError, "membership differs"):
-                    native.verify(self.package, self.files.__getitem__, set(self.files), root)
+                for path in ("unregistered/new-file.txt", "package/services/metadata/core-properties/extra.js", "unregistered/extra.nuspec"):
+                    with self.subTest(path=path):
+                        self.files[path] = b"unexpected resource"
+                        with self.assertRaisesRegex(ValueError, "membership differs"):
+                            native.verify(self.package, self.files.__getitem__, set(self.files), root)
+                        del self.files[path]
                 # Even forging the producer hash list cannot admit an unreviewed legal/resource file.
-                del self.files["unregistered/new-file.txt"]
                 self.files["licenses/unreviewed.txt"] = b"unreviewed"
                 receipt["files"].append({"path": "licenses/unreviewed.txt", "sha256": hashlib.sha256(b"unreviewed").hexdigest()})
                 self.files[native.RECEIPT] = json.dumps(receipt).encode()

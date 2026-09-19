@@ -419,8 +419,8 @@ def verify(package: str, read, names: set[str], root: Path = ROOT) -> dict:
     members = {r["path"]: r["sha256"] for r in receipt["files"]}
     require(len(members) == len(receipt["files"]), "Duplicate native receipt member")
     # NuGet adds the package metadata and root README/LICENSE; the native stage is otherwise closed.
-    metadata = {n for n in names if n.endswith(".nuspec") or n in {"[Content_Types].xml", "_rels/.rels", "README.md", "LICENSE", ".signature.p7s"}
-                or n.startswith("package/services/metadata/core-properties/")}
+    metadata = names & {package + ".nuspec", "[Content_Types].xml", "_rels/.rels", "README.md", "LICENSE", ".signature.p7s",
+                        "package/services/metadata/core-properties/nuget.psmdcp"}
     require(names - metadata - {RECEIPT} == set(members), "Native candidate membership differs from sealed producer")
     for name, digest in members.items():
         require(sha(read(name)) == digest, "Native candidate member differs from the tested producer artifact: " + name)
