@@ -22,7 +22,7 @@ from urllib.parse import urlsplit
 import check_provenance as provenance
 
 ROOT = Path(__file__).resolve().parents[1]
-PROFILE = "eng/provenance/artifact-profiles/native-win-x64-r2.json"
+PROFILE = "eng/provenance/artifact-profiles/native-win-x64-r3.json"
 RECEIPT = "provenance/native-closure.json"
 NOTICE = "provenance/NOTICE.txt"
 require = provenance.require
@@ -53,10 +53,26 @@ def sources(sbom: dict) -> list[dict]:
     return sorted(rows, key=lambda r: (r["url"], r["sha512"]))
 
 
+def check_sources(value: dict, name: str, sbom: dict) -> None:
+    component = value["components"][name]
+    required = sorted(({k: r[k] for k in ("url", "sha512")} for r in component["resources"]),
+                      key=lambda r: (r["url"], r["sha512"]))
+    actual = sources(sbom)
+    cached_helper = (name in value["cachedResourceOmissions"] and component["role"] == "build-only" and not actual)
+    require(actual == required or cached_helper, "Changed native source archives: " + name +
+            "; expected " + json.dumps(required, sort_keys=True) + "; observed " + json.dumps(actual, sort_keys=True))
+
+
 def profile(root: Path = ROOT) -> dict:
     value = provenance.document(provenance.read(root, PROFILE))
-    provenance.fields(value, "schemaVersion id authority vcpkgCommit baseline buildTools triplets components packages platformRuntime")
-    require(value["schemaVersion"] == 1 and value["id"] == "native-win-x64-r2", "Unknown native profile")
+    provenance.fields(value, "schemaVersion id authority vcpkgCommit baseline buildTools triplets components packages platformRuntime cachedResourceOmissions")
+    require(value["schemaVersion"] == 1 and value["id"] == "native-win-x64-r3", "Unknown native profile")
+    require(value["cachedResourceOmissions"] == ["vcpkg-tool-meson"], "Unreviewed cached resource omission")
+    meson = value["components"]["vcpkg-tool-meson"]
+    legal = meson["extras"][0]
+    require(meson["role"] == "build-only" and meson["resources"] == [{"url": legal["url"],
+            "sha512": legal["sourceSha512"], "downloadUrl": legal["url"], "cacheName": legal["cacheName"]}],
+            "Meson source receipt differs from the reviewed legal source")
     require(value["buildTools"] == {"ownedCMake": "4.3.3", "ownedNinja": "1.13.1", "vcpkgCMake": "4.4.0", "msvcToolset": "14.51.36231"},
             "Unreviewed native build generators")
     require(set(value["triplets"]) == {"x64-windows", "x64-windows-static-md"}, "Unreviewed native triplets")
@@ -334,8 +350,7 @@ def inspect_material(value: dict, package: str, read, names: set[str]) -> dict:
                 [r[1] for r in build if r[0] == "additional_file_0" and len(r) == 2] == [triplet["upstreamSha256"]],
                 "Unreviewed upstream compiler selection: " + dependency["name"])
         source = provenance.document(read(dependency["sbom"]))
-        required = sorted(({k: r[k] for k in ("url", "sha512")} for r in item["resources"]), key=lambda r: (r["url"], r["sha512"]))
-        require(sources(source) == required, "Changed native source archives: " + dependency["name"])
+        check_sources(value, dependency["name"], source)
         if item["correspondingSource"] is not None:
             archive = item["correspondingSource"]
             require(dependency.get("sourceArchive") == archive["path"] and dependency.get("sourceUrl") == archive["url"],

@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "id": "native-vcpkg-tool-meson-r3",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/mesonbuild/meson",
+  "sourceCommit": "75ef08140346d9a058546493036a31431774eb7a",
+  "sourcePaths": [
+    "COPYING"
+  ],
+  "licence": {
+    "spdx": "Apache-2.0",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "COPYING",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      }
+    ],
+    "scope": "Build-only Meson 1.9.0 Apache-2.0 implementation; the packaged vcpkg helper/recipe has its own MIT grant, and patch context retains the Meson terms. No Meson implementation is a runtime dependency. The pinned vcpkg-port-config.cmake acquires the exact reviewed Meson archive only when the patched host tool is absent. An actual cold helper build records that single URL/SHA512 resource; an existing tool produces no resource entry. Only those two observed representations are admitted. The full Meson COPYING companion and all recipe/patch hashes remain mandatory in either case; no runtime resource omission is permitted.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/vcpkg-tool-meson-x64-windows.txt.",
+    "Additional full notices: licenses/provenance/vcpkg-tool-meson-meson-apache.txt.",
+    "Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Media.Runtime.win-x64/ArcForges.Native.Media.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Media.Runtime.win-x64",
+      "kind": "native-component-vcpkg-tool-meson",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r3.json",
+      "sha256": "4663b812996a60f91c5620c1cd58675203a870bdf28001f60cef7a67ae585775"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Build-only Meson Apache-2.0 implementation; the packaged vcpkg helper/recipe has its own MIT grant, and patch context retains the Meson terms. No Meson implementation is a runtime dependency.",
+    "artifacts": [
+      {
+        "url": "https://github.com/mesonbuild/meson/archive/1.9.0.tar.gz",
+        "sha256": "12ca5979a3a625c8944e093c17c32c4c2bd03a48c8877354d88a7077860ef740",
+        "members": [
+          "meson-1.9.0/COPYING"
+        ]
+      }
+    ]
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/vcpkg-tool-meson-x64-windows.txt.\nAdditional full notices: licenses/provenance/vcpkg-tool-meson-meson-apache.txt. Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "44125a9e977c834f06ac1e5fe8db55355261ef87",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.4.0 is the BSD-3-Clause script/build generator selected by scripts/vcpkg-tools.json at vcpkg 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb. Actual installed ABI evidence must report this version. Its implementation is not copied into runtime outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/vcpkg-tool-meson/adjust-args.patch",
+          "ports/vcpkg-tool-meson/adjust-python-dep.patch",
+          "ports/vcpkg-tool-meson/install.cmake",
+          "ports/vcpkg-tool-meson/meson-56879d5.diff",
+          "ports/vcpkg-tool-meson/meson-intl.patch",
+          "ports/vcpkg-tool-meson/meson.template.in",
+          "ports/vcpkg-tool-meson/portfile.cmake",
+          "ports/vcpkg-tool-meson/remove-pkgconfig-specialization.patch",
+          "ports/vcpkg-tool-meson/vcpkg-port-config.cmake",
+          "ports/vcpkg-tool-meson/vcpkg.json",
+          "ports/vcpkg-tool-meson/vcpkg_configure_meson.cmake",
+          "ports/vcpkg-tool-meson/vcpkg_install_meson.cmake",
+          "triplets/x64-windows.cmake",
+          "triplets/x64-windows-static-md.cmake",
+          "scripts/vcpkg-tools.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/mesonbuild/meson",
+        "commit": "75ef08140346d9a058546493036a31431774eb7a",
+        "paths": [
+          "COPYING"
+        ],
+        "spdx": "Apache-2.0",
+        "evidence": [
+          {
+            "path": "COPYING",
+            "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipes/features/triplets use CMake 4.4.0; every installed vcpkg_abi_info.txt proves that generator version and the exact owning overlay/base-triplet hashes. The profile-bound first-party overlays select MSVC 14.51.36231 without changing standard linkage semantics; their current source commit is bound by the candidate receipt. CMake 4.3.3 with Ninja 1.13.1 and that MSVC toolset builds the unchanged owned native wrappers under both presets. The producer validates actual CMake caches, compiler paths and installed dependency root. python eng/packaging/native.py stage and independent candidate inspection seal those build records. Host tool implementations are not embedded source; copied CRT DLLs retain the separate reviewed platform-runtime record. Build-only Meson 1.9.0 Apache-2.0 implementation; the packaged vcpkg helper/recipe has its own MIT grant, and patch context retains the Meson terms. No Meson implementation is a runtime dependency. The pinned vcpkg-port-config.cmake acquires the exact reviewed Meson archive only when the patched host tool is absent. An actual cold helper build records that single URL/SHA512 resource; an existing tool produces no resource entry. Only those two observed representations are admitted. The full Meson COPYING companion and all recipe/patch hashes remain mandatory in either case; no runtime resource omission is permitted.",
+    "outputSpdx": "Apache-2.0"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Build-only Meson 1.9.0 Apache-2.0 implementation; the packaged vcpkg helper/recipe has its own MIT grant, and patch context retains the Meson terms. No Meson implementation is a runtime dependency. The pinned vcpkg-port-config.cmake acquires the exact reviewed Meson archive only when the patched host tool is absent. An actual cold helper build records that single URL/SHA512 resource; an existing tool produces no resource entry. Only those two observed representations are admitted. The full Meson COPYING companion and all recipe/patch hashes remain mandatory in either case; no runtime resource omission is permitted. Actual isolated cold build and current warm installed SPDX were compared against the unchanged pinned recipe.",
+    "baselineCommit": "0c31fd7c78f75f1333786883560a20ba5a8c5d0a",
+    "reconciliation": true
+  },
+  "supersedes": "native-vcpkg-tool-meson-r2"
+}

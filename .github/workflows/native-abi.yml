@@ -55,7 +55,7 @@ jobs:
           $installationPath = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath).Trim()
           $installationVersion = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationVersion).Trim()
           if (-not $installationPath -or -not $installationVersion) { throw 'Visual Studio C++ tools were not found.' }
-          $profile = Get-Content -Raw eng/provenance/artifact-profiles/native-win-x64-r2.json | ConvertFrom-Json
+          $profile = Get-Content -Raw eng/provenance/artifact-profiles/native-win-x64-r3.json | ConvertFrom-Json
           $vcToolsVersion = $profile.buildTools.msvcToolset
           $compiler = Join-Path $installationPath "VC\Tools\MSVC\$vcToolsVersion\bin\Hostx64\x64\cl.exe"
           $compilerVersion = (Get-Item -LiteralPath $compiler).VersionInfo.FileVersion

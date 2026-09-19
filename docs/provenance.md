@@ -45,7 +45,7 @@ expressions already audited here. This does not import AGPL tooling into Contrac
 
 ## Existing Windows native closure
 
-The immutable `native-win-x64-r2.json` artifact profile records 36 components, all 174
+The immutable `native-win-x64-r3.json` artifact profile records 36 components, all 174
 port recipe files, the four toolchain definitions, and the exact four package
 dependency/feature closures and source identities.
 Original archive SHA512 values are independently bound to Git archive commits; the
@@ -63,6 +63,13 @@ definitions are verified from the installed ABI records and retained in every pa
 with the full vcpkg MIT licence. The owned compiler path is checked independently.
 Revision 2 supersedes the initial records to distinguish these roles, while preserving
 revision 1 unchanged. Local development builds with other tools do not prove this gate.
+
+Revision 3 preserves both earlier revisions and records the two verified SPDX forms
+of the Meson build helper. Its pinned recipe downloads the exact Meson 1.9.0 archive
+when the patched host tool is absent, adding one source resource to the helper receipt.
+An existing tool produces no resource entry. Only these two forms are admitted for
+this build-only helper; both retain the full Apache text, MIT recipes and patch hashes.
+Changed URLs/hashes, additional resources and missing runtime sources fail validation.
 
 The selected source/configuration matters. liblzma uses 0BSD, zstd selects BSD,
 miniaudio selects MIT-0, and the RapidJSON examples with different terms are excluded.

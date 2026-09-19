@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "id": "native-pkgconf-r3",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/pkgconf/pkgconf",
+  "sourceCommit": "048d0a4f8dffb8e14fc9e9a595d2e9a503c4813b",
+  "sourcePaths": [
+    "COPYING",
+    "AUTHORS"
+  ],
+  "licence": {
+    "spdx": "LicenseRef-pkgconf-Permissive",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "COPYING",
+        "sha256": "055a265b839672a62f590869b0a1f8e4f5147e8f073c9ba77b17b8d7ad653966",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "AUTHORS",
+        "sha256": "8b3dbc024558bb120b3db6b6d37bf23e38603165a810013ca3539bc7fbdadcd9",
+        "finding": "Authors explicitly referenced by the pkgconf copyright grant."
+      }
+    ],
+    "scope": "Build-only host tool under its exact COPYING permissive grant and disclaimer (LicenseRef-pkgconf-Permissive). Preserve AUTHORS. The host executable is not bundled.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/pkgconf-x64-windows.txt.",
+    "Additional full notices: licenses/provenance/pkgconf-authors.txt.",
+    "Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Media.Runtime.win-x64/ArcForges.Native.Media.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Media.Runtime.win-x64",
+      "kind": "native-component-pkgconf",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r3.json",
+      "sha256": "4663b812996a60f91c5620c1cd58675203a870bdf28001f60cef7a67ae585775"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Build-only host tool under its exact COPYING permissive grant and disclaimer (LicenseRef-pkgconf-Permissive). Preserve AUTHORS. The host executable is not bundled.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/pkgconf-x64-windows.txt.\nAdditional full notices: licenses/provenance/pkgconf-authors.txt. Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "44125a9e977c834f06ac1e5fe8db55355261ef87",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.4.0 is the BSD-3-Clause script/build generator selected by scripts/vcpkg-tools.json at vcpkg 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb. Actual installed ABI evidence must report this version. Its implementation is not copied into runtime outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/pkgconf/portfile.cmake",
+          "ports/pkgconf/vcpkg.json",
+          "triplets/x64-windows.cmake",
+          "triplets/x64-windows-static-md.cmake",
+          "scripts/vcpkg-tools.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/pkgconf/pkgconf",
+        "commit": "048d0a4f8dffb8e14fc9e9a595d2e9a503c4813b",
+        "paths": [
+          "COPYING",
+          "AUTHORS"
+        ],
+        "spdx": "LicenseRef-pkgconf-Permissive",
+        "evidence": [
+          {
+            "path": "COPYING",
+            "sha256": "055a265b839672a62f590869b0a1f8e4f5147e8f073c9ba77b17b8d7ad653966",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "AUTHORS",
+            "sha256": "8b3dbc024558bb120b3db6b6d37bf23e38603165a810013ca3539bc7fbdadcd9",
+            "finding": "Authors explicitly referenced by the pkgconf copyright grant."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipes/features/triplets use CMake 4.4.0; every installed vcpkg_abi_info.txt proves that generator version and the exact owning overlay/base-triplet hashes. The profile-bound first-party overlays select MSVC 14.51.36231 without changing standard linkage semantics; their current source commit is bound by the candidate receipt. CMake 4.3.3 with Ninja 1.13.1 and that MSVC toolset builds the unchanged owned native wrappers under both presets. The producer validates actual CMake caches, compiler paths and installed dependency root. python eng/packaging/native.py stage and independent candidate inspection seal those build records. Host tool implementations are not embedded source; copied CRT DLLs retain the separate reviewed platform-runtime record.",
+    "outputSpdx": "LicenseRef-pkgconf-Permissive"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Build-only host tool under its exact COPYING permissive grant and disclaimer (LicenseRef-pkgconf-Permissive). Preserve AUTHORS. The host executable is not bundled. Generator correction: the vcpkg script engine uses CMake 4.4.0 from the pinned tools manifest; CMake 4.3.3 generates the owned wrappers. The producer and candidate validate actual build caches and each installed vcpkg ABI record. The retired record remains intact. Profile revision 3 records both independently reproduced cold/warm SPDX forms of the same Meson build-only helper. All other source, licence, toolchain, binary and legal membership is unchanged. Revisions 1 and 2 remain immutable.",
+    "baselineCommit": "0c31fd7c78f75f1333786883560a20ba5a8c5d0a",
+    "reconciliation": true
+  },
+  "supersedes": "native-pkgconf-r2"
+}

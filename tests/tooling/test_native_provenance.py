@@ -47,7 +47,7 @@ class NativeClosureTests(unittest.TestCase):
             "correspondingSource": {"path": "sources/example.tar.gz", "url": "https://example.org/src.tar.gz",
                                     "sha512": hashlib.sha512(self.files["sources/example.tar.gz"]).hexdigest()},
         }
-        self.value = {"components": {"example": self.component},
+        self.value = {"components": {"example": self.component}, "cachedResourceOmissions": ["vcpkg-tool-meson"],
                       "buildTools": {"ownedCMake": "4.3.3", "ownedNinja": "1.13.1", "vcpkgCMake": "4.4.0", "msvcToolset": "14.51.36231"},
                       "packages": {self.package: {"dependencies": [self.dependency], "dlls": ["Example.dll", "vcruntime140.dll"]}},
                       "platformRuntime": {"id": "vendor-r1", "files": {"vcruntime140.dll": self.runtime}, "legal": [],
@@ -250,6 +250,38 @@ class ProducerBuildIdentityTests(unittest.TestCase):
             with patch.object(producer.subprocess, "check_output", return_value="1.13.2\n"):
                 with self.assertRaisesRegex(ValueError, "Ninja build tool"):
                     producer.owned_build_tools(profile, installed, root)
+
+
+class MesonResourceTests(unittest.TestCase):
+    def setUp(self):
+        self.value = native.profile()
+        resource = self.value["components"]["vcpkg-tool-meson"]["resources"][0]
+        self.resource = {"SPDXID": "SPDXRef-resource-0", "downloadLocation": resource["url"],
+                         "checksums": [{"algorithm": "SHA512", "checksumValue": resource["sha512"]}]}
+
+    def test_cold_and_cached_helper_receipts_are_both_exactly_admitted(self):
+        for packages in ([], [self.resource]):
+            with self.subTest(packages=packages):
+                native.check_sources(self.value, "vcpkg-tool-meson", {"packages": packages})
+
+    def test_wrong_url_digest_extra_and_duplicate_resources_are_rejected(self):
+        for field, changed in [("downloadLocation", "https://example.org/other.tar.gz"),
+                               ("checksums", [{"algorithm": "SHA512", "checksumValue": "0" * 128}])]:
+            value = copy.deepcopy(self.resource)
+            value[field] = changed
+            for packages in ([value], [self.resource, value]):
+                with self.subTest(field=field, count=len(packages)), self.assertRaisesRegex(ValueError, "Changed native source archives"):
+                    native.check_sources(self.value, "vcpkg-tool-meson", {"packages": packages})
+        with self.assertRaisesRegex(ValueError, "Changed native source archives"):
+            native.check_sources(self.value, "vcpkg-tool-meson", {"packages": [self.resource, self.resource]})
+
+    def test_no_runtime_source_or_other_tool_omission_is_admitted(self):
+        for name in ("ffmpeg", "libusb", "zlib", "pkgconf"):
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, "Changed native source archives"):
+                native.check_sources(self.value, name, {"packages": []})
+        self.value["components"]["vcpkg-tool-meson"]["role"] = "runtime-input"
+        with self.assertRaisesRegex(ValueError, "Changed native source archives"):
+            native.check_sources(self.value, "vcpkg-tool-meson", {"packages": []})
 
 
 class LegalExtractionTests(unittest.TestCase):
