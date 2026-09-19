@@ -47,6 +47,10 @@ python eng/licence_boundary.py --evaluate-managed
 
 ## Build and verify
 
+Source reuse and the existing native artifact closure are enforced by the
+[provenance records and review process](docs/provenance.md). Windows and Linux CI
+check the real inventory, immutable history and failure tests before packaging.
+
 Install the .NET SDK selected by `global.json` and Python 3.11 or newer. No Mobile/Web workloads are needed.
 
 ```powershell

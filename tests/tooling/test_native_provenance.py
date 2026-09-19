@@ -1,0 +1,327 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+"""Independent negative cases for the native package trust boundary."""
+
+import copy
+import hashlib
+import io
+import json
+from pathlib import Path
+import sys
+import tarfile
+import tempfile
+import unittest
+from unittest.mock import patch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "eng"))
+import native_provenance as native
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "eng/packaging"))
+import native as producer
+
+
+class NativeClosureTests(unittest.TestCase):
+    def setUp(self):
+        self.package = "Example.Runtime.win-x64"
+        self.dll = "runtimes/win-x64/native/vcruntime140.dll"
+        self.files = {
+            "licenses/example-x64-windows.txt": b"Original full licence\n",
+            "licenses/example-x64-windows.abi.txt": b"cmake 4.4.0\ntriplet x64-windows\n",
+            "licenses/provenance/required.txt": b"Required subordinate copyright and permission.\n",
+            "recipes/example/portfile.cmake": b"reviewed recipe\n",
+            "recipes/toolchains/x64-windows.cmake": b"reviewed toolset pin\n",
+            "recipes/toolchains/upstream-x64-windows.cmake": b"standard triplet\n",
+            "licenses/provenance/vcpkg-LICENSE.txt": b"Original toolchain MIT permission and copyright\n",
+            "sources/example.tar.gz": b"exact matching original source archive",
+            self.dll: b"approved vendor object bytes",
+            "runtimes/win-x64/native/Example.dll": b"owned compiled bytes",
+        }
+        self.runtime = {"sha256": hashlib.sha256(self.files[self.dll]).hexdigest(), "productVersion": "1.2.3.4",
+                        "fileVersion": "1.2.3.4", "publisher": "Example Vendor"}
+        self.dependency = {"name": "example", "triplet": "x64-windows", "version": "1.0", "features": []}
+        resource = {"url": "https://example.org/src.tar.gz", "sha512": "a" * 128}
+        self.component = {
+            "record": "example-r1", "version": "1.0", "role": "runtime-input", "scope": "Reviewed selected scope.",
+            "source": {"repository": "https://example.org/repo", "commit": "b" * 40, "spdx": "MIT"},
+            "resources": [resource], "recipe": {"files": {"portfile.cmake": hashlib.sha256(self.files["recipes/example/portfile.cmake"]).hexdigest()}},
+            "legal": [{"path": "licenses/example-x64-windows.txt", "sha256": hashlib.sha256(self.files["licenses/example-x64-windows.txt"]).hexdigest()}],
+            "extras": [{"output": "licenses/provenance/required.txt", "sha256": hashlib.sha256(self.files["licenses/provenance/required.txt"]).hexdigest()}],
+            "correspondingSource": {"path": "sources/example.tar.gz", "url": "https://example.org/src.tar.gz",
+                                    "sha512": hashlib.sha512(self.files["sources/example.tar.gz"]).hexdigest()},
+        }
+        self.value = {"components": {"example": self.component}, "cachedResourceOmissions": ["vcpkg-tool-meson"],
+                      "buildTools": {"ownedCMake": "4.3.3", "ownedNinja": "1.13.1", "vcpkgCMake": "4.4.0", "msvcToolset": "14.51.36231"},
+                      "packages": {self.package: {"dependencies": [self.dependency], "dlls": ["Example.dll", "vcruntime140.dll"]}},
+                      "platformRuntime": {"id": "vendor-r1", "files": {"vcruntime140.dll": self.runtime}, "legal": [],
+                                          "distributionIdentity": {"directoryVersion": "1.2.3"}, "notice": "Separate vendor terms."}}
+        triplet = {"sha256": hashlib.sha256(self.files["recipes/toolchains/x64-windows.cmake"]).hexdigest(),
+                   "upstreamSha256": hashlib.sha256(self.files["recipes/toolchains/upstream-x64-windows.cmake"]).hexdigest(),
+                   "upstreamLicenceSha256": hashlib.sha256(self.files["licenses/provenance/vcpkg-LICENSE.txt"]).hexdigest()}
+        self.value["triplets"] = {"x64-windows": triplet}
+        self.files["licenses/example-x64-windows.abi.txt"] += ("triplet_abi " + triplet["sha256"] + "-toolchain-compiler\n"
+            + "additional_file_0 " + triplet["upstreamSha256"] + "\n").encode()
+        self.sbom = {"sourceCommit": "c" * 40, "buildTools": dict(self.value["buildTools"]), "buildDependencies": [{**self.dependency,
+            "license": "licenses/example-x64-windows.txt", "sbom": "licenses/example-x64-windows.spdx.json",
+            "buildInfo": "licenses/example-x64-windows.abi.txt",
+            "sourceArchive": "sources/example.tar.gz", "sourceUrl": "https://example.org/src.tar.gz"}],
+            "visualCppRuntime": {"record": "vendor-r1", "redistributableDirectoryVersion": "1.2.3",
+                                 "files": [{"name": "vcruntime140.dll", **self.runtime}]}}
+        self.spdx = {"packages": [{"SPDXID": "SPDXRef-resource-0", "downloadLocation": resource["url"],
+                                  "checksums": [{"algorithm": "SHA512", "checksumValue": resource["sha512"]}]}]}
+        self.refresh()
+
+    def refresh(self):
+        self.files["sbom.json"] = json.dumps(self.sbom).encode()
+        self.files["licenses/example-x64-windows.spdx.json"] = json.dumps(self.spdx).encode()
+        self.files[native.NOTICE] = native.native_notice(self.value, self.package)
+        self.files["NOTICE.md"] = b"Package attribution\n" + self.files[native.NOTICE]
+
+    def inspect(self):
+        return native.inspect_material(self.value, self.package, self.files.__getitem__, set(self.files))
+
+    def test_accepts_complete_reviewed_closure(self):
+        self.assertEqual(self.inspect()["records"], ["example-r1"])
+
+    def test_rejects_unreviewed_upstream_generator_missing_or_duplicate_identity(self):
+        for content in [b"cmake 4.4.3\ntriplet x64-windows\n", b"triplet x64-windows\n",
+                        b"cmake 4.4.0\ncmake 4.4.0\ntriplet x64-windows\n",
+                        b"cmake 4.4.0\ntriplet arm64-windows\n"]:
+            with self.subTest(content=content):
+                self.files["licenses/example-x64-windows.abi.txt"] = content
+                with self.assertRaisesRegex(ValueError, "upstream build generator/triplet"):
+                    self.inspect()
+
+    def test_rejects_unreviewed_owned_tools_in_candidate(self):
+        self.sbom["buildTools"]["ownedCMake"] = "4.4.3"
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "native build tools in SBOM"):
+            self.inspect()
+
+    def test_rejects_dependency_built_without_reviewed_toolset_overlay(self):
+        name = "licenses/example-x64-windows.abi.txt"
+        self.files[name] = self.files[name].replace(self.value["triplets"]["x64-windows"]["sha256"].encode(), b"0" * 64)
+        with self.assertRaisesRegex(ValueError, "upstream compiler selection"):
+            self.inspect()
+
+    def test_rejects_missing_required_companion_and_changed_recipe(self):
+        for path in ["licenses/provenance/required.txt", "recipes/example/portfile.cmake"]:
+            with self.subTest(path=path):
+                original = self.files.pop(path)
+                with self.assertRaisesRegex(ValueError, "missing native legal/recipe"):
+                    self.inspect()
+                self.files[path] = original + b"changed"
+                with self.assertRaisesRegex(ValueError, "native legal/recipe"):
+                    self.inspect()
+                self.files[path] = original
+
+    def test_rejects_new_unclassified_legal_recipe_and_source_members(self):
+        for path in ["licenses/new.txt", "recipes/new.cmake", "sources/unreviewed.tar.gz"]:
+            with self.subTest(path=path):
+                self.files[path] = b"unreviewed"
+                with self.assertRaisesRegex(ValueError, "Unclassified native"):
+                    self.inspect()
+                del self.files[path]
+
+    def test_rejects_changed_source_url_or_checksum(self):
+        for field, value in [("downloadLocation", "https://other.example/source.tar.gz"),
+                             ("checksums", [{"algorithm": "SHA512", "checksumValue": "d" * 128}])]:
+            with self.subTest(field=field):
+                original = self.spdx["packages"][0][field]
+                self.spdx["packages"][0][field] = value
+                self.refresh()
+                with self.assertRaisesRegex(ValueError, "Changed native source archives"):
+                    self.inspect()
+                self.spdx["packages"][0][field] = original
+
+    def test_rejects_changed_feature_version_and_duplicate_dependency(self):
+        for field, value in [("features", ["gpl"]), ("version", "2.0"), ("triplet", "arm64-windows")]:
+            with self.subTest(field=field):
+                original = self.sbom["buildDependencies"][0][field]
+                self.sbom["buildDependencies"][0][field] = value
+                self.refresh()
+                with self.assertRaisesRegex(ValueError, "dependency/version/feature closure"):
+                    self.inspect()
+                self.sbom["buildDependencies"][0][field] = original
+        self.sbom["buildDependencies"].append(copy.deepcopy(self.sbom["buildDependencies"][0]))
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "dependency/version/feature closure"):
+            self.inspect()
+
+    def test_rejects_changed_corresponding_source_and_false_identity(self):
+        original = self.files["sources/example.tar.gz"]
+        self.files["sources/example.tar.gz"] = b"different source"
+        with self.assertRaisesRegex(ValueError, "Changed corresponding-source archive"):
+            self.inspect()
+        self.files["sources/example.tar.gz"] = original
+        self.sbom["buildDependencies"][0]["sourceUrl"] = "https://example.org/new.tar.gz"
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "corresponding-source identity"):
+            self.inspect()
+
+    def test_rejects_unapproved_vendor_bytes_and_false_version(self):
+        original = self.files[self.dll]
+        self.files[self.dll] += b"modification"
+        with self.assertRaisesRegex(ValueError, "Unapproved compiler-runtime bytes"):
+            self.inspect()
+        self.files[self.dll] = original
+        self.sbom["visualCppRuntime"]["files"][0]["productVersion"] = "0.0.0.0"
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "Compiler-runtime SBOM"):
+            self.inspect()
+
+    def test_rejects_unlisted_dll_and_case_collision(self):
+        self.files["runtimes/win-x64/native/Unreviewed.dll"] = b"new vendor code"
+        with self.assertRaisesRegex(ValueError, "binary membership"):
+            self.inspect()
+        del self.files["runtimes/win-x64/native/Unreviewed.dll"]
+        self.files[self.dll.upper()] = b"ambiguous"
+        with self.assertRaisesRegex(ValueError, "Case-colliding"):
+            self.inspect()
+
+    def test_rejects_removed_package_attribution(self):
+        self.files["NOTICE.md"] = b"Only a licence hyperlink"
+        with self.assertRaisesRegex(ValueError, "lost native provenance"):
+            self.inspect()
+
+    def test_signed_but_different_publisher_is_not_approved(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "vcruntime140.dll"
+            path.write_bytes(self.files[self.dll])
+            with patch.object(native, "signed_runtime", return_value={**self.runtime, "publisher": "Someone else", "signature": "valid"}):
+                with self.assertRaisesRegex(ValueError, "publisher/version mismatch"):
+                    native.approve_runtime(path, self.value)
+
+    def test_candidate_receipt_does_not_self_authorize_unknown_member(self):
+        material = self.inspect()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / native.PROFILE).parent.mkdir(parents=True)
+            (root / native.PROFILE).write_bytes(b"approved profile")
+            receipt = {"schemaVersion": 1, "sourceCommit": self.sbom["sourceCommit"], "package": self.package,
+                       "profile": native.PROFILE, "profileSha256": hashlib.sha256(b"approved profile").hexdigest(),
+                       **material, "signatureVerification": {"vcruntime140.dll": {**self.runtime, "signature": "valid"}},
+                       "files": [{"path": p, "sha256": hashlib.sha256(data).hexdigest()} for p, data in self.files.items()]}
+            self.files[native.RECEIPT] = json.dumps(receipt).encode()
+            with patch.object(native, "profile", return_value=self.value):
+                result = native.verify(self.package, self.files.__getitem__, set(self.files), root)
+                self.assertEqual(result["result"], "passed")
+                for path in ("unregistered/new-file.txt", "package/services/metadata/core-properties/extra.js", "unregistered/extra.nuspec"):
+                    with self.subTest(path=path):
+                        self.files[path] = b"unexpected resource"
+                        with self.assertRaisesRegex(ValueError, "membership differs"):
+                            native.verify(self.package, self.files.__getitem__, set(self.files), root)
+                        del self.files[path]
+                # Even forging the producer hash list cannot admit an unreviewed legal/resource file.
+                self.files["licenses/unreviewed.txt"] = b"unreviewed"
+                receipt["files"].append({"path": "licenses/unreviewed.txt", "sha256": hashlib.sha256(b"unreviewed").hexdigest()})
+                self.files[native.RECEIPT] = json.dumps(receipt).encode()
+                with self.assertRaisesRegex(ValueError, "Unclassified native"):
+                    native.verify(self.package, self.files.__getitem__, set(self.files), root)
+
+
+class ProducerBuildIdentityTests(unittest.TestCase):
+    def test_actual_cache_versions_and_installed_root_are_required(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            installed = root / "installed"
+            profile = {"buildTools": {"ownedCMake": "4.3.3", "ownedNinja": "1.13.1", "vcpkgCMake": "4.4.0", "msvcToolset": "14.51.36231"}}
+            cache_text = ("CMAKE_CACHE_MAJOR_VERSION:INTERNAL=4\nCMAKE_CACHE_MINOR_VERSION:INTERNAL=3\n"
+                          "CMAKE_CACHE_PATCH_VERSION:INTERNAL=3\nCMAKE_MAKE_PROGRAM:FILEPATH=reviewed-ninja\n"
+                          "CMAKE_C_COMPILER:STRING=C:/VS/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe\n"
+                          "CMAKE_CXX_COMPILER:STRING=C:/VS/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe\n"
+                          "VCPKG_INSTALLED_DIR:PATH=" + str(installed) + "\n")
+            caches = []
+            for name in ("runtime-shared", "shim-static"):
+                cache = root / "artifacts/cmake/win-x64" / name / "CMakeCache.txt"
+                cache.parent.mkdir(parents=True)
+                cache.write_text(cache_text, encoding="utf-8")
+                caches.append(cache)
+            with patch.object(producer.subprocess, "check_output", return_value="1.13.1\n"):
+                self.assertEqual(producer.owned_build_tools(profile, installed, root), profile["buildTools"])
+                for old, new, error in [("MINOR_VERSION:INTERNAL=3", "MINOR_VERSION:INTERNAL=4", "CMake build generator"),
+                                        (str(installed), str(root / "other"), "different installed dependency tree")]:
+                    with self.subTest(error=error):
+                        caches[1].write_text(cache_text.replace(old, new), encoding="utf-8")
+                        with self.assertRaisesRegex(ValueError, error):
+                            producer.owned_build_tools(profile, installed, root)
+                        caches[1].write_text(cache_text, encoding="utf-8")
+                caches[1].write_text(cache_text.replace("14.51.36231", "14.52.36725"), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "owned MSVC compiler"):
+                    producer.owned_build_tools(profile, installed, root)
+                caches[1].write_text(cache_text, encoding="utf-8")
+            with patch.object(producer.subprocess, "check_output", return_value="1.13.2\n"):
+                with self.assertRaisesRegex(ValueError, "Ninja build tool"):
+                    producer.owned_build_tools(profile, installed, root)
+
+
+class MesonResourceTests(unittest.TestCase):
+    def setUp(self):
+        self.value = native.profile()
+        resource = self.value["components"]["vcpkg-tool-meson"]["resources"][0]
+        self.resource = {"SPDXID": "SPDXRef-resource-0", "downloadLocation": resource["url"],
+                         "checksums": [{"algorithm": "SHA512", "checksumValue": resource["sha512"]}]}
+
+    def test_cold_and_cached_helper_receipts_are_both_exactly_admitted(self):
+        for packages in ([], [self.resource]):
+            with self.subTest(packages=packages):
+                native.check_sources(self.value, "vcpkg-tool-meson", {"packages": packages})
+
+    def test_wrong_url_digest_extra_and_duplicate_resources_are_rejected(self):
+        for field, changed in [("downloadLocation", "https://example.org/other.tar.gz"),
+                               ("checksums", [{"algorithm": "SHA512", "checksumValue": "0" * 128}])]:
+            value = copy.deepcopy(self.resource)
+            value[field] = changed
+            for packages in ([value], [self.resource, value]):
+                with self.subTest(field=field, count=len(packages)), self.assertRaisesRegex(ValueError, "Changed native source archives"):
+                    native.check_sources(self.value, "vcpkg-tool-meson", {"packages": packages})
+        with self.assertRaisesRegex(ValueError, "Changed native source archives"):
+            native.check_sources(self.value, "vcpkg-tool-meson", {"packages": [self.resource, self.resource]})
+
+    def test_no_runtime_source_or_other_tool_omission_is_admitted(self):
+        for name in ("ffmpeg", "libusb", "zlib", "pkgconf"):
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, "Changed native source archives"):
+                native.check_sources(self.value, name, {"packages": []})
+        self.value["components"]["vcpkg-tool-meson"]["role"] = "runtime-input"
+        with self.assertRaisesRegex(ValueError, "Changed native source archives"):
+            native.check_sources(self.value, "vcpkg-tool-meson", {"packages": []})
+
+
+class LegalExtractionTests(unittest.TestCase):
+    def test_extracts_only_reviewed_legal_bytes_without_unpacking_links(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            file = base / "source.tar.gz"
+            source = b"copyright \xa9 owner\r\nCODE MUST NOT BE COPIED"
+            legal = "copyright © owner\n".encode()
+            with tarfile.open(file, "w:gz") as archive:
+                member = tarfile.TarInfo("source/include/header.h")
+                member.size = len(source)
+                archive.addfile(member, io.BytesIO(source))
+            row = {"output": "licenses/provenance/terms.txt", "url": "https://example.org/source.tar.gz",
+                   "sourceSha256": hashlib.sha256(file.read_bytes()).hexdigest(), "sourceSha512": None,
+                   "cacheName": file.name, "member": "include/header.h", "memberSha256": hashlib.sha256(source).hexdigest(),
+                   "start": 0, "end": source.index(b"CODE"), "encoding": "latin-1", "sha256": hashlib.sha256(legal).hexdigest(),
+                   "description": "Legal preamble only."}
+            native.asset(row)
+            self.assertEqual(native.legal_bytes(row, base), legal)
+            row["end"] = len(source)
+            with self.assertRaisesRegex(ValueError, "Changed legal-text transformation"):
+                native.legal_bytes(row, base)
+            row["cacheName"] = "../source.tar.gz"
+            with self.assertRaisesRegex(ValueError, "Escaping legal cache path"):
+                native.asset(row)
+
+    def test_source_cache_hash_must_match_before_use(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            (base / "source.tar.gz").write_bytes(b"altered cache")
+            with self.assertRaisesRegex(ValueError, "Cached source bytes"):
+                native.fetch("https://example.org/source.tar.gz", "0" * 64, "sha256", "source.tar.gz", base)
+
+    def test_official_query_url_is_allowed_but_non_https_and_credentials_are_not(self):
+        native.download_identity("https://github.com/example/source.patch?full_index=1")
+        for value in ["http://example.org/source", "https://secret@example.org/source", "https://example.org/../source"]:
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                native.download_identity(value)
+
+
+if __name__ == "__main__":
+    unittest.main()

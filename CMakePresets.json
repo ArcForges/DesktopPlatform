@@ -52,6 +52,7 @@
         "CMAKE_CXX_COMPILER": "cl",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/artifacts/stage/native/win-x64",
         "VCPKG_INSTALLED_DIR": "${sourceDir}/artifacts/vcpkg-installed",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/eng/native/vcpkg/triplets",
         "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>"
       },
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }

@@ -6,12 +6,22 @@ Product API and installer acceptance remain separate.
 
 ## Native dependency toolchain
 
-ArcForges uses classic vcpkg with standard triplets and a pinned source checkout. The reviewed Windows toolchain is `C:\vcpkg` at commit
+ArcForges uses classic vcpkg with standard triplet semantics and a pinned source checkout. The reviewed Windows toolchain is `C:\vcpkg` at commit
 `36677bbd0b3bf11da7376e62e14bffcc54d2eaeb`.
 Windows dependencies install into this checkout's ignored `artifacts/vcpkg-installed` directory.
 Both CMake and the x64 Visual Studio projects use that directory, so unrelated global installations
 cannot supply stale dependency versions. Binary caches still accelerate installation. Native package
 staging checks installed versions and recipe hashes against the pinned checkout and reviewed overlay.
+The reviewed dependency generator is CMake 4.4.0 from that checkout's
+`scripts/vcpkg-tools.json`; `vcpkg fetch cmake` reports the executable it selects.
+Use that exact version for dependency installation. A newer system CMake may otherwise
+be selected and produce a different binary-cache identity. Package staging requires
+each installed `vcpkg_abi_info.txt` to match the reviewed generator. The owned wrapper
+presets separately use CMake 4.3.3 with Ninja 1.13.1; configure them with `--fresh` after
+changing tools or the installed tree. See the [immutable provenance profile](../docs/provenance.md).
+The two owning overlays include the unchanged standard definitions and select MSVC
+`14.51.36231`; their exact hashes and included definitions are verified in each installed
+ABI record. They prevent vcpkg from selecting a newer side-by-side toolset implicitly.
 
 ```powershell
 git -C C:\vcpkg checkout --detach 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb
@@ -25,7 +35,8 @@ Install the shared runtime dependencies:
   'ffmpeg[core,avcodec,avfilter,avformat,swresample,swscale,vulkan,qsv,nvcodec,amf]:x64-windows' `
   'libusb[core]:x64-windows' `
   'miniaudio[core]:x64-windows' `
-  "--x-install-root=$PWD/artifacts/vcpkg-installed"
+  "--x-install-root=$PWD/artifacts/vcpkg-installed" `
+  '--overlay-triplets=eng/native/vcpkg/triplets'
 ```
 
 Install the static implementation dependencies used inside the owned ABI shims:
@@ -38,7 +49,8 @@ Install the static implementation dependencies used inside the owned ABI shims:
   'openexr[core]:x64-windows-static-md' `
   'imath[core]:x64-windows-static-md' `
   '--overlay-ports=eng/native/vcpkg/ports' `
-  "--x-install-root=$PWD/artifacts/vcpkg-installed"
+  "--x-install-root=$PWD/artifacts/vcpkg-installed" `
+  '--overlay-triplets=eng/native/vcpkg/triplets'
 ```
 
 Then enable Visual Studio/MSBuild once for the current Windows user:
@@ -59,7 +71,7 @@ this repository locks, so capture the pinned value before calling it and restore
 
 ```bat
 set "PINNED_VCPKG=%VCPKG_ROOT%"
-call "<VS install>\VC\Auxiliary\Build\vcvars64.bat"
+call "<VS install>\VC\Auxiliary\Build\vcvars64.bat" -vcvars_ver=14.51.36231
 set "VCPKG_ROOT=%PINNED_VCPKG%"
 ```
 

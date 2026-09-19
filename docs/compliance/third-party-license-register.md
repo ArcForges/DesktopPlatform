@@ -13,7 +13,17 @@ licences, static dependencies and corresponding source in the admitted runtime p
 then copies each dependency's copyright and SPDX record. The artifact records every DLL's PE imports,
 exports and SHA256, and supplies the complete non-system DLL closure. Microsoft CRT files come from
 the installed Visual Studio redistributable directory; its version and redistribution terms are
-recorded in `sbom.json`. Windows system libraries remain OS prerequisites.
+recorded in `sbom.json`. The actual DLL product/file version is recorded separately
+from the enclosing redistributable-directory version. The reviewed vendor record
+requires unchanged bytes, valid Microsoft Authenticode signatures and separate full
+vendor terms. Windows system libraries remain OS prerequisites.
+
+The [provenance profile](../provenance.md) binds every selected component to exact
+source commits, release archives, feature selections, recipes and original notices.
+Full referenced legal companions supplement the installed copyright files. Root or
+port SPDX summaries do not override subordinate headers or licence alternatives.
+The sealed native receipt and actual NuGet inspector reject changed or unclassified
+legal, recipe, source and runtime members.
 
 Media includes SHA512-verified FFmpeg/libusb source archives, selected build configuration and every
 vcpkg recipe/patch in its closure. The actual FFmpeg binary must report the admitted LGPL configuration;

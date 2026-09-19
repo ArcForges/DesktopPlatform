@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "id": "native-liblzma-r1",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/tukaani-project/xz",
+  "sourceCommit": "4b73f2ec19a99ef465282fbce633e8deb33691b3",
+  "sourcePaths": [
+    "COPYING",
+    "COPYING.0BSD",
+    "CMakeLists.txt"
+  ],
+  "licence": {
+    "spdx": "0BSD",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "COPYING",
+        "sha256": "616a3ad264ce29b8f1cb97e53037b139d406899ca8d1f799651e17bfa09830b8",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "COPYING.0BSD",
+        "sha256": "0b01625d853911cd0e2e088dcfb743261034a091bb379246cb25a14cc4c74bf1",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      }
+    ],
+    "scope": "Only liblzma library under 0BSD, including liblzma/common and common support selected by the recipe. GPL xz tools and GPL/LGPL build-only scripts are outside compiled library scope; retain COPYING summary and full COPYING.0BSD.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/liblzma-x64-windows-static-md.txt.",
+    "Additional full notices: licenses/provenance/liblzma-0bsd.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Colour.Runtime.win-x64/ArcForges.Native.Colour.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Colour.Runtime.win-x64",
+      "kind": "native-component-liblzma",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    },
+    {
+      "project": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Image.Runtime.win-x64",
+      "kind": "native-component-liblzma",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Only liblzma library under 0BSD, including liblzma/common and common support selected by the recipe. GPL xz tools and GPL/LGPL build-only scripts are outside compiled library scope; retain COPYING summary and full COPYING.0BSD.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/liblzma-x64-windows-static-md.txt.\nAdditional full notices: licenses/provenance/liblzma-0bsd.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/liblzma/build-tools.patch",
+          "ports/liblzma/portfile.cmake",
+          "ports/liblzma/usage",
+          "ports/liblzma/vcpkg-cmake-wrapper.cmake",
+          "ports/liblzma/vcpkg.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/tukaani-project/xz",
+        "commit": "4b73f2ec19a99ef465282fbce633e8deb33691b3",
+        "paths": [
+          "COPYING",
+          "COPYING.0BSD",
+          "CMakeLists.txt"
+        ],
+        "spdx": "0BSD",
+        "evidence": [
+          {
+            "path": "COPYING",
+            "sha256": "616a3ad264ce29b8f1cb97e53037b139d406899ca8d1f799651e17bfa09830b8",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "COPYING.0BSD",
+            "sha256": "0b01625d853911cd0e2e088dcfb743261034a091bb379246cb25a14cc4c74bf1",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipe and recorded feature/triplet closure build the input; CMake 4.3.3 builds the unchanged native sources under the two owning presets. python eng/packaging/native.py stage validates the exact installed source/recipe/binary closure. Host compiler implementation is not embedded source; the separately copied CRT has the scoped platform-runtime record.",
+    "outputSpdx": "0BSD"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Only liblzma library under 0BSD, including liblzma/common and common support selected by the recipe. GPL xz tools and GPL/LGPL build-only scripts are outside compiled library scope; retain COPYING summary and full COPYING.0BSD.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

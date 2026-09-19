@@ -3,7 +3,7 @@
   "license": "AGPL-3.0-only",
   "source": {
     "repository": "ArcForges/ArcForges-Design",
-    "commit": "cde5c8038e7ac67d7a1c60d323c19dd24e8e6b5c",
+    "commit": "5322d698a1b650a52a5a139d986dd85b00b48581",
     "path": "docs/requirements/01-normative-glossary-and-invariants.md",
     "sha256": "fa60f160fe6c28685cd904f590f8d74ed1ead03295e4b9e42023f2a8f2b09a88"
   },

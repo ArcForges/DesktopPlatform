@@ -6,8 +6,9 @@ can read the checked-in JSON without a Design checkout. These files are policy d
 distribution through build packages belongs to WP02/WP05, and this change adds no
 packable capability or product source dependency.
 
-The current reviewed pin is `cde5c8038e7ac67d7a1c60d323c19dd24e8e6b5c`, including
-the WP00.02 declaration profile, Mobile remediation and verified current Android licence closure. The original WP00.01 collection and
+The current reviewed pin is `5322d698a1b650a52a5a139d986dd85b00b48581`, including
+the WP00.02 declaration profile and Android licence closure, plus the WP00.03
+source, documentation-resource and native-distribution provenance profiles, including the explicit Windows compiler pin. The original WP00.01 collection and
 negative fixtures found missing scoped anchors, ambiguous and compound citations,
 sentence-final citations, an omitted reverse dependency and stale mechanism totals.
 Design PRs [15](https://github.com/ArcForges/ArcForges-Design/pull/15),
@@ -24,8 +25,8 @@ registered path; all remaining values and files stay subject to naming scans.
 
 The checker reads 172 current Markdown documents while excluding deprecated input
 bodies before reading. The current receipt indexes 7,601 document-scoped rules and
-9,445 explicit rule citations, checks 11,427 local links and validates 165 exact
-occurrence classifications covering 171 occurrences. It compares both forward
+9,453 explicit rule citations, checks 11,444 local links and validates 166 exact
+occurrence classifications covering 172 occurrences. It compares both forward
 graphs, every active package header/dependency section and the exact reverse graph:
 51 active nodes and 158 edges. It checks topological order, unique numbered sections,
 mandatory package sections and the owned `.90` evidence row. Future/retired packages

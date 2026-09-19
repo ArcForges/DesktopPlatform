@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "id": "native-imath-r2",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/AcademySoftwareFoundation/Imath",
+  "sourceCommit": "1e480d11cb98b032a2dece9b9a8730512effc7f6",
+  "sourcePaths": [
+    "LICENSE.md",
+    "CMakeLists.txt"
+  ],
+  "licence": {
+    "spdx": "BSD-3-Clause",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE.md",
+        "sha256": "c20236d3b39fd20eba8e3d1fb3b892a5483df2e7d8d61bf43f165d3fac22f601",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      }
+    ],
+    "scope": "Selected imath library/header input under BSD-3-Clause. The exact port recipe and recorded feature closure determine compilation; tests, examples and standalone host tools are not runtime payload.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/imath-x64-windows-static-md.txt.",
+    "Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Colour.Runtime.win-x64/ArcForges.Native.Colour.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Colour.Runtime.win-x64",
+      "kind": "native-component-imath",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r2.json",
+      "sha256": "2469bb7ff266028a7c072522d12beb97f6fe11d44a109b1c31932a541657e10d"
+    },
+    {
+      "project": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Image.Runtime.win-x64",
+      "kind": "native-component-imath",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r2.json",
+      "sha256": "2469bb7ff266028a7c072522d12beb97f6fe11d44a109b1c31932a541657e10d"
+    },
+    {
+      "project": "src/Native/ArcForges.Native.Otio.Runtime.win-x64/ArcForges.Native.Otio.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Otio.Runtime.win-x64",
+      "kind": "native-component-imath",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r2.json",
+      "sha256": "2469bb7ff266028a7c072522d12beb97f6fe11d44a109b1c31932a541657e10d"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Selected imath library/header input under BSD-3-Clause. The exact port recipe and recorded feature closure determine compilation; tests, examples and standalone host tools are not runtime payload.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/imath-x64-windows-static-md.txt. Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "44125a9e977c834f06ac1e5fe8db55355261ef87",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.4.0 is the BSD-3-Clause script/build generator selected by scripts/vcpkg-tools.json at vcpkg 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb. Actual installed ABI evidence must report this version. Its implementation is not copied into runtime outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/imath/portfile.cmake",
+          "ports/imath/vcpkg.json",
+          "triplets/x64-windows.cmake",
+          "triplets/x64-windows-static-md.cmake",
+          "scripts/vcpkg-tools.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/AcademySoftwareFoundation/Imath",
+        "commit": "1e480d11cb98b032a2dece9b9a8730512effc7f6",
+        "paths": [
+          "LICENSE.md",
+          "CMakeLists.txt"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.md",
+            "sha256": "c20236d3b39fd20eba8e3d1fb3b892a5483df2e7d8d61bf43f165d3fac22f601",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipes/features/triplets use CMake 4.4.0; every installed vcpkg_abi_info.txt proves that generator version and the exact owning overlay/base-triplet hashes. The profile-bound first-party overlays select MSVC 14.51.36231 without changing standard linkage semantics; their current source commit is bound by the candidate receipt. CMake 4.3.3 with Ninja 1.13.1 and that MSVC toolset builds the unchanged owned native wrappers under both presets. The producer validates actual CMake caches, compiler paths and installed dependency root. python eng/packaging/native.py stage and independent candidate inspection seal those build records. Host tool implementations are not embedded source; copied CRT DLLs retain the separate reviewed platform-runtime record.",
+    "outputSpdx": "BSD-3-Clause"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Selected imath library/header input under BSD-3-Clause. The exact port recipe and recorded feature closure determine compilation; tests, examples and standalone host tools are not runtime payload. Generator correction: the vcpkg script engine uses CMake 4.4.0 from the pinned tools manifest; CMake 4.3.3 generates the owned wrappers. The producer and candidate validate actual build caches and each installed vcpkg ABI record. The retired record remains intact.",
+    "baselineCommit": "7ecce061e1928d82faa2e746e33611a297a84f21",
+    "reconciliation": true
+  },
+  "supersedes": "native-imath-r1"
+}

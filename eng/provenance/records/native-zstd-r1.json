@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "id": "native-zstd-r1",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/facebook/zstd",
+  "sourceCommit": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
+  "sourcePaths": [
+    "LICENSE",
+    "lib/common/xxhash.h"
+  ],
+  "licence": {
+    "spdx": "BSD-3-Clause",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE",
+        "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "lib/common/xxhash.h",
+        "sha256": "8cb837b21a8fe9a6b9dbcd0961ab16e733bfcbfa9e003f3a496ce07ae80aa8ee",
+        "finding": "Full first copyright/licence comment; no implementation."
+      }
+    ],
+    "scope": "Select BSD-3-Clause instead of the GPL-2.0 alternative. The actual xxHash header shares the explicit dual selection; preserve its Yann Collet/Meta copyright. The GPL text in the upstream source tree does not change this selected grant.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/zstd-x64-windows-static-md.txt.",
+    "Additional full notices: licenses/provenance/zstd-xxhash.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Colour.Runtime.win-x64/ArcForges.Native.Colour.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Colour.Runtime.win-x64",
+      "kind": "native-component-zstd",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    },
+    {
+      "project": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Image.Runtime.win-x64",
+      "kind": "native-component-zstd",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Select BSD-3-Clause instead of the GPL-2.0 alternative. The actual xxHash header shares the explicit dual selection; preserve its Yann Collet/Meta copyright. The GPL text in the upstream source tree does not change this selected grant.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/zstd-x64-windows-static-md.txt.\nAdditional full notices: licenses/provenance/zstd-xxhash.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/zstd/fix-emscripten-and-clang-cl.patch",
+          "ports/zstd/fix-windows-rc-compile.patch",
+          "ports/zstd/no-static-suffix.patch",
+          "ports/zstd/portfile.cmake",
+          "ports/zstd/usage",
+          "ports/zstd/vcpkg.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/facebook/zstd",
+        "commit": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
+        "paths": [
+          "LICENSE",
+          "lib/common/xxhash.h"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE",
+            "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "lib/common/xxhash.h",
+            "sha256": "8cb837b21a8fe9a6b9dbcd0961ab16e733bfcbfa9e003f3a496ce07ae80aa8ee",
+            "finding": "Full first copyright/licence comment; no implementation."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipe and recorded feature/triplet closure build the input; CMake 4.3.3 builds the unchanged native sources under the two owning presets. python eng/packaging/native.py stage validates the exact installed source/recipe/binary closure. Host compiler implementation is not embedded source; the separately copied CRT has the scoped platform-runtime record.",
+    "outputSpdx": "BSD-3-Clause"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Select BSD-3-Clause instead of the GPL-2.0 alternative. The actual xxHash header shares the explicit dual selection; preserve its Yann Collet/Meta copyright. The GPL text in the upstream source tree does not change this selected grant.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

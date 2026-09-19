@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "canonical-agpl-legal-r1",
+  "kind": "legal-text",
+  "sourceRepository": "https://github.com/github/choosealicense.com",
+  "sourceCommit": "58267f8f2c5c0099810849cfd7677f52ae0c0eb3",
+  "sourcePaths": [
+    "_licenses/agpl-3.0.txt"
+  ],
+  "licence": {
+    "spdx": "AGPL-3.0-only",
+    "category": "agpl-compatible",
+    "evidence": [
+      {
+        "path": "_licenses/agpl-3.0.txt",
+        "sha256": "2a1fda78234b71502e2cf8035021b5592f5eba7e8107228aca4d95bba645e397",
+        "finding": "Canonical licence body, after YAML front matter; exact LF-normalized body equals the retained LICENSE. No unknown historical download origin is asserted."
+      }
+    ],
+    "scope": "Reconcile the unchanged root AGPL-3.0-only legal text with the pinned authoritative licence template body.",
+    "copyingPermission": "Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed."
+  },
+  "attribution": [
+    "Copyright (C) 2007 Free Software Foundation, Inc."
+  ],
+  "targets": [
+    {
+      "path": "LICENSE",
+      "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+      "normalization": "lf"
+    }
+  ],
+  "artifactTargets": [],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "transformation",
+    "command": "python eng/check_provenance.py --owner DesktopPlatform",
+    "expected": "Reconcile the unchanged root AGPL-3.0-only legal text with the pinned authoritative licence template body. Exact reviewed target digests and immutable history must match.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Copyright (C) 2007 Free Software Foundation, Inc.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "source",
+    "reason": "Source provenance summary supplements the retained original full legal text."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": null,
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Reconcile the unchanged root AGPL-3.0-only legal text with the pinned authoritative licence template body.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

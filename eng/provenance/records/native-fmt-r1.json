@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "id": "native-fmt-r1",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/fmtlib/fmt",
+  "sourceCommit": "1be298e1bd68957e4cd352e1f676f00e07dcfb57",
+  "sourcePaths": [
+    "LICENSE",
+    "CMakeLists.txt"
+  ],
+  "licence": {
+    "spdx": "MIT",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE",
+        "sha256": "a65fcc5a1095fc33cc37e4fff69366e49d7e92f613558a2b95ed1b70e33758b4",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      }
+    ],
+    "scope": "Selected fmt library/header input under MIT. The exact port recipe and recorded feature closure determine compilation; tests, examples and standalone host tools are not runtime payload.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/fmt-x64-windows-static-md.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Image.Runtime.win-x64",
+      "kind": "native-component-fmt",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Selected fmt library/header input under MIT. The exact port recipe and recorded feature closure determine compilation; tests, examples and standalone host tools are not runtime payload. The fmt backport patch SHA512 and immutable 588b3a0f8f6a8bcf2a959cae882d5b2703e86737 input are independently recorded.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/fmt-x64-windows-static-md.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/fmt/portfile.cmake",
+          "ports/fmt/usage",
+          "ports/fmt/vcpkg.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/fmtlib/fmt",
+        "commit": "1be298e1bd68957e4cd352e1f676f00e07dcfb57",
+        "paths": [
+          "LICENSE",
+          "CMakeLists.txt"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE",
+            "sha256": "a65fcc5a1095fc33cc37e4fff69366e49d7e92f613558a2b95ed1b70e33758b4",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/fmtlib/fmt",
+        "commit": "588b3a0f8f6a8bcf2a959cae882d5b2703e86737",
+        "paths": [
+          "include/fmt/format.h",
+          "test/format-test.cc"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE",
+            "sha256": "a65fcc5a1095fc33cc37e4fff69366e49d7e92f613558a2b95ed1b70e33758b4",
+            "finding": "MIT applies to the exact backport commit. include/fmt/format.h carries its own complete MIT header. The accompanying test modification is outside runtime compilation; the complete pinned patch is a recorded source input."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipe and recorded feature/triplet closure build the input; CMake 4.3.3 builds the unchanged native sources under the two owning presets. python eng/packaging/native.py stage validates the exact installed source/recipe/binary closure. Host compiler implementation is not embedded source; the separately copied CRT has the scoped platform-runtime record.",
+    "outputSpdx": "MIT"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Selected fmt library/header input under MIT. The exact port recipe and recorded feature closure determine compilation; tests, examples and standalone host tools are not runtime payload.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

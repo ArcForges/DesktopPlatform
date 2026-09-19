@@ -21,6 +21,8 @@ jobs:
       artifact_name: ${{ steps.native-artifact.outputs.name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
         with:
           global-json-file: global.json
@@ -53,7 +55,8 @@ jobs:
           $installationPath = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath).Trim()
           $installationVersion = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationVersion).Trim()
           if (-not $installationPath -or -not $installationVersion) { throw 'Visual Studio C++ tools were not found.' }
-          $vcToolsVersion = (Get-Content -LiteralPath (Join-Path $installationPath 'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt') -Raw).Trim()
+          $profile = Get-Content -Raw eng/provenance/artifact-profiles/native-win-x64-r3.json | ConvertFrom-Json
+          $vcToolsVersion = $profile.buildTools.msvcToolset
           $compiler = Join-Path $installationPath "VC\Tools\MSVC\$vcToolsVersion\bin\Hostx64\x64\cl.exe"
           $compilerVersion = (Get-Item -LiteralPath $compiler).VersionInfo.FileVersion
           $sdkRoot = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\Include'
@@ -73,13 +76,18 @@ jobs:
           "fingerprint=$fingerprint" >> $env:GITHUB_OUTPUT
           "vcpkg toolchain: $identity"
           "vcpkg toolchain fingerprint: $fingerprint"
+          "ARCFORGES_VCTOOLS_VERSION=$vcToolsVersion" >> $env:GITHUB_ENV
       - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ${{ runner.temp }}/vcpkg-archives
-          key: vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-${{ env.VCPKG_WINDOWS_X64_GRAPH_REVISION }}-${{ hashFiles('eng/native/vcpkg/ports/**') }}
+          key: vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-${{ env.VCPKG_WINDOWS_X64_GRAPH_REVISION }}-${{ hashFiles('eng/native/vcpkg/ports/**', 'eng/native/vcpkg/triplets/**') }}
           restore-keys: |
             vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-${{ env.VCPKG_WINDOWS_X64_GRAPH_REVISION }}-
             vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-runtime-gpu-and-static-shims-v1-
+      - uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
+        with:
+          cmakeVersion: '4.4.0'
+          ninjaVersion: '1.13.1'
       - name: Install native dependencies
         shell: pwsh
         run: |
@@ -97,8 +105,13 @@ jobs:
             'openexr[core]:x64-windows-static-md' `
             'imath[core]:x64-windows-static-md' `
             "--x-install-root=${{ github.workspace }}/artifacts/vcpkg-installed" `
-            "--overlay-ports=${{ github.workspace }}/eng/native/vcpkg/ports"
+            "--overlay-ports=${{ github.workspace }}/eng/native/vcpkg/ports" `
+            "--overlay-triplets=${{ github.workspace }}/eng/native/vcpkg/triplets"
           if ($LASTEXITCODE) { throw 'vcpkg install failed.' }
+      - uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
+        with:
+          cmakeVersion: '4.3.3'
+          ninjaVersion: '1.13.1'
       - name: Install the pinned sccache
         shell: pwsh
         run: |
@@ -128,7 +141,7 @@ jobs:
           set "ARCFORGES_VCPKG_ROOT=%VCPKG_ROOT%"
           for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set "ARCFORGES_VS=%%i"
           if not defined ARCFORGES_VS exit /b 1
-          call "%ARCFORGES_VS%\VC\Auxiliary\Build\vcvars64.bat" || exit /b 1
+          call "%ARCFORGES_VS%\VC\Auxiliary\Build\vcvars64.bat" -vcvars_ver=%ARCFORGES_VCTOOLS_VERSION% || exit /b 1
           set "VCPKG_ROOT=%ARCFORGES_VCPKG_ROOT%"
           if /i not "%VCPKG_ROOT%"=="%ARCFORGES_VCPKG_ROOT%" exit /b 1
           echo VCPKG_ROOT=%VCPKG_ROOT%

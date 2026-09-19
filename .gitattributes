@@ -9,3 +9,5 @@ tests/**/*.bin binary
 tests/**/*.snap.bin binary
 *.png binary
 *.ico binary
+# Preserve the upstream legal document's exact whitespace.
+third-party/opentimelineio/NOTICE.txt whitespace=-trailing-space,-blank-at-eof

@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "id": "native-ffmpeg-r3",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/ffmpeg/ffmpeg",
+  "sourceCommit": "bf1b838f2ab88b4f8fd83443325c782ea0e0f7fa",
+  "sourcePaths": [
+    "COPYING.LGPLv2.1",
+    "LICENSE.md",
+    "configure"
+  ],
+  "licence": {
+    "spdx": "LGPL-2.1-or-later",
+    "category": "agpl-compatible",
+    "evidence": [
+      {
+        "path": "COPYING.LGPLv2.1",
+        "sha256": "246041b6ecf9bc32d718a62c57877c78b5eb397b6467e74ed7ae2626ab189c30",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "LICENSE.md",
+        "sha256": "2e1d16c72fd74e12063776371da757322f8b77589386532f4fd8634bde7de1af",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      }
+    ],
+    "scope": "Selected shared libraries and the exact recorded features; the actual DLL reports LGPL 2.1-or-later. GPL, version3 and nonfree features are disabled. The complete matching corresponding-source archive preserves its own mixed upstream licences; archived excluded files are not compiled admission.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/ffmpeg-x64-windows.txt.",
+    "Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Media.Runtime.win-x64/ArcForges.Native.Media.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Media.Runtime.win-x64",
+      "kind": "native-component-ffmpeg",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r3.json",
+      "sha256": "4663b812996a60f91c5620c1cd58675203a870bdf28001f60cef7a67ae585775"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Selected shared libraries and the exact recorded features; the actual DLL reports LGPL 2.1-or-later. GPL, version3 and nonfree features are disabled. The complete matching corresponding-source archive preserves its own mixed upstream licences; archived excluded files are not compiled admission.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/ffmpeg-x64-windows.txt. Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "44125a9e977c834f06ac1e5fe8db55355261ef87",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.4.0 is the BSD-3-Clause script/build generator selected by scripts/vcpkg-tools.json at vcpkg 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb. Actual installed ABI evidence must report this version. Its implementation is not copied into runtime outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/ffmpeg/0003-fix-windowsinclude.patch",
+          "ports/ffmpeg/0004-dependencies.patch",
+          "ports/ffmpeg/0005-fix-nasm.patch",
+          "ports/ffmpeg/0007-fix-lib-naming.patch",
+          "ports/ffmpeg/0013-define-WINVER.patch",
+          "ports/ffmpeg/0024-fix-osx-host-c11.patch",
+          "ports/ffmpeg/0040-ffmpeg-add-av_stream_get_first_dts-for-chromium.patch",
+          "ports/ffmpeg/0045-use-prebuilt-bin2c.patch",
+          "ports/ffmpeg/0046-fix-msvc-detection.patch",
+          "ports/ffmpeg/0047-fix-msvc-utf8.patch",
+          "ports/ffmpeg/0049-fix-twolame-pkgconfig.patch",
+          "ports/ffmpeg/0050-fix-test-ld-absolute-lib-paths.patch",
+          "ports/ffmpeg/0051-fix-msvc-undef-flags.patch",
+          "ports/ffmpeg/0052-fix-disable-unstable-swscale-link.patch",
+          "ports/ffmpeg/build.sh.in",
+          "ports/ffmpeg/FindFFMPEG.cmake.in",
+          "ports/ffmpeg/portfile.cmake",
+          "ports/ffmpeg/usage",
+          "ports/ffmpeg/vcpkg-cmake-wrapper.cmake",
+          "ports/ffmpeg/vcpkg.json",
+          "triplets/x64-windows.cmake",
+          "triplets/x64-windows-static-md.cmake",
+          "scripts/vcpkg-tools.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/ffmpeg/ffmpeg",
+        "commit": "bf1b838f2ab88b4f8fd83443325c782ea0e0f7fa",
+        "paths": [
+          "COPYING.LGPLv2.1",
+          "LICENSE.md",
+          "configure"
+        ],
+        "spdx": "LGPL-2.1-or-later",
+        "evidence": [
+          {
+            "path": "COPYING.LGPLv2.1",
+            "sha256": "246041b6ecf9bc32d718a62c57877c78b5eb397b6467e74ed7ae2626ab189c30",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "LICENSE.md",
+            "sha256": "2e1d16c72fd74e12063776371da757322f8b77589386532f4fd8634bde7de1af",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipes/features/triplets use CMake 4.4.0; every installed vcpkg_abi_info.txt proves that generator version and the exact owning overlay/base-triplet hashes. The profile-bound first-party overlays select MSVC 14.51.36231 without changing standard linkage semantics; their current source commit is bound by the candidate receipt. CMake 4.3.3 with Ninja 1.13.1 and that MSVC toolset builds the unchanged owned native wrappers under both presets. The producer validates actual CMake caches, compiler paths and installed dependency root. python eng/packaging/native.py stage and independent candidate inspection seal those build records. Host tool implementations are not embedded source; copied CRT DLLs retain the separate reviewed platform-runtime record.",
+    "outputSpdx": "LGPL-2.1-or-later"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Selected shared libraries and the exact recorded features; the actual DLL reports LGPL 2.1-or-later. GPL, version3 and nonfree features are disabled. The complete matching corresponding-source archive preserves its own mixed upstream licences; archived excluded files are not compiled admission. Generator correction: the vcpkg script engine uses CMake 4.4.0 from the pinned tools manifest; CMake 4.3.3 generates the owned wrappers. The producer and candidate validate actual build caches and each installed vcpkg ABI record. The retired record remains intact. Profile revision 3 records both independently reproduced cold/warm SPDX forms of the same Meson build-only helper. All other source, licence, toolchain, binary and legal membership is unchanged. Revisions 1 and 2 remain immutable.",
+    "baselineCommit": "0c31fd7c78f75f1333786883560a20ba5a8c5d0a",
+    "reconciliation": true
+  },
+  "supersedes": "native-ffmpeg-r2"
+}

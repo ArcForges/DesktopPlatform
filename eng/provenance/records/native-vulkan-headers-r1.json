@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "id": "native-vulkan-headers-r1",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/KhronosGroup/Vulkan-Headers",
+  "sourceCommit": "e3b1eec08173d6b825cd3ac88c885a63b621504a",
+  "sourcePaths": [
+    "LICENSE.md",
+    "LICENSES/Apache-2.0.txt",
+    "LICENSES/MIT.txt",
+    "CMakeLists.txt"
+  ],
+  "licence": {
+    "spdx": "Apache-2.0 AND MIT",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE.md",
+        "sha256": "95ad366d23fadf701d355bc45fb8b82ae2d700239471d35d41286ac3b08ff903",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "LICENSES/Apache-2.0.txt",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "finding": "Complete referenced Apache licence."
+      },
+      {
+        "path": "LICENSES/MIT.txt",
+        "sha256": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227",
+        "finding": "Complete referenced MIT licence."
+      }
+    ],
+    "scope": "Select Apache-2.0 for dual-licensed Vulkan headers; generated/support MIT material is separately acknowledged by retaining both complete referenced texts. Only headers feed the selected FFmpeg build; no Vulkan loader/driver is redistributed.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/vulkan-headers-x64-windows.txt.",
+    "Additional full notices: licenses/provenance/vulkan-headers-apache.txt, licenses/provenance/vulkan-headers-mit.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Media.Runtime.win-x64/ArcForges.Native.Media.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Media.Runtime.win-x64",
+      "kind": "native-component-vulkan-headers",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Select Apache-2.0 for dual-licensed Vulkan headers; generated/support MIT material is separately acknowledged by retaining both complete referenced texts. Only headers feed the selected FFmpeg build; no Vulkan loader/driver is redistributed.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/vulkan-headers-x64-windows.txt.\nAdditional full notices: licenses/provenance/vulkan-headers-apache.txt, licenses/provenance/vulkan-headers-mit.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/vulkan-headers/portfile.cmake",
+          "ports/vulkan-headers/usage",
+          "ports/vulkan-headers/vcpkg.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/KhronosGroup/Vulkan-Headers",
+        "commit": "e3b1eec08173d6b825cd3ac88c885a63b621504a",
+        "paths": [
+          "LICENSE.md",
+          "LICENSES/Apache-2.0.txt",
+          "LICENSES/MIT.txt",
+          "CMakeLists.txt"
+        ],
+        "spdx": "Apache-2.0 AND MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.md",
+            "sha256": "95ad366d23fadf701d355bc45fb8b82ae2d700239471d35d41286ac3b08ff903",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "LICENSES/Apache-2.0.txt",
+            "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+            "finding": "Complete referenced Apache licence."
+          },
+          {
+            "path": "LICENSES/MIT.txt",
+            "sha256": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227",
+            "finding": "Complete referenced MIT licence."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipe and recorded feature/triplet closure build the input; CMake 4.3.3 builds the unchanged native sources under the two owning presets. python eng/packaging/native.py stage validates the exact installed source/recipe/binary closure. Host compiler implementation is not embedded source; the separately copied CRT has the scoped platform-runtime record.",
+    "outputSpdx": "Apache-2.0 AND MIT"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Select Apache-2.0 for dual-licensed Vulkan headers; generated/support MIT material is separately acknowledged by retaining both complete referenced texts. Only headers feed the selected FFmpeg build; no Vulkan loader/driver is redistributed.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

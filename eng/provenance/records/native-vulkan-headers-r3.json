@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "id": "native-vulkan-headers-r3",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/KhronosGroup/Vulkan-Headers",
+  "sourceCommit": "e3b1eec08173d6b825cd3ac88c885a63b621504a",
+  "sourcePaths": [
+    "LICENSE.md",
+    "LICENSES/Apache-2.0.txt",
+    "LICENSES/MIT.txt",
+    "CMakeLists.txt"
+  ],
+  "licence": {
+    "spdx": "Apache-2.0 AND MIT",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE.md",
+        "sha256": "95ad366d23fadf701d355bc45fb8b82ae2d700239471d35d41286ac3b08ff903",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "LICENSES/Apache-2.0.txt",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "finding": "Complete referenced Apache licence."
+      },
+      {
+        "path": "LICENSES/MIT.txt",
+        "sha256": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227",
+        "finding": "Complete referenced MIT licence."
+      }
+    ],
+    "scope": "Select Apache-2.0 for dual-licensed Vulkan headers; generated/support MIT material is separately acknowledged by retaining both complete referenced texts. Only headers feed the selected FFmpeg build; no Vulkan loader/driver is redistributed.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/vulkan-headers-x64-windows.txt.",
+    "Additional full notices: licenses/provenance/vulkan-headers-apache.txt, licenses/provenance/vulkan-headers-mit.txt.",
+    "Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Media.Runtime.win-x64/ArcForges.Native.Media.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Media.Runtime.win-x64",
+      "kind": "native-component-vulkan-headers",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r3.json",
+      "sha256": "4663b812996a60f91c5620c1cd58675203a870bdf28001f60cef7a67ae585775"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Select Apache-2.0 for dual-licensed Vulkan headers; generated/support MIT material is separately acknowledged by retaining both complete referenced texts. Only headers feed the selected FFmpeg build; no Vulkan loader/driver is redistributed.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/vulkan-headers-x64-windows.txt.\nAdditional full notices: licenses/provenance/vulkan-headers-apache.txt, licenses/provenance/vulkan-headers-mit.txt. Standard vcpkg triplet definitions retain Microsoft Corporation copyright and the full MIT permission in licenses/provenance/vcpkg-LICENSE.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "44125a9e977c834f06ac1e5fe8db55355261ef87",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.4.0 is the BSD-3-Clause script/build generator selected by scripts/vcpkg-tools.json at vcpkg 36677bbd0b3bf11da7376e62e14bffcc54d2eaeb. Actual installed ABI evidence must report this version. Its implementation is not copied into runtime outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/vulkan-headers/portfile.cmake",
+          "ports/vulkan-headers/usage",
+          "ports/vulkan-headers/vcpkg.json",
+          "triplets/x64-windows.cmake",
+          "triplets/x64-windows-static-md.cmake",
+          "scripts/vcpkg-tools.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/KhronosGroup/Vulkan-Headers",
+        "commit": "e3b1eec08173d6b825cd3ac88c885a63b621504a",
+        "paths": [
+          "LICENSE.md",
+          "LICENSES/Apache-2.0.txt",
+          "LICENSES/MIT.txt",
+          "CMakeLists.txt"
+        ],
+        "spdx": "Apache-2.0 AND MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.md",
+            "sha256": "95ad366d23fadf701d355bc45fb8b82ae2d700239471d35d41286ac3b08ff903",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "LICENSES/Apache-2.0.txt",
+            "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+            "finding": "Complete referenced Apache licence."
+          },
+          {
+            "path": "LICENSES/MIT.txt",
+            "sha256": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227",
+            "finding": "Complete referenced MIT licence."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipes/features/triplets use CMake 4.4.0; every installed vcpkg_abi_info.txt proves that generator version and the exact owning overlay/base-triplet hashes. The profile-bound first-party overlays select MSVC 14.51.36231 without changing standard linkage semantics; their current source commit is bound by the candidate receipt. CMake 4.3.3 with Ninja 1.13.1 and that MSVC toolset builds the unchanged owned native wrappers under both presets. The producer validates actual CMake caches, compiler paths and installed dependency root. python eng/packaging/native.py stage and independent candidate inspection seal those build records. Host tool implementations are not embedded source; copied CRT DLLs retain the separate reviewed platform-runtime record.",
+    "outputSpdx": "Apache-2.0 AND MIT"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Select Apache-2.0 for dual-licensed Vulkan headers; generated/support MIT material is separately acknowledged by retaining both complete referenced texts. Only headers feed the selected FFmpeg build; no Vulkan loader/driver is redistributed. Generator correction: the vcpkg script engine uses CMake 4.4.0 from the pinned tools manifest; CMake 4.3.3 generates the owned wrappers. The producer and candidate validate actual build caches and each installed vcpkg ABI record. The retired record remains intact. Profile revision 3 records both independently reproduced cold/warm SPDX forms of the same Meson build-only helper. All other source, licence, toolchain, binary and legal membership is unchanged. Revisions 1 and 2 remain immutable.",
+    "baselineCommit": "0c31fd7c78f75f1333786883560a20ba5a8c5d0a",
+    "reconciliation": true
+  },
+  "supersedes": "native-vulkan-headers-r2"
+}

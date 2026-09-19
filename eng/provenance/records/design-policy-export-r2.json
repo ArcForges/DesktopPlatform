@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "id": "design-policy-export-r2",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/ArcForges/ArcForges-Design",
+  "sourceCommit": "5322d698a1b650a52a5a139d986dd85b00b48581",
+  "sourcePaths": [
+    "docs/requirements/01-normative-glossary-and-invariants.md",
+    "docs/assurance/invariant-coverage.md",
+    "docs/assurance/citation-classifications.json"
+  ],
+  "licence": {
+    "spdx": "AGPL-3.0-only",
+    "category": "agpl-compatible",
+    "evidence": [
+      {
+        "path": "docs/requirements/01-normative-glossary-and-invariants.md",
+        "sha256": "fa60f160fe6c28685cd904f590f8d74ed1ead03295e4b9e42023f2a8f2b09a88",
+        "finding": "The current accepted documentation is an owned AGPL policy input; no deprecated-input body is read."
+      },
+      {
+        "path": "docs/assurance/invariant-coverage.md",
+        "sha256": "aa5880fc655e1e3da8f748f2c627d9c57ce1405c9b5fcb1ef7d3c2a6396e417a",
+        "finding": "The current accepted documentation is an owned AGPL policy input; no deprecated-input body is read."
+      },
+      {
+        "path": "docs/assurance/citation-classifications.json",
+        "sha256": "af1bfb3b74629d70ec96c92d7b79dab474ac9ce2eed7764d96658e47a9b72903",
+        "finding": "The reviewed owned occurrence classification is an input to the AGPL Design exporter."
+      }
+    ],
+    "scope": "Generated AGPL glossary/invariant declarations are owned by DesktopPlatform; immutable Design checkout and all active corpus citations are checked by the unchanged exporter.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Copyright ArcForges contributors. AGPL-3.0-only."
+  ],
+  "targets": [
+    {
+      "path": "eng/policy/design-source.json",
+      "sha256": "b4acb79feb469e8a5b24602b6f308820e3e49b5ad47cc992dc55b9a83573c2d6",
+      "normalization": "lf"
+    },
+    {
+      "path": "eng/policy/glossary-terms.json",
+      "sha256": "5d73c6906a4af19090bcdf653e0364d2b3d4883425a14a0731db8111e78ac3a0",
+      "normalization": "lf"
+    },
+    {
+      "path": "eng/policy/invariants.json",
+      "sha256": "8b1584f1d198b60e649b00e8536ddc4456fce8f4c12f8c70c5882098baa16578",
+      "normalization": "lf"
+    }
+  ],
+  "artifactTargets": [],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/design_policy.py",
+    "expected": "Generated AGPL glossary/invariant declarations are owned by DesktopPlatform; immutable Design checkout and all active corpus citations are checked by the unchanged exporter. Exact reviewed target digests and immutable history must match.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Copyright ArcForges contributors. AGPL-3.0-only.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "source",
+    "reason": "Source provenance summary supplements the retained original full legal text."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/ArcForges/DesktopPlatform",
+        "commit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+        "paths": [
+          "eng/design_policy.py",
+          "eng/design_corpus.py",
+          "eng/design_graph.py"
+        ],
+        "spdx": "AGPL-3.0-only",
+        "evidence": [
+          {
+            "path": "LICENSE",
+            "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+            "finding": "Owned generator sources retain their individual AGPL-3.0-only declarations."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/ArcForges/ArcForges-Design",
+        "commit": "5322d698a1b650a52a5a139d986dd85b00b48581",
+        "paths": [
+          "docs/requirements/01-normative-glossary-and-invariants.md",
+          "docs/assurance/invariant-coverage.md",
+          "docs/assurance/citation-classifications.json"
+        ],
+        "spdx": "AGPL-3.0-only",
+        "evidence": [
+          {
+            "path": "docs/requirements/01-normative-glossary-and-invariants.md",
+            "sha256": "fa60f160fe6c28685cd904f590f8d74ed1ead03295e4b9e42023f2a8f2b09a88",
+            "finding": "The current accepted documentation is an owned AGPL policy input; no deprecated-input body is read."
+          },
+          {
+            "path": "docs/assurance/invariant-coverage.md",
+            "sha256": "aa5880fc655e1e3da8f748f2c627d9c57ce1405c9b5fcb1ef7d3c2a6396e417a",
+            "finding": "The current accepted documentation is an owned AGPL policy input; no deprecated-input body is read."
+          },
+          {
+            "path": "docs/assurance/citation-classifications.json",
+            "sha256": "af1bfb3b74629d70ec96c92d7b79dab474ac9ce2eed7764d96658e47a9b72903",
+            "finding": "The reviewed owned occurrence classification is an input to the AGPL Design exporter."
+          }
+        ]
+      }
+    ],
+    "command": "python eng/design_policy.py",
+    "outputSpdx": "AGPL-3.0-only"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Generated AGPL glossary/invariant declarations are owned by DesktopPlatform; immutable Design checkout and all active corpus citations are checked by the unchanged exporter. Re-export the merged Windows toolset clarification. The glossary, invariant mapping, occurrence classifications and exporter implementation are unchanged; the source/corpus identity and citation receipt advance.",
+    "baselineCommit": "7ecce061e1928d82faa2e746e33611a297a84f21",
+    "reconciliation": true
+  },
+  "supersedes": "design-policy-export-r1"
+}

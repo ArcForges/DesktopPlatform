@@ -35,7 +35,7 @@ jobs:
           if ($LASTEXITCODE) { throw 'Invalid package version.' }
           "value=$version" >> $env:GITHUB_OUTPUT
   managed-packages:
-    needs: [allocate-version, native, secret-scan, repository-hooks, design-policy, licence-policy]
+    needs: [allocate-version, native, secret-scan, repository-hooks, design-policy, licence-policy, provenance-policy]
     uses: ./.github/workflows/package-validation.yml
     with:
       version: ${{ needs.allocate-version.outputs.version }}
@@ -122,9 +122,38 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  provenance-policy:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Reject incomplete records, history mutation and altered native closure
+        run: python -m unittest discover -s tests/tooling -p 'test_*.py' -v
+      - name: Verify actual source inventory and active native registrations
+        shell: pwsh
+        run: |
+          python eng/check_provenance.py --owner DesktopPlatform
+          if ($LASTEXITCODE) { throw 'Source provenance check failed.' }
+          python eng/native_provenance.py
+          if ($LASTEXITCODE) { throw 'Native provenance registration failed.' }
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: provenance-policy-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/evidence/provenance.json
+          if-no-files-found: error
+          retention-days: 30
+
   ci:
     if: always()
-    needs: [allocate-version, managed-packages, native, secret-scan, repository-hooks, design-policy, licence-policy]
+    needs: [allocate-version, managed-packages, native, secret-scan, repository-hooks, design-policy, licence-policy, provenance-policy]
     runs-on: ubuntu-latest
     env:
       CI_NEEDS: ${{ toJSON(needs) }}
