@@ -397,7 +397,7 @@ def verify(package: str, read, names: set[str], root: Path = ROOT) -> dict:
                 or n.startswith("package/services/metadata/core-properties/")}
     require(names - metadata - {RECEIPT} == set(members), "Native candidate membership differs from sealed producer")
     for name, digest in members.items():
-        require(sha(read(name)) == digest, "Native candidate member differs from producer: " + name)
+        require(sha(read(name)) == digest, "Native candidate member differs from the tested producer artifact: " + name)
     return {"result": "passed", "package": package, "profileSha256": receipt["profileSha256"],
             "records": actual["records"], "members": len(names), "sourceCommit": receipt["sourceCommit"]}
 
