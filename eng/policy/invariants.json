@@ -4,13 +4,13 @@
   "sources": [
     {
       "repository": "ArcForges/ArcForges-Design",
-      "commit": "0efe24e454c62450ee5739384031c24cc3242f97",
+      "commit": "5322d698a1b650a52a5a139d986dd85b00b48581",
       "path": "docs/requirements/01-normative-glossary-and-invariants.md",
       "sha256": "fa60f160fe6c28685cd904f590f8d74ed1ead03295e4b9e42023f2a8f2b09a88"
     },
     {
       "repository": "ArcForges/ArcForges-Design",
-      "commit": "0efe24e454c62450ee5739384031c24cc3242f97",
+      "commit": "5322d698a1b650a52a5a139d986dd85b00b48581",
       "path": "docs/assurance/invariant-coverage.md",
       "sha256": "aa5880fc655e1e3da8f748f2c627d9c57ce1405c9b5fcb1ef7d3c2a6396e417a"
     }

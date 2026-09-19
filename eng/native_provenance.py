@@ -22,7 +22,7 @@ from urllib.parse import urlsplit
 import check_provenance as provenance
 
 ROOT = Path(__file__).resolve().parents[1]
-PROFILE = "eng/provenance/artifact-profiles/native-win-x64-r1.json"
+PROFILE = "eng/provenance/artifact-profiles/native-win-x64-r2.json"
 RECEIPT = "provenance/native-closure.json"
 NOTICE = "provenance/NOTICE.txt"
 require = provenance.require
@@ -55,8 +55,18 @@ def sources(sbom: dict) -> list[dict]:
 
 def profile(root: Path = ROOT) -> dict:
     value = provenance.document(provenance.read(root, PROFILE))
-    provenance.fields(value, "schemaVersion id authority vcpkgCommit baseline components packages platformRuntime")
-    require(value["schemaVersion"] == 1 and value["id"] == "native-win-x64-r1", "Unknown native profile")
+    provenance.fields(value, "schemaVersion id authority vcpkgCommit baseline buildTools triplets components packages platformRuntime")
+    require(value["schemaVersion"] == 1 and value["id"] == "native-win-x64-r2", "Unknown native profile")
+    require(value["buildTools"] == {"ownedCMake": "4.3.3", "ownedNinja": "1.13.1", "vcpkgCMake": "4.4.0", "msvcToolset": "14.51.36231"},
+            "Unreviewed native build generators")
+    require(set(value["triplets"]) == {"x64-windows", "x64-windows-static-md"}, "Unreviewed native triplets")
+    for name, triplet in value["triplets"].items():
+        provenance.fields(triplet, "path sha256 upstreamPath upstreamSha256 upstreamLicenceSha256")
+        require(triplet["path"] == "eng/native/vcpkg/triplets/" + name + ".cmake" and
+                triplet["upstreamPath"] == "triplets/" + name + ".cmake", "Unexpected native triplet path")
+        provenance.digest(triplet["upstreamSha256"])
+        provenance.digest(triplet["upstreamLicenceSha256"])
+        require(sha(provenance.read(root, triplet["path"]), "lf") == triplet["sha256"], "Changed native toolset overlay")
     provenance.digest(value["vcpkgCommit"], (40,))
     authority = value["authority"]
     provenance.fields(authority, "repository commit path sections")
@@ -278,6 +288,11 @@ def native_notice(value: dict, package: str) -> bytes:
 def component_files(value: dict, package: str) -> dict[str, dict]:
     files = {}
     for dependency in value["packages"][package]["dependencies"]:
+        name = dependency["triplet"]
+        triplet = value["triplets"][name]
+        files["recipes/toolchains/" + name + ".cmake"] = {"sha256": triplet["sha256"], "normalization": "lf"}
+        files["recipes/toolchains/upstream-" + name + ".cmake"] = {"sha256": triplet["upstreamSha256"], "normalization": "lf"}
+        files["licenses/provenance/vcpkg-LICENSE.txt"] = {"sha256": triplet["upstreamLicenceSha256"], "normalization": "lf"}
         item = value["components"][dependency["name"]]
         for row in item["legal"]:
             files[row["path"]] = {"sha256": row["sha256"], "normalization": "lf"}
@@ -297,6 +312,7 @@ def inspect_material(value: dict, package: str, read, names: set[str]) -> dict:
     for name in names:
         provenance.path(name)
     sbom = provenance.document(read("sbom.json"))
+    require(sbom["buildTools"] == value["buildTools"], "Unreviewed native build tools in SBOM")
     expected = value["packages"][package]
     dependencies = sbom["buildDependencies"]
     actual = [{k: d[k] for k in ("name", "triplet", "version", "features")} for d in dependencies]
@@ -305,8 +321,18 @@ def inspect_material(value: dict, package: str, read, names: set[str]) -> dict:
     for dependency in dependencies:
         item = value["components"][dependency["name"]]
         require(dependency["license"] == "licenses/" + dependency["name"] + "-" + dependency["triplet"] + ".txt" and
-                dependency["sbom"] == "licenses/" + dependency["name"] + "-" + dependency["triplet"] + ".spdx.json",
+                dependency["sbom"] == "licenses/" + dependency["name"] + "-" + dependency["triplet"] + ".spdx.json" and
+                dependency["buildInfo"] == "licenses/" + dependency["name"] + "-" + dependency["triplet"] + ".abi.txt",
                 "Unexpected native licence/SPDX location")
+        build = [line.split(" ", 1) for line in read(dependency["buildInfo"]).decode("utf-8").splitlines() if line]
+        triplet = value["triplets"][dependency["triplet"]]
+        require([r[1] for r in build if r[0] == "cmake" and len(r) == 2] == [value["buildTools"]["vcpkgCMake"]] and
+                [r[1] for r in build if r[0] == "triplet" and len(r) == 2] == [dependency["triplet"]],
+                "Unreviewed upstream build generator/triplet: " + dependency["name"])
+        identities = [r[1] for r in build if r[0] == "triplet_abi" and len(r) == 2]
+        require(len(identities) == 1 and identities[0].split("-", 1)[0] == triplet["sha256"] and
+                [r[1] for r in build if r[0] == "additional_file_0" and len(r) == 2] == [triplet["upstreamSha256"]],
+                "Unreviewed upstream compiler selection: " + dependency["name"])
         source = provenance.document(read(dependency["sbom"]))
         required = sorted(({k: r[k] for k in ("url", "sha512")} for r in item["resources"]), key=lambda r: (r["url"], r["sha512"]))
         require(sources(source) == required, "Changed native source archives: " + dependency["name"])
@@ -319,8 +345,8 @@ def inspect_material(value: dict, package: str, read, names: set[str]) -> dict:
     fixed = component_files(value, package)
     for name, row in fixed.items():
         require(name in names and sha(read(name), row["normalization"]) == row["sha256"], "Changed or missing native legal/recipe bytes: " + name)
-    spdx_names = {d["sbom"] for d in dependencies}
-    require({n for n in names if n.startswith(("licenses/", "recipes/"))} == set(fixed) | spdx_names,
+    generated_names = {d[key] for d in dependencies for key in ("sbom", "buildInfo")}
+    require({n for n in names if n.startswith(("licenses/", "recipes/"))} == set(fixed) | generated_names,
             "Unclassified native legal/recipe member")
     require({n for n in names if n.startswith("sources/")} ==
             {value["components"][d["name"]]["correspondingSource"]["path"] for d in dependencies

@@ -1,6 +1,6 @@
 # Source and native package provenance
 
-WP00.03 implements the [reviewed Design profile](https://github.com/ArcForges/ArcForges-Design/blob/0efe24e454c62450ee5739384031c24cc3242f97/docs/assurance/reference-coverage-and-provenance.md).
+WP00.03 implements the [reviewed Design profile](https://github.com/ArcForges/ArcForges-Design/blob/5322d698a1b650a52a5a139d986dd85b00b48581/docs/assurance/reference-coverage-and-provenance.md).
 The audit subject is the current DesktopPlatform repository. The retired initialization
 repository is not a producer or source input. The existing package identities, ABI and
 runtime tests remain independent release gates.
@@ -45,12 +45,24 @@ expressions already audited here. This does not import AGPL tooling into Contrac
 
 ## Existing Windows native closure
 
-The immutable `native-win-x64-r1.json` artifact profile records 36 components, all 174
-recipe files, the exact four package dependency/feature closures and source identities.
+The immutable `native-win-x64-r2.json` artifact profile records 36 components, all 174
+port recipe files, the four toolchain definitions, and the exact four package
+dependency/feature closures and source identities.
 Original archive SHA512 values are independently bound to Git archive commits; the
 bzip2 release's 17 source files and all 57 AMF headers were also compared to their Git
 objects. Fixed legal/recipe bytes are reviewed inputs; rebuilt native binary hashes
 belong to the actual producer receipt and installed SPDX evidence.
+
+The owned wrappers use CMake 4.3.3 and Ninja 1.13.1. The pinned vcpkg tool manifest
+selects CMake 4.4.0 for upstream dependency builds. The producer reads both actual
+CMake caches and their dependency roots; each distributed dependency retains its
+installed `vcpkg_abi_info.txt`. Candidate inspection rejects another generator version.
+Two minimal overlays include the unchanged standard triplets and pin MSVC 14.51.36231,
+matching the reviewed compiler-runtime relationship. Their hashes and included upstream
+definitions are verified from the installed ABI records and retained in every package
+with the full vcpkg MIT licence. The owned compiler path is checked independently.
+Revision 2 supersedes the initial records to distinguish these roles, while preserving
+revision 1 unchanged. Local development builds with other tools do not prove this gate.
 
 The selected source/configuration matters. liblzma uses 0BSD, zstd selects BSD,
 miniaudio selects MIT-0, and the RapidJSON examples with different terms are excluded.
@@ -73,6 +85,10 @@ AGPL System Libraries position are reviewed independently. Original formatted ve
 terms accompany the package. Vendor restrictions apply only to those DLLs; ArcForges
 source retains its AGPL rights. A changed version, file, publisher or terms needs a
 new reviewed record/profile.
+
+For compatibility, `visualCppRuntime.version` retains its original directory-version
+meaning. `redistributableDirectoryVersion` makes that meaning explicit, and `files`
+contains the separately verified actual DLL versions and hashes.
 
 `native.py stage` checks the source inventory, installed versions/recipes/library hashes,
 approved compiler-runtime signatures and fixed versions, exact legal companions and

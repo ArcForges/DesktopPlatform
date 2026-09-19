@@ -4,7 +4,7 @@
   "licenceBoundary": "AGPL",
   "authority": {
     "repository": "https://github.com/ArcForges/ArcForges-Design",
-    "commit": "0efe24e454c62450ee5739384031c24cc3242f97",
+    "commit": "5322d698a1b650a52a5a139d986dd85b00b48581",
     "path": "docs/assurance/reference-coverage-and-provenance.md"
   },
   "decisions": {

@@ -14,6 +14,8 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "eng"))
 import native_provenance as native
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "eng/packaging"))
+import native as producer
 
 
 class NativeClosureTests(unittest.TestCase):
@@ -22,8 +24,12 @@ class NativeClosureTests(unittest.TestCase):
         self.dll = "runtimes/win-x64/native/vcruntime140.dll"
         self.files = {
             "licenses/example-x64-windows.txt": b"Original full licence\n",
+            "licenses/example-x64-windows.abi.txt": b"cmake 4.4.0\ntriplet x64-windows\n",
             "licenses/provenance/required.txt": b"Required subordinate copyright and permission.\n",
             "recipes/example/portfile.cmake": b"reviewed recipe\n",
+            "recipes/toolchains/x64-windows.cmake": b"reviewed toolset pin\n",
+            "recipes/toolchains/upstream-x64-windows.cmake": b"standard triplet\n",
+            "licenses/provenance/vcpkg-LICENSE.txt": b"Original toolchain MIT permission and copyright\n",
             "sources/example.tar.gz": b"exact matching original source archive",
             self.dll: b"approved vendor object bytes",
             "runtimes/win-x64/native/Example.dll": b"owned compiled bytes",
@@ -42,11 +48,19 @@ class NativeClosureTests(unittest.TestCase):
                                     "sha512": hashlib.sha512(self.files["sources/example.tar.gz"]).hexdigest()},
         }
         self.value = {"components": {"example": self.component},
+                      "buildTools": {"ownedCMake": "4.3.3", "ownedNinja": "1.13.1", "vcpkgCMake": "4.4.0", "msvcToolset": "14.51.36231"},
                       "packages": {self.package: {"dependencies": [self.dependency], "dlls": ["Example.dll", "vcruntime140.dll"]}},
                       "platformRuntime": {"id": "vendor-r1", "files": {"vcruntime140.dll": self.runtime}, "legal": [],
                                           "distributionIdentity": {"directoryVersion": "1.2.3"}, "notice": "Separate vendor terms."}}
-        self.sbom = {"sourceCommit": "c" * 40, "buildDependencies": [{**self.dependency,
+        triplet = {"sha256": hashlib.sha256(self.files["recipes/toolchains/x64-windows.cmake"]).hexdigest(),
+                   "upstreamSha256": hashlib.sha256(self.files["recipes/toolchains/upstream-x64-windows.cmake"]).hexdigest(),
+                   "upstreamLicenceSha256": hashlib.sha256(self.files["licenses/provenance/vcpkg-LICENSE.txt"]).hexdigest()}
+        self.value["triplets"] = {"x64-windows": triplet}
+        self.files["licenses/example-x64-windows.abi.txt"] += ("triplet_abi " + triplet["sha256"] + "-toolchain-compiler\n"
+            + "additional_file_0 " + triplet["upstreamSha256"] + "\n").encode()
+        self.sbom = {"sourceCommit": "c" * 40, "buildTools": dict(self.value["buildTools"]), "buildDependencies": [{**self.dependency,
             "license": "licenses/example-x64-windows.txt", "sbom": "licenses/example-x64-windows.spdx.json",
+            "buildInfo": "licenses/example-x64-windows.abi.txt",
             "sourceArchive": "sources/example.tar.gz", "sourceUrl": "https://example.org/src.tar.gz"}],
             "visualCppRuntime": {"record": "vendor-r1", "redistributableDirectoryVersion": "1.2.3",
                                  "files": [{"name": "vcruntime140.dll", **self.runtime}]}}
@@ -65,6 +79,27 @@ class NativeClosureTests(unittest.TestCase):
 
     def test_accepts_complete_reviewed_closure(self):
         self.assertEqual(self.inspect()["records"], ["example-r1"])
+
+    def test_rejects_unreviewed_upstream_generator_missing_or_duplicate_identity(self):
+        for content in [b"cmake 4.4.3\ntriplet x64-windows\n", b"triplet x64-windows\n",
+                        b"cmake 4.4.0\ncmake 4.4.0\ntriplet x64-windows\n",
+                        b"cmake 4.4.0\ntriplet arm64-windows\n"]:
+            with self.subTest(content=content):
+                self.files["licenses/example-x64-windows.abi.txt"] = content
+                with self.assertRaisesRegex(ValueError, "upstream build generator/triplet"):
+                    self.inspect()
+
+    def test_rejects_unreviewed_owned_tools_in_candidate(self):
+        self.sbom["buildTools"]["ownedCMake"] = "4.4.3"
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "native build tools in SBOM"):
+            self.inspect()
+
+    def test_rejects_dependency_built_without_reviewed_toolset_overlay(self):
+        name = "licenses/example-x64-windows.abi.txt"
+        self.files[name] = self.files[name].replace(self.value["triplets"]["x64-windows"]["sha256"].encode(), b"0" * 64)
+        with self.assertRaisesRegex(ValueError, "upstream compiler selection"):
+            self.inspect()
 
     def test_rejects_missing_required_companion_and_changed_recipe(self):
         for path in ["licenses/provenance/required.txt", "recipes/example/portfile.cmake"]:
@@ -178,6 +213,41 @@ class NativeClosureTests(unittest.TestCase):
                 self.files[native.RECEIPT] = json.dumps(receipt).encode()
                 with self.assertRaisesRegex(ValueError, "Unclassified native"):
                     native.verify(self.package, self.files.__getitem__, set(self.files), root)
+
+
+class ProducerBuildIdentityTests(unittest.TestCase):
+    def test_actual_cache_versions_and_installed_root_are_required(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            installed = root / "installed"
+            profile = {"buildTools": {"ownedCMake": "4.3.3", "ownedNinja": "1.13.1", "vcpkgCMake": "4.4.0", "msvcToolset": "14.51.36231"}}
+            cache_text = ("CMAKE_CACHE_MAJOR_VERSION:INTERNAL=4\nCMAKE_CACHE_MINOR_VERSION:INTERNAL=3\n"
+                          "CMAKE_CACHE_PATCH_VERSION:INTERNAL=3\nCMAKE_MAKE_PROGRAM:FILEPATH=reviewed-ninja\n"
+                          "CMAKE_C_COMPILER:STRING=C:/VS/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe\n"
+                          "CMAKE_CXX_COMPILER:STRING=C:/VS/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe\n"
+                          "VCPKG_INSTALLED_DIR:PATH=" + str(installed) + "\n")
+            caches = []
+            for name in ("runtime-shared", "shim-static"):
+                cache = root / "artifacts/cmake/win-x64" / name / "CMakeCache.txt"
+                cache.parent.mkdir(parents=True)
+                cache.write_text(cache_text, encoding="utf-8")
+                caches.append(cache)
+            with patch.object(producer.subprocess, "check_output", return_value="1.13.1\n"):
+                self.assertEqual(producer.owned_build_tools(profile, installed, root), profile["buildTools"])
+                for old, new, error in [("MINOR_VERSION:INTERNAL=3", "MINOR_VERSION:INTERNAL=4", "CMake build generator"),
+                                        (str(installed), str(root / "other"), "different installed dependency tree")]:
+                    with self.subTest(error=error):
+                        caches[1].write_text(cache_text.replace(old, new), encoding="utf-8")
+                        with self.assertRaisesRegex(ValueError, error):
+                            producer.owned_build_tools(profile, installed, root)
+                        caches[1].write_text(cache_text, encoding="utf-8")
+                caches[1].write_text(cache_text.replace("14.51.36231", "14.52.36725"), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "owned MSVC compiler"):
+                    producer.owned_build_tools(profile, installed, root)
+                caches[1].write_text(cache_text, encoding="utf-8")
+            with patch.object(producer.subprocess, "check_output", return_value="1.13.2\n"):
+                with self.assertRaisesRegex(ValueError, "Ninja build tool"):
+                    producer.owned_build_tools(profile, installed, root)
 
 
 class LegalExtractionTests(unittest.TestCase):

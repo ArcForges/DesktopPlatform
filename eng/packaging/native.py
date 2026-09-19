@@ -144,10 +144,20 @@ def upstream_records(vcpkg, installed_root, database, entry, destination, profil
         installed = installed_root / triplet / "share" / name
         sbom_file = installed / "vcpkg.spdx.json"
         copyright_file = installed / "copyright"
-        require(sbom_file.is_file() and copyright_file.is_file(), f"Missing licence/SBOM for {name}:{triplet}")
+        build_info = installed / "vcpkg_abi_info.txt"
+        require(sbom_file.is_file() and copyright_file.is_file() and build_info.is_file(),
+                f"Missing licence/SBOM/build provenance for {name}:{triplet}")
         source = json.loads(sbom_file.read_text())
         stem = f"{name}-{triplet}"
-        for original, relative in [(sbom_file, f"licenses/{stem}.spdx.json"), (copyright_file, f"licenses/{stem}.txt")]:
+        for original, relative in [(sbom_file, f"licenses/{stem}.spdx.json"), (copyright_file, f"licenses/{stem}.txt"),
+                                   (build_info, f"licenses/{stem}.abi.txt")]:
+            target = destination / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(original, target)
+        toolchain = profile["triplets"][triplet]
+        for original, relative in [(ROOT / toolchain["path"], f"recipes/toolchains/{triplet}.cmake"),
+                                   (vcpkg / toolchain["upstreamPath"], f"recipes/toolchains/upstream-{triplet}.cmake"),
+                                   (vcpkg / "LICENSE.txt", "licenses/provenance/vcpkg-LICENSE.txt")]:
             target = destination / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(original, target)
@@ -178,7 +188,7 @@ def upstream_records(vcpkg, installed_root, database, entry, destination, profil
         row = database[(name, triplet)]
         records.append({"name": name, "triplet": triplet, "version": row["version"],
                         "features": sorted(row["features"]), "sbom": f"licenses/{stem}.spdx.json",
-                        "license": f"licenses/{stem}.txt"})
+                        "license": f"licenses/{stem}.txt", "buildInfo": f"licenses/{stem}.abi.txt"})
         # Keep actual matching LGPL source archives with the distributed DLLs, alongside every vcpkg patch.
         if name in {"ffmpeg", "libusb"}:
             resource = next(p for p in source["packages"] if p.get("SPDXID", "").startswith("SPDXRef-resource-")
@@ -202,14 +212,38 @@ def upstream_records(vcpkg, installed_root, database, entry, destination, profil
     return records
 
 
+def owned_build_tools(profile, installed_root, root=ROOT):
+    """Read the two actual producer caches instead of asserting versions from PATH."""
+    for name in ("runtime-shared", "shim-static"):
+        cache = root / "artifacts/cmake/win-x64" / name / "CMakeCache.txt"
+        values = dict(line.split("=", 1) for line in cache.read_text(encoding="utf-8").splitlines()
+                      if line and not line.startswith(("#", "//")) and "=" in line)
+        version = ".".join(values["CMAKE_CACHE_" + part + "_VERSION:INTERNAL"] for part in ("MAJOR", "MINOR", "PATCH"))
+        require(version == profile["buildTools"]["ownedCMake"], "Unreviewed owned CMake build generator: " + name)
+        for language in ("C", "CXX"):
+            compilers = [v for k, v in values.items() if k.startswith("CMAKE_" + language + "_COMPILER:")]
+            require(len(compilers) == 1 and
+                    Path(compilers[0]).as_posix().casefold().endswith(("/VC/Tools/MSVC/" + profile["buildTools"]["msvcToolset"] + "/bin/Hostx64/x64/cl.exe").casefold()),
+                    "Unreviewed owned MSVC compiler: " + name)
+        require(Path(values["VCPKG_INSTALLED_DIR:PATH"]).resolve() == installed_root.resolve(),
+                "Native producer used a different installed dependency tree: " + name)
+        ninja = subprocess.check_output([values["CMAKE_MAKE_PROGRAM:FILEPATH"], "--version"], text=True).strip()
+        require(ninja == profile["buildTools"]["ownedNinja"], "Unreviewed owned Ninja build tool: " + name)
+    return dict(profile["buildTools"])
+
+
 def stage(directory, vcpkg, installed_root):
     require(os.name == "nt", "Windows native staging must run on the Windows producer.")
     require(not directory.exists() or not any(directory.iterdir()), "Native stage already exists; choose a new empty directory.")
-    native_provenance.provenance.run(ROOT, "DesktopPlatform")
+    audit = native_provenance.provenance.run(ROOT, "DesktopPlatform")
+    require(not audit["dirty"], "Commit reviewed changes before producing a source-bound native artifact.")
     profile = native_provenance.profile()
+    build_tools = owned_build_tools(profile, installed_root)
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     actual = subprocess.check_output(["git", "-C", str(vcpkg), "rev-parse", "HEAD"], text=True).strip()
     require(actual == VCPKG_COMMIT, "Native toolchain source pin mismatch.")
+    require(not subprocess.check_output(["git", "-C", str(vcpkg), "status", "--porcelain", "--untracked-files=no"], text=True).strip(),
+            "Pinned vcpkg source has uncommitted changes.")
     database = installed_packages(installed_root)
     binary_root = ROOT / "artifacts/stage/native/win-x64"
     crt = vc_runtime(profile["platformRuntime"]["distributionIdentity"]["directoryVersion"])
@@ -269,9 +303,10 @@ def stage(directory, vcpkg, installed_root):
             metadata["ffmpeg"] = {"license": license_name, "configuration": configuration}
         write_json(destination / "native-manifest.json", metadata)
         write_json(runtime / (entry["library"] + ".manifest.json"), metadata)
-        write_json(destination / "sbom.json", {"schemaVersion": 1, "sourceCommit": commit,
+        write_json(destination / "sbom.json", {"schemaVersion": 1, "sourceCommit": commit, "buildTools": build_tools,
                    "binaryFiles": metadata["files"], "buildDependencies": records,
                    "visualCppRuntime": {"record": profile["platformRuntime"]["id"],
+                                        "version": crt.parents[1].name,
                                         "redistributableDirectoryVersion": crt.parents[1].name,
                                         "files": [{"name": f["name"], **profile["platformRuntime"]["files"][f["name"].lower()]}
                                                   for f in metadata["files"] if f["name"].lower() in signatures],
