@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "id": "native-ffnvcodec-r1",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/FFmpeg/nv-codec-headers",
+  "sourceCommit": "e844e5b26f46bb77479f063029595293aa8f812d",
+  "sourcePaths": [
+    "include/ffnvcodec/dynlink_cuda.h",
+    "include/ffnvcodec/dynlink_cuviddec.h",
+    "include/ffnvcodec/dynlink_loader.h",
+    "include/ffnvcodec/dynlink_nvcuvid.h",
+    "include/ffnvcodec/nvEncodeAPI.h"
+  ],
+  "licence": {
+    "spdx": "MIT",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "include/ffnvcodec/dynlink_cuda.h",
+        "sha256": "2c74cf9b0ace0503ca18d2c43645d6cb1ec0dd7ea7163f7880bba5141586f275",
+        "finding": "Individual header explicitly carries MIT permission and copyright."
+      },
+      {
+        "path": "include/ffnvcodec/dynlink_cuviddec.h",
+        "sha256": "1244165ea5521d4be865995eb1c49b8910f755d0ca35004e1c4010ef7f612143",
+        "finding": "Individual header explicitly carries MIT permission and copyright."
+      },
+      {
+        "path": "include/ffnvcodec/dynlink_loader.h",
+        "sha256": "307713c9e46ab1d3fcb9c456dde8da2967a11003d951cd0efdf1329678ff0934",
+        "finding": "Individual header explicitly carries MIT permission and copyright."
+      },
+      {
+        "path": "include/ffnvcodec/dynlink_nvcuvid.h",
+        "sha256": "2141dade75f3178520092dce2c02df9b47c4b19036b56bb9316bd83a07bf16f1",
+        "finding": "Individual header explicitly carries MIT permission and copyright."
+      },
+      {
+        "path": "include/ffnvcodec/nvEncodeAPI.h",
+        "sha256": "4fe4094541ef0f8a13249d97a8692dc5f835a6e9dd42eeadb3e2f7321d54dc7e",
+        "finding": "Individual header explicitly carries MIT permission and copyright."
+      }
+    ],
+    "scope": "MIT applies per header despite the port NOASSERTION. Preserve each header-specific copyright preamble. Header API declarations/dynamic loader only; NVIDIA SDK/driver libraries are not bundled.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/ffnvcodec-x64-windows.txt.",
+    "Additional full notices: licenses/provenance/ffnvcodec-dynlink_cuda.txt, licenses/provenance/ffnvcodec-dynlink_cuviddec.txt, licenses/provenance/ffnvcodec-dynlink_loader.txt, licenses/provenance/ffnvcodec-dynlink_nvcuvid.txt, licenses/provenance/ffnvcodec-nvEncodeAPI.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Media.Runtime.win-x64/ArcForges.Native.Media.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Media.Runtime.win-x64",
+      "kind": "native-component-ffnvcodec",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: MIT applies per header despite the port NOASSERTION. Preserve each header-specific copyright preamble. Header API declarations/dynamic loader only; NVIDIA SDK/driver libraries are not bundled.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/ffnvcodec-x64-windows.txt.\nAdditional full notices: licenses/provenance/ffnvcodec-dynlink_cuda.txt, licenses/provenance/ffnvcodec-dynlink_cuviddec.txt, licenses/provenance/ffnvcodec-dynlink_loader.txt, licenses/provenance/ffnvcodec-dynlink_nvcuvid.txt, licenses/provenance/ffnvcodec-nvEncodeAPI.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/ffnvcodec/build.sh",
+          "ports/ffnvcodec/copyright",
+          "ports/ffnvcodec/LICENSE.txt",
+          "ports/ffnvcodec/portfile.cmake",
+          "ports/ffnvcodec/vcpkg.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/FFmpeg/nv-codec-headers",
+        "commit": "e844e5b26f46bb77479f063029595293aa8f812d",
+        "paths": [
+          "include/ffnvcodec/dynlink_cuda.h",
+          "include/ffnvcodec/dynlink_cuviddec.h",
+          "include/ffnvcodec/dynlink_loader.h",
+          "include/ffnvcodec/dynlink_nvcuvid.h",
+          "include/ffnvcodec/nvEncodeAPI.h"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "include/ffnvcodec/dynlink_cuda.h",
+            "sha256": "2c74cf9b0ace0503ca18d2c43645d6cb1ec0dd7ea7163f7880bba5141586f275",
+            "finding": "Individual header explicitly carries MIT permission and copyright."
+          },
+          {
+            "path": "include/ffnvcodec/dynlink_cuviddec.h",
+            "sha256": "1244165ea5521d4be865995eb1c49b8910f755d0ca35004e1c4010ef7f612143",
+            "finding": "Individual header explicitly carries MIT permission and copyright."
+          },
+          {
+            "path": "include/ffnvcodec/dynlink_loader.h",
+            "sha256": "307713c9e46ab1d3fcb9c456dde8da2967a11003d951cd0efdf1329678ff0934",
+            "finding": "Individual header explicitly carries MIT permission and copyright."
+          },
+          {
+            "path": "include/ffnvcodec/dynlink_nvcuvid.h",
+            "sha256": "2141dade75f3178520092dce2c02df9b47c4b19036b56bb9316bd83a07bf16f1",
+            "finding": "Individual header explicitly carries MIT permission and copyright."
+          },
+          {
+            "path": "include/ffnvcodec/nvEncodeAPI.h",
+            "sha256": "4fe4094541ef0f8a13249d97a8692dc5f835a6e9dd42eeadb3e2f7321d54dc7e",
+            "finding": "Individual header explicitly carries MIT permission and copyright."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipe and recorded feature/triplet closure build the input; CMake 4.3.3 builds the unchanged native sources under the two owning presets. python eng/packaging/native.py stage validates the exact installed source/recipe/binary closure. Host compiler implementation is not embedded source; the separately copied CRT has the scoped platform-runtime record.",
+    "outputSpdx": "MIT"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "MIT applies per header despite the port NOASSERTION. Preserve each header-specific copyright preamble. Header API declarations/dynamic loader only; NVIDIA SDK/driver libraries are not bundled.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "id": "native-opencolorio-r1",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/AcademySoftwareFoundation/OpenColorIO",
+  "sourceCommit": "c52966a6677723d5bd2dbef0ccec3fed9cbc3790",
+  "sourcePaths": [
+    "LICENSE",
+    "ext/sampleicc/src/include/iccProfileReader.h",
+    "ext/sampleicc/src/include/icProfileHeader.h",
+    "ext/xxHash/src/include/xxhash.h",
+    "CMakeLists.txt"
+  ],
+  "licence": {
+    "spdx": "BSD-3-Clause AND BSD-2-Clause AND LicenseRef-ICC-Software-0.2 AND LicenseRef-SunSoft-1994",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE",
+        "sha256": "82a40c52065ee968aa62015735e84378ac11425db7a233e6a2dcd2c83fc24276",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "ext/sampleicc/src/include/iccProfileReader.h",
+        "sha256": "86d593549b4ba44aef5b7b2e0ee9e5bb8cb23604547f174028751110cf9cc9e2",
+        "finding": "Exact leading copyright and licence comments only; implementation is not copied into the legal companion."
+      },
+      {
+        "path": "ext/sampleicc/src/include/icProfileHeader.h",
+        "sha256": "310bf0fea7a146b87a727731a42c709a7fb8d22dbeaaccd2b4edbc3cce0856e1",
+        "finding": "ICC, Heidelberger and SunSoft copyright/terms blocks only. Excludes the preceding C example. Latin-1 source is explicitly transcoded to UTF-8."
+      },
+      {
+        "path": "ext/xxHash/src/include/xxhash.h",
+        "sha256": "d4f2b91b547c79061649186721a6b331609f2bf8595485a21ea631c82ec3ef93",
+        "finding": "Full first copyright/licence comment; no implementation."
+      }
+    ],
+    "scope": "Selected core library and embedded xxHash BSD-2-Clause, sampleicc ICC Software License 0.2 and SunSoft 1994 permissive/nonendorsement text. ICC/Heidelberger disclaimers remain intact. LicenseRef identifiers denote these exact reviewed header texts, not new exceptions. Apps, tests, docs, Python/Java/OpenFX/Nuke and ARM sse2neon are disabled; external dependencies have separate records.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/opencolorio-x64-windows-static-md.txt.",
+    "Additional full notices: licenses/provenance/opencolorio-icc-reader.txt, licenses/provenance/opencolorio-icc-profile-header.txt, licenses/provenance/opencolorio-xxhash.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Colour.Runtime.win-x64/ArcForges.Native.Colour.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Colour.Runtime.win-x64",
+      "kind": "native-component-opencolorio",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    },
+    {
+      "project": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Image.Runtime.win-x64",
+      "kind": "native-component-opencolorio",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Selected core library and embedded xxHash BSD-2-Clause, sampleicc ICC Software License 0.2 and SunSoft 1994 permissive/nonendorsement text. ICC/Heidelberger disclaimers remain intact. LicenseRef identifiers denote these exact reviewed header texts, not new exceptions. Apps, tests, docs, Python/Java/OpenFX/Nuke and ARM sse2neon are disabled; external dependencies have separate records.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/opencolorio-x64-windows-static-md.txt.\nAdditional full notices: licenses/provenance/opencolorio-icc-reader.txt, licenses/provenance/opencolorio-icc-profile-header.txt, licenses/provenance/opencolorio-xxhash.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/opencolorio/dependencies.diff",
+          "ports/opencolorio/glew-no-glu.diff",
+          "ports/opencolorio/portfile.cmake",
+          "ports/opencolorio/pystring.diff",
+          "ports/opencolorio/vcpkg.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/AcademySoftwareFoundation/OpenColorIO",
+        "commit": "c52966a6677723d5bd2dbef0ccec3fed9cbc3790",
+        "paths": [
+          "LICENSE",
+          "ext/sampleicc/src/include/iccProfileReader.h",
+          "ext/sampleicc/src/include/icProfileHeader.h",
+          "ext/xxHash/src/include/xxhash.h",
+          "CMakeLists.txt"
+        ],
+        "spdx": "BSD-3-Clause AND BSD-2-Clause AND LicenseRef-ICC-Software-0.2 AND LicenseRef-SunSoft-1994",
+        "evidence": [
+          {
+            "path": "LICENSE",
+            "sha256": "82a40c52065ee968aa62015735e84378ac11425db7a233e6a2dcd2c83fc24276",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "ext/sampleicc/src/include/iccProfileReader.h",
+            "sha256": "86d593549b4ba44aef5b7b2e0ee9e5bb8cb23604547f174028751110cf9cc9e2",
+            "finding": "Exact leading copyright and licence comments only; implementation is not copied into the legal companion."
+          },
+          {
+            "path": "ext/sampleicc/src/include/icProfileHeader.h",
+            "sha256": "310bf0fea7a146b87a727731a42c709a7fb8d22dbeaaccd2b4edbc3cce0856e1",
+            "finding": "ICC, Heidelberger and SunSoft copyright/terms blocks only. Excludes the preceding C example. Latin-1 source is explicitly transcoded to UTF-8."
+          },
+          {
+            "path": "ext/xxHash/src/include/xxhash.h",
+            "sha256": "d4f2b91b547c79061649186721a6b331609f2bf8595485a21ea631c82ec3ef93",
+            "finding": "Full first copyright/licence comment; no implementation."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipe and recorded feature/triplet closure build the input; CMake 4.3.3 builds the unchanged native sources under the two owning presets. python eng/packaging/native.py stage validates the exact installed source/recipe/binary closure. Host compiler implementation is not embedded source; the separately copied CRT has the scoped platform-runtime record.",
+    "outputSpdx": "BSD-3-Clause AND BSD-2-Clause AND LicenseRef-ICC-Software-0.2 AND LicenseRef-SunSoft-1994"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Selected core library and embedded xxHash BSD-2-Clause, sampleicc ICC Software License 0.2 and SunSoft 1994 permissive/nonendorsement text. ICC/Heidelberger disclaimers remain intact. LicenseRef identifiers denote these exact reviewed header texts, not new exceptions. Apps, tests, docs, Python/Java/OpenFX/Nuke and ARM sse2neon are disabled; external dependencies have separate records.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

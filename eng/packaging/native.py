@@ -10,9 +10,11 @@ import re
 import shutil
 import struct
 import subprocess
-import urllib.request
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "eng"))
+import native_provenance
 VCPKG_COMMIT = "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb"
 
 
@@ -125,18 +127,18 @@ def dependency_closure(database, roots, triplet):
     return sorted(result)
 
 
-def vc_runtime():
+def vc_runtime(directory_version):
     vswhere = Path(os.environ["ProgramFiles(x86)"]) / "Microsoft Visual Studio/Installer/vswhere.exe"
     location = subprocess.check_output([str(vswhere), "-latest", "-products", "*", "-requires",
                                        "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-property", "installationPath"], text=True).strip()
     require(location, "Visual C++ installation was not found.")
     directories = list((Path(location) / "VC/Redist/MSVC").glob("*/x64/Microsoft.VC*.CRT"))
-    directories = [p for p in directories if re.fullmatch(r"\d+(?:\.\d+)+", p.parents[1].name)]
-    require(directories, "Visual C++ x64 redistributable files were not found.")
-    return max(directories, key=lambda p: tuple(map(int, p.parents[1].name.split("."))))
+    directories = [p for p in directories if p.parents[1].name == directory_version]
+    require(len(directories) == 1, "The reviewed Visual C++ x64 redistributable directory is missing or ambiguous.")
+    return directories[0]
 
 
-def upstream_records(vcpkg, installed_root, database, entry, destination):
+def upstream_records(vcpkg, installed_root, database, entry, destination, profile):
     records = []
     for name, triplet in dependency_closure(database, entry["vcpkgRoots"], entry["triplet"]):
         installed = installed_root / triplet / "share" / name
@@ -186,8 +188,13 @@ def upstream_records(vcpkg, installed_root, database, entry, destination):
             url = repository + "/archive/" + tag + ".tar.gz"
             archive = destination / "sources" / f"{name}-{row['version']}.tar.gz"
             archive.parent.mkdir(parents=True, exist_ok=True)
-            with urllib.request.urlopen(url, timeout=60) as response, archive.open("wb") as output:
-                shutil.copyfileobj(response, output)
+            approved = profile["components"][name]["correspondingSource"]
+            require(approved is not None and approved["url"] == url and approved["sha512"] == checksum,
+                    "Unreviewed native corresponding source.")
+            source_record = next(r for r in profile["components"][name]["resources"] if r["sha512"] == checksum)
+            cached = native_provenance.fetch(url, checksum, "sha512", source_record["cacheName"],
+                                            Path(os.environ.get("VCPKG_DOWNLOADS", str(vcpkg / "downloads"))))
+            shutil.copyfile(cached, archive)
             with archive.open("rb") as stream:
                 require(hashlib.file_digest(stream, "sha512").hexdigest() == checksum, f"Source checksum mismatch: {name}")
             records[-1]["sourceArchive"] = str(archive.relative_to(destination)).replace("\\", "/")
@@ -198,12 +205,15 @@ def upstream_records(vcpkg, installed_root, database, entry, destination):
 def stage(directory, vcpkg, installed_root):
     require(os.name == "nt", "Windows native staging must run on the Windows producer.")
     require(not directory.exists() or not any(directory.iterdir()), "Native stage already exists; choose a new empty directory.")
+    native_provenance.provenance.run(ROOT, "DesktopPlatform")
+    profile = native_provenance.profile()
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     actual = subprocess.check_output(["git", "-C", str(vcpkg), "rev-parse", "HEAD"], text=True).strip()
     require(actual == VCPKG_COMMIT, "Native toolchain source pin mismatch.")
     database = installed_packages(installed_root)
     binary_root = ROOT / "artifacts/stage/native/win-x64"
-    crt = vc_runtime()
+    crt = vc_runtime(profile["platformRuntime"]["distributionIdentity"]["directoryVersion"])
+    signatures = {}
     available = {path.name.lower(): path for path in (binary_root / "native").glob("*.dll")}
     available.update({path.name.lower(): path for path in crt.glob("*.dll")})
     entries = [p for p in json.loads((ROOT / "eng/packaging/packages.json").read_text())["packages"] if p["kind"] == "native"]
@@ -220,6 +230,8 @@ def stage(directory, vcpkg, installed_root):
                 continue
             require(name in available, f"Missing non-system native dependency: {name}")
             original = available[name]
+            if original.parent == crt and name not in signatures:
+                signatures[name] = native_provenance.approve_runtime(original, profile)
             if name != entry["library"].lower() + ".dll":
                 source = crt / original.name if original.parent == crt else installed_root / entry["triplet"] / "bin" / original.name
                 require(source.is_file() and digest(original) == digest(source),
@@ -239,7 +251,7 @@ def stage(directory, vcpkg, installed_root):
             target = destination / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(original, target)
-        records = upstream_records(vcpkg, installed_root, database, entry, destination)
+        records = upstream_records(vcpkg, installed_root, database, entry, destination, profile)
         metadata = {"schemaVersion": 1, "sourceCommit": commit, "rid": "win-x64", "library": entry["library"],
                     "abi": {"major": 1, "minor": 0}, "vcpkgCommit": actual,
                     "files": sorted(selected.values(), key=lambda f: f["name"])}
@@ -250,14 +262,20 @@ def stage(directory, vcpkg, installed_root):
             codec.avcodec_license.restype = ctypes.c_char_p
             configuration = codec.avcodec_configuration().decode("utf-8")
             license_name = codec.avcodec_license().decode("utf-8")
-            require(license_name.startswith("LGPL") and "--enable-gpl" not in configuration
-                    and "--enable-nonfree" not in configuration, "FFmpeg binary is outside the admitted LGPL configuration.")
+            require(license_name == "LGPL version 2.1 or later" and "--enable-gpl" not in configuration
+                    and "--enable-nonfree" not in configuration and "--enable-version3" not in configuration
+                    and "--enable-shared" in configuration and "--disable-static" in configuration,
+                    "FFmpeg binary is outside the admitted LGPL configuration.")
             metadata["ffmpeg"] = {"license": license_name, "configuration": configuration}
         write_json(destination / "native-manifest.json", metadata)
         write_json(runtime / (entry["library"] + ".manifest.json"), metadata)
         write_json(destination / "sbom.json", {"schemaVersion": 1, "sourceCommit": commit,
                    "binaryFiles": metadata["files"], "buildDependencies": records,
-                   "visualCppRuntime": {"version": crt.parents[1].name, "source": "Microsoft Visual Studio x64 CRT redistributable directory",
+                   "visualCppRuntime": {"record": profile["platformRuntime"]["id"],
+                                        "redistributableDirectoryVersion": crt.parents[1].name,
+                                        "files": [{"name": f["name"], **profile["platformRuntime"]["files"][f["name"].lower()]}
+                                                  for f in metadata["files"] if f["name"].lower() in signatures],
+                                        "source": "Microsoft Visual Studio x64 CRT redistributable directory",
                                         "redistributionTerms": "https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files"}})
         (destination / "NOTICE.md").write_text("# Native package notices\n\nArcForges owned ABI: AGPL-3.0-only.\n\n"
             + "All upstream build dependencies (including static inputs) have licence text and SPDX/source records under licenses/.\n"
@@ -276,6 +294,8 @@ def stage(directory, vcpkg, installed_root):
   </Target>
 </Project>
 ''', encoding="utf-8")
+        native_provenance.seal(destination, entry["id"],
+                               Path(os.environ.get("VCPKG_DOWNLOADS", str(vcpkg / "downloads"))), signatures)
         files = [{"path": str(f.relative_to(destination)).replace("\\", "/"), "sha256": digest(f)}
                  for f in sorted(destination.rglob("*")) if f.is_file()]
         artifact["packages"].append({"id": entry["id"], "files": files})
@@ -289,6 +309,8 @@ def verify_stage(directory, commit):
     verify_identity(artifact, commit)
     for package in artifact["packages"]:
         base = directory / package["id"]
+        native_provenance.verify(package["id"], lambda path: native_provenance.provenance.read(base, path),
+                                 {p.relative_to(base).as_posix() for p in base.rglob("*") if p.is_file()})
         require({str(p.relative_to(base)).replace("\\", "/") for p in base.rglob("*") if p.is_file()}
                 == {p["path"] for p in package["files"]}, "Unexpected/missing native artifact file.")
         for row in package["files"]:

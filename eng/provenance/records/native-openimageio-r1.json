@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "id": "native-openimageio-r1",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/AcademySoftwareFoundation/OpenImageIO",
+  "sourceCommit": "cfff4af80854f9fa4035929d64308cd253700bc1",
+  "sourcePaths": [
+    "LICENSE.md",
+    "THIRD-PARTY.md",
+    "src/include/OpenImageIO/function_view.h",
+    "CMakeLists.txt"
+  ],
+  "licence": {
+    "spdx": "Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause AND MIT AND NCSA AND BSL-1.0 AND Zlib AND Unlicense",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE.md",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "THIRD-PARTY.md",
+        "sha256": "1e86c485c25256a807b11c6f56014acac43bdc297944c2d6b4af16fd65188c2b",
+        "finding": "Full upstream third-party attribution and terms; individual header overrides are additional."
+      },
+      {
+        "path": "src/include/OpenImageIO/function_view.h",
+        "sha256": "ea16cb130503cf81f02aa0d3caf7c7a69a714385b093e334b951fda2dc48d333",
+        "finding": "Exact leading copyright and licence comments only; implementation is not copied into the legal companion."
+      }
+    ],
+    "scope": "Core library and embedded permissive components identified by THIRD-PARTY.md. Retain its complete attribution plus the actual NCSA notice in function_view.h: its header governs over the summary LLVM label. Existing vcpkg removes ext and disables tools/viewer/tests/docs/Python/Freetype; fonts and CC-BY documentation are not copied. fmt/other external libraries are independently recorded. Public-domain lookup3/SHA1 acknowledgements remain in THIRD-PARTY.md.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/openimageio-x64-windows-static-md.txt.",
+    "Additional full notices: licenses/provenance/openimageio-third-party.txt, licenses/provenance/openimageio-function-view-ncsa.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Image.Runtime.win-x64",
+      "kind": "native-component-openimageio",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Core library and embedded permissive components identified by THIRD-PARTY.md. Retain its complete attribution plus the actual NCSA notice in function_view.h: its header governs over the summary LLVM label. Existing vcpkg removes ext and disables tools/viewer/tests/docs/Python/Freetype; fonts and CC-BY documentation are not copied. fmt/other external libraries are independently recorded. Public-domain lookup3/SHA1 acknowledgements remain in THIRD-PARTY.md.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/openimageio-x64-windows-static-md.txt.\nAdditional full notices: licenses/provenance/openimageio-third-party.txt, licenses/provenance/openimageio-function-view-ncsa.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/openimageio/fix-dependencies.patch",
+          "ports/openimageio/fix-emscripten.patch",
+          "ports/openimageio/fix-openexr-target-missing.patch",
+          "ports/openimageio/fix-openimageio_include_dir.patch",
+          "ports/openimageio/fix-static-ffmpeg.patch",
+          "ports/openimageio/imath-version-guard.patch",
+          "ports/openimageio/portfile.cmake",
+          "ports/openimageio/remove-agl-framework.patch",
+          "ports/openimageio/usage",
+          "ports/openimageio/vcpkg.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/AcademySoftwareFoundation/OpenImageIO",
+        "commit": "cfff4af80854f9fa4035929d64308cd253700bc1",
+        "paths": [
+          "LICENSE.md",
+          "THIRD-PARTY.md",
+          "src/include/OpenImageIO/function_view.h",
+          "CMakeLists.txt"
+        ],
+        "spdx": "Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause AND MIT AND NCSA AND BSL-1.0 AND Zlib AND Unlicense",
+        "evidence": [
+          {
+            "path": "LICENSE.md",
+            "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "THIRD-PARTY.md",
+            "sha256": "1e86c485c25256a807b11c6f56014acac43bdc297944c2d6b4af16fd65188c2b",
+            "finding": "Full upstream third-party attribution and terms; individual header overrides are additional."
+          },
+          {
+            "path": "src/include/OpenImageIO/function_view.h",
+            "sha256": "ea16cb130503cf81f02aa0d3caf7c7a69a714385b093e334b951fda2dc48d333",
+            "finding": "Exact leading copyright and licence comments only; implementation is not copied into the legal companion."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipe and recorded feature/triplet closure build the input; CMake 4.3.3 builds the unchanged native sources under the two owning presets. python eng/packaging/native.py stage validates the exact installed source/recipe/binary closure. Host compiler implementation is not embedded source; the separately copied CRT has the scoped platform-runtime record.",
+    "outputSpdx": "Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause AND MIT AND NCSA AND BSL-1.0 AND Zlib AND Unlicense"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Core library and embedded permissive components identified by THIRD-PARTY.md. Retain its complete attribution plus the actual NCSA notice in function_view.h: its header governs over the summary LLVM label. Existing vcpkg removes ext and disables tools/viewer/tests/docs/Python/Freetype; fonts and CC-BY documentation are not copied. fmt/other external libraries are independently recorded. Public-domain lookup3/SHA1 acknowledgements remain in THIRD-PARTY.md.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

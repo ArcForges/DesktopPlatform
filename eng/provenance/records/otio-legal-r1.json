@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "id": "otio-legal-r1",
+  "kind": "legal-text",
+  "sourceRepository": "https://github.com/AcademySoftwareFoundation/OpenTimelineIO",
+  "sourceCommit": "44236713c1db295a6ffc66189ae98dbdfd0cb9c4",
+  "sourcePaths": [
+    "LICENSE.txt",
+    "NOTICE.txt"
+  ],
+  "licence": {
+    "spdx": "Apache-2.0",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE.txt",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "finding": "Apache-2.0 applies to the retained CMake context; preserve the project NOTICE."
+      }
+    ],
+    "scope": "Full original Apache licence and NOTICE accompanying the existing patch and native distribution.",
+    "copyingPermission": "Apache-2.0 section 4(a)/(d) requires retaining the licence and applicable NOTICE; legal text only."
+  },
+  "attribution": [
+    "Copyright Contributors to the OpenTimelineIO project. All rights reserved.",
+    "This product includes software developed at Pixar (http://www.pixar.com/)."
+  ],
+  "targets": [
+    {
+      "path": "third-party/opentimelineio/LICENSE.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "normalization": "lf"
+    },
+    {
+      "path": "third-party/opentimelineio/NOTICE.txt",
+      "sha256": "e5ca061ef053cb9fd1b7146da3b10d4e4f2ec218445c3ba7f7edb32ae9452543",
+      "normalization": "lf"
+    }
+  ],
+  "artifactTargets": [],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "byte-match",
+    "command": "python eng/check_provenance.py --owner DesktopPlatform",
+    "expected": "Full original Apache licence and NOTICE accompanying the existing patch and native distribution. Exact reviewed target digests and immutable history must match.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Copyright Contributors to the OpenTimelineIO project. All rights reserved.\nThis product includes software developed at Pixar (http://www.pixar.com/).",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "source",
+    "reason": "Source provenance summary supplements the retained original full legal text."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": null,
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Full original Apache licence and NOTICE accompanying the existing patch and native distribution.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": false
+  },
+  "supersedes": null
+}

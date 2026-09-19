@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "id": "native-opentimelineio-r1",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/AcademySoftwareFoundation/OpenTimelineIO",
+  "sourceCommit": "44236713c1db295a6ffc66189ae98dbdfd0cb9c4",
+  "sourcePaths": [
+    "LICENSE.txt",
+    "NOTICE.txt",
+    "CMakeLists.txt"
+  ],
+  "licence": {
+    "spdx": "Apache-2.0",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE.txt",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "NOTICE.txt",
+        "sha256": "e5ca061ef053cb9fd1b7146da3b10d4e4f2ec218445c3ba7f7edb32ae9452543",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      }
+    ],
+    "scope": "Selected opentimelineio library/header input under Apache-2.0. The exact port recipe and recorded feature closure determine compilation; tests, examples and standalone host tools are not runtime payload.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/opentimelineio-x64-windows-static-md.txt.",
+    "Additional full notices: licenses/provenance/opentimelineio-notice.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Otio.Runtime.win-x64/ArcForges.Native.Otio.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Otio.Runtime.win-x64",
+      "kind": "native-component-opentimelineio",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: Selected opentimelineio library/header input under Apache-2.0. The exact port recipe and recorded feature closure determine compilation; tests, examples and standalone host tools are not runtime payload.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/opentimelineio-x64-windows-static-md.txt.\nAdditional full notices: licenses/provenance/opentimelineio-notice.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/ArcForges/DesktopPlatform",
+        "commit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+        "paths": [
+          "eng/native/vcpkg/ports/opentimelineio/portfile.cmake",
+          "eng/native/vcpkg/ports/opentimelineio/vcpkg.json",
+          "eng/native/vcpkg/ports/opentimelineio/patches/0001-python-off-do-not-require-pybind11.patch"
+        ],
+        "spdx": "AGPL-3.0-only",
+        "evidence": [
+          {
+            "path": "eng/native/vcpkg/ports/opentimelineio/portfile.cmake",
+            "sha256": "ab1f58e66b03f969ccf1a6c59449acea5b58dd721f39c59987468a2cb55d8871",
+            "finding": "Owned overlay under AGPL-3.0-only; external patch context has its own Apache record."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/AcademySoftwareFoundation/OpenTimelineIO",
+        "commit": "44236713c1db295a6ffc66189ae98dbdfd0cb9c4",
+        "paths": [
+          "LICENSE.txt",
+          "NOTICE.txt",
+          "CMakeLists.txt"
+        ],
+        "spdx": "Apache-2.0",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "NOTICE.txt",
+            "sha256": "e5ca061ef053cb9fd1b7146da3b10d4e4f2ec218445c3ba7f7edb32ae9452543",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipe and recorded feature/triplet closure build the input; CMake 4.3.3 builds the unchanged native sources under the two owning presets. python eng/packaging/native.py stage validates the exact installed source/recipe/binary closure. Host compiler implementation is not embedded source; the separately copied CRT has the scoped platform-runtime record.",
+    "outputSpdx": "Apache-2.0"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Selected opentimelineio library/header input under Apache-2.0. The exact port recipe and recorded feature closure determine compilation; tests, examples and standalone host tools are not runtime payload.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

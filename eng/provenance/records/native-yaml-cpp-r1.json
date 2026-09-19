@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "id": "native-yaml-cpp-r1",
+  "kind": "generated",
+  "sourceRepository": "https://github.com/jbeder/yaml-cpp",
+  "sourceCommit": "56e3bb550c91fd7005566f19c079cb7a503223cf",
+  "sourcePaths": [
+    "LICENSE",
+    "src/contrib/dragonbox.h",
+    "CMakeLists.txt"
+  ],
+  "licence": {
+    "spdx": "MIT",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE",
+        "sha256": "aa6fcc27be034e41e21dd832f9175bfe694a48491d9e14ff0fa278e19ad14f1b",
+        "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+      },
+      {
+        "path": "src/contrib/dragonbox.h",
+        "sha256": "32ae7986fcebe2b8d68833e8a8401cf5c1b406ce7f4e439ba347c2927128e9ec",
+        "finding": "Exact leading copyright and licence comments only; implementation is not copied into the legal companion."
+      }
+    ],
+    "scope": "MIT library including Junekey Jeon dragonbox: the individual header expressly grants MIT for yaml-cpp. Retain its copyright and permission explanation; no Apache/BSL alternative is needed. Bundled test-only googletest is excluded.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Original copyright and full applicable terms are retained in licenses/yaml-cpp-x64-windows-static-md.txt.",
+    "Additional full notices: licenses/provenance/yaml-cpp-dragonbox.txt."
+  ],
+  "targets": [],
+  "artifactTargets": [
+    {
+      "project": "src/Native/ArcForges.Native.Colour.Runtime.win-x64/ArcForges.Native.Colour.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Colour.Runtime.win-x64",
+      "kind": "native-component-yaml-cpp",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    },
+    {
+      "project": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+      "package": "ArcForges.Native.Image.Runtime.win-x64",
+      "kind": "native-component-yaml-cpp",
+      "profile": "eng/provenance/artifact-profiles/native-win-x64-r1.json",
+      "sha256": "1c708739c47c84c6684665696c0411e4b9055898294ef52bd0798e7fba9b3032"
+    }
+  ],
+  "disposition": "Copy",
+  "verification": {
+    "kind": "regeneration",
+    "command": "python eng/native_provenance.py --stage artifacts/native-packages",
+    "expected": "Exact recipe/legal/source/feature closure, compiler-runtime identity, source-bound sealed candidate and real JIT/AOT/C17 consumers; upstream scope: MIT library including Junekey Jeon dragonbox: the individual header expressly grants MIT for yaml-cpp. Retain its copyright and permission explanation; no Apache/BSL alternative is needed. Bundled test-only googletest is excluded.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Original copyright and full applicable terms are retained in licenses/yaml-cpp-x64-windows-static-md.txt.\nAdditional full notices: licenses/provenance/yaml-cpp-dragonbox.txt.",
+    "files": [
+      "eng/provenance/NOTICE.txt"
+    ],
+    "distribution": "packages",
+    "reason": "Native package-specific attribution and full originals are independently checked. Build-only records describe retained recipes/legal material, not bundled host implementation."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": {
+    "generators": [
+      {
+        "repository": "https://github.com/Kitware/CMake",
+        "commit": "06cc1d04d8d5a4e13abdadfe20f6937787b1968e",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE.rst"
+        ],
+        "spdx": "BSD-3-Clause",
+        "evidence": [
+          {
+            "path": "LICENSE.rst",
+            "sha256": "4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d",
+            "finding": "CMake 4.3.3 is a BSD-3-Clause build generator. Its implementation/dependencies are not copied into compiled native outputs."
+          }
+        ]
+      },
+      {
+        "repository": "https://github.com/microsoft/vcpkg",
+        "commit": "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb",
+        "paths": [
+          "ports/yaml-cpp/1422.patch",
+          "ports/yaml-cpp/portfile.cmake",
+          "ports/yaml-cpp/vcpkg.json"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE.txt",
+            "sha256": "1ee376fc340e0aa6ad6a3581c94126e741468705096ac92263048a21daa86460",
+            "finding": "MIT applies to authored vcpkg recipes; upstream patch contexts retain the separately reviewed component licence."
+          }
+        ]
+      }
+    ],
+    "inputs": [
+      {
+        "repository": "https://github.com/jbeder/yaml-cpp",
+        "commit": "56e3bb550c91fd7005566f19c079cb7a503223cf",
+        "paths": [
+          "LICENSE",
+          "src/contrib/dragonbox.h",
+          "CMakeLists.txt"
+        ],
+        "spdx": "MIT",
+        "evidence": [
+          {
+            "path": "LICENSE",
+            "sha256": "aa6fcc27be034e41e21dd832f9175bfe694a48491d9e14ff0fa278e19ad14f1b",
+            "finding": "Reviewed original legal text for the exact selected scope; other licences in excluded source/test subtrees are not selected."
+          },
+          {
+            "path": "src/contrib/dragonbox.h",
+            "sha256": "32ae7986fcebe2b8d68833e8a8401cf5c1b406ce7f4e439ba347c2927128e9ec",
+            "finding": "Exact leading copyright and licence comments only; implementation is not copied into the legal companion."
+          }
+        ]
+      }
+    ],
+    "command": "The pinned vcpkg recipe and recorded feature/triplet closure build the input; CMake 4.3.3 builds the unchanged native sources under the two owning presets. python eng/packaging/native.py stage validates the exact installed source/recipe/binary closure. Host compiler implementation is not embedded source; the separately copied CRT has the scoped platform-runtime record.",
+    "outputSpdx": "MIT"
+  },
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "MIT library including Junekey Jeon dragonbox: the individual header expressly grants MIT for yaml-cpp. Retain its copyright and permission explanation; no Apache/BSL alternative is needed. Bundled test-only googletest is excluded.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}

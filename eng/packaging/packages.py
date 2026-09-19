@@ -122,6 +122,7 @@ def inspect(path, entry, expected_version, commit):
                 require(dependency["license"] in names and dependency["sbom"] in names, "Missing upstream licence/source record.")
                 if dependency["name"] in {"ffmpeg", "libusb"}:
                     require(dependency["sourceArchive"] in names, "Missing corresponding native source archive.")
+            native.native_provenance.verify(entry["id"], archive.read, set(names))
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
@@ -130,6 +131,7 @@ def pack(directory, package_version, native_directory=ROOT / "artifacts/native-p
     require(not list(directory.glob("*.nupkg")) and not (directory / "manifest.json").exists(),
             "Output already contains a candidate; choose a new empty --directory, never overwrite tested bytes.")
     run("python", str(ROOT / "eng/licence_boundary.py"))
+    run("python", str(ROOT / "eng/check_provenance.py"), "--owner", "DesktopPlatform")
     commit = source_commit()
     native.verify_stage(native_directory, commit)
     packages = []

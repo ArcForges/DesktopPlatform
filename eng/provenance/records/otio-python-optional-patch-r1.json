@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "otio-python-optional-patch-r1",
+  "kind": "patch",
+  "sourceRepository": "https://github.com/AcademySoftwareFoundation/OpenTimelineIO",
+  "sourceCommit": "44236713c1db295a6ffc66189ae98dbdfd0cb9c4",
+  "sourcePaths": [
+    "src/deps/CMakeLists.txt",
+    "LICENSE.txt",
+    "NOTICE.txt"
+  ],
+  "licence": {
+    "spdx": "Apache-2.0",
+    "category": "permissive",
+    "evidence": [
+      {
+        "path": "LICENSE.txt",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "finding": "Apache-2.0 applies to the retained CMake context; preserve the project NOTICE."
+      }
+    ],
+    "scope": "Reconcile the existing patch. Its context derives from src/deps/CMakeLists.txt; the small change is owned here. Pinned native builds apply the patch and execute the existing OTIO ABI tests.",
+    "copyingPermission": null
+  },
+  "attribution": [
+    "Copyright Contributors to the OpenTimelineIO project. All rights reserved.",
+    "This product includes software developed at Pixar (http://www.pixar.com/).",
+    "ArcForges change: omit the pybind11 requirement when OTIO_PYTHON_INSTALL is disabled."
+  ],
+  "targets": [
+    {
+      "path": "eng/native/vcpkg/ports/opentimelineio/patches/0001-python-off-do-not-require-pybind11.patch",
+      "sha256": "e919261d941ace1e4a311783e43e6113b1fad76041fd9aaac2665d9af603e383",
+      "normalization": "lf"
+    }
+  ],
+  "artifactTargets": [],
+  "disposition": "Improve",
+  "verification": {
+    "kind": "transformation",
+    "command": "python eng/check_provenance.py --owner DesktopPlatform",
+    "expected": "Reconcile the existing patch. Its context derives from src/deps/CMakeLists.txt; the small change is owned here. Pinned native builds apply the patch and execute the existing OTIO ABI tests. Exact reviewed target digests and immutable history must match.",
+    "artifacts": []
+  },
+  "notice": {
+    "required": true,
+    "text": "Copyright Contributors to the OpenTimelineIO project. All rights reserved.\nThis product includes software developed at Pixar (http://www.pixar.com/).\nArcForges change: omit the pybind11 requirement when OTIO_PYTHON_INSTALL is disabled.",
+    "files": [
+      "eng/provenance/NOTICE.txt",
+      "third-party/opentimelineio/LICENSE.txt",
+      "third-party/opentimelineio/NOTICE.txt"
+    ],
+    "distribution": "source",
+    "reason": "Source provenance summary supplements the retained original full legal text."
+  },
+  "lifetime": {
+    "status": "permanent",
+    "owner": "DesktopPlatform Licensing and Provenance Owner",
+    "removalTrigger": null
+  },
+  "generation": null,
+  "review": {
+    "owner": "Licensing and Provenance Owner",
+    "reviewer": "Codex, acting under the repository maintainer's implementation and review authorization",
+    "reviewedOn": "2026-09-19",
+    "decision": "approved",
+    "rationale": "Reconcile the existing patch. Its context derives from src/deps/CMakeLists.txt; the small change is owned here. Pinned native builds apply the patch and execute the existing OTIO ABI tests.",
+    "baselineCommit": "3bc1917d5cb2d76261c0e27ceba774b9067da8c6",
+    "reconciliation": true
+  },
+  "supersedes": null
+}
