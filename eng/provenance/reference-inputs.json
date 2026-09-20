@@ -1,0 +1,228 @@
+{
+  "schemaVersion": 1,
+  "design": {
+    "repository": "ArcForges/ArcForges-Design",
+    "commit": "f5ef5d56dba6e7ecbe49a4ff47163bc548b94c8c"
+  },
+  "matrices": {
+    "assistant": {
+      "path": "docs/assurance/reference-coverage/arcchat-aionui.md",
+      "sha256": "0cfeb952805b6bc8cfe76e17d6d8a6ceb453c1caceca8badc364cab847c13b4b"
+    },
+    "notes": {
+      "path": "docs/assurance/reference-coverage/arcnotes-affine-siyuan.md",
+      "sha256": "427e2d171737a395bdbec6713a43cb98292aa1e4357e9fd5cc8f318936837a6f"
+    },
+    "scope": {
+      "path": "docs/assurance/reference-coverage/arcscope-serial-studio.md",
+      "sha256": "89c9fde2bdb08b78677ecc95330a4224696ca8087f7909e6e155b774d78e6d84"
+    },
+    "slate": {
+      "path": "docs/assurance/reference-coverage/arcslate-arcvideo.md",
+      "sha256": "53044e49eb03d066dd74626a5f94358e8e4420cf503504ea8fb275c355611eb2"
+    },
+    "distribution": {
+      "path": "docs/assurance/reference-coverage/distribution-startarcforges.md",
+      "sha256": "5ab51641f2516129efb29034cc7163f4f56a1b1a59e22518ff951ac0715ac6be"
+    }
+  },
+  "sources": {
+    "s1": {
+      "repository": "iOfficeAI/AionUi",
+      "commit": "29c9271a59484e4696778cb80164f705245a6186",
+      "abbreviation": "29c9271a5",
+      "localName": "AionUi"
+    },
+    "s2": {
+      "repository": "toeverything/AFFiNE",
+      "commit": "81df4751a367f2795bc0d165586650dbe8db73d6",
+      "abbreviation": "81df4751a3",
+      "localName": "AFFiNE"
+    },
+    "s3": {
+      "repository": "siyuan-note/siyuan",
+      "commit": "eef10568384e2e7cf547adb029ae46a72e43c287",
+      "abbreviation": "eef105683",
+      "localName": "siyuan"
+    },
+    "s4": {
+      "repository": "Serial-Studio/Serial-Studio",
+      "commit": "639daafb2fe7d324c3b2d5583d2514c8c470676f",
+      "abbreviation": "639daafb",
+      "localName": "Serial-Studio"
+    },
+    "s5": {
+      "repository": "ArcForges/ArcVideo",
+      "commit": "caf56513278703adec0c2933ec235bb864d72e31",
+      "abbreviation": "caf5651",
+      "localName": "ArcVideo"
+    },
+    "s6": {
+      "repository": "ArcForges/ArcVideoFoundation",
+      "commit": "139eecaaa79dbad743a146f174a9c89a66ed594b",
+      "abbreviation": "139eeca",
+      "localName": "ArcVideoFoundation"
+    }
+  },
+  "packaged": {
+    "observedOn": "2026-09-20",
+    "versions": {
+      "AFFiNE/affine-0.27.2-stable-windows-x64.nsis.exe": "0.27.2-stable",
+      "AionUi/AionUi-2.1.35-win-x64.exe": "2.1.35",
+      "siyuan/siyuan-3.7.3-win.exe": "3.7.3"
+    },
+    "observation": {
+      "directories": {
+        "AFFiNE": {
+          "affine-0.27.2-stable-windows-x64.nsis.exe": "file",
+          "AFFiNE.exe": "file",
+          "chrome_100_percent.pak": "file",
+          "chrome_200_percent.pak": "file",
+          "d3dcompiler_47.dll": "file",
+          "dxcompiler.dll": "file",
+          "dxil.dll": "file",
+          "ffmpeg.dll": "file",
+          "icudtl.dat": "file",
+          "libEGL.dll": "file",
+          "libGLESv2.dll": "file",
+          "LICENSE": "file",
+          "LICENSES.chromium.html": "file",
+          "locales": "directory",
+          "resources": "directory",
+          "resources.pak": "file",
+          "snapshot_blob.bin": "file",
+          "Squirrel.exe": "file",
+          "v8_context_snapshot.bin": "file",
+          "version": "file",
+          "vk_swiftshader.dll": "file",
+          "vk_swiftshader_icd.json": "file",
+          "vulkan-1.dll": "file"
+        },
+        "AionUi": {
+          "AionUi-2.1.35-win-x64.exe": "file",
+          "AionUi.exe": "file",
+          "chrome_100_percent.pak": "file",
+          "chrome_200_percent.pak": "file",
+          "d3dcompiler_47.dll": "file",
+          "dxcompiler.dll": "file",
+          "dxil.dll": "file",
+          "ffmpeg.dll": "file",
+          "icudtl.dat": "file",
+          "libEGL.dll": "file",
+          "libGLESv2.dll": "file",
+          "LICENSE.electron.txt": "file",
+          "LICENSES.chromium.html": "file",
+          "locales": "directory",
+          "resources": "directory",
+          "resources.pak": "file",
+          "run.cmd": "file",
+          "snapshot_blob.bin": "file",
+          "v8_context_snapshot.bin": "file",
+          "vk_swiftshader.dll": "file",
+          "vk_swiftshader_icd.json": "file",
+          "vulkan-1.dll": "file"
+        },
+        "ArcVideo": {
+          "arcvideo-crashhandler.exe": "file",
+          "arcvideo-editor.exe": "file",
+          "avcodec-62.dll": "file",
+          "avfilter-11.dll": "file",
+          "avformat-62.dll": "file",
+          "avutil-60.dll": "file",
+          "bz2.dll": "file",
+          "crashpad_handler.exe": "file",
+          "D3Dcompiler_47.dll": "file",
+          "deflate.dll": "file",
+          "generic": "directory",
+          "iconengines": "directory",
+          "Iex-3_4.dll": "file",
+          "IlmThread-3_4.dll": "file",
+          "imageformats": "directory",
+          "Imath-3_2.dll": "file",
+          "jpeg62.dll": "file",
+          "kddockwidgets-qt62.dll": "file",
+          "libexpat.dll": "file",
+          "liblzma.dll": "file",
+          "libpng16.dll": "file",
+          "networkinformation": "directory",
+          "OpenColorIO_2_5.dll": "file",
+          "OpenEXR-3_4.dll": "file",
+          "OpenEXRCore-3_4.dll": "file",
+          "opengl32sw.dll": "file",
+          "OpenImageIO.dll": "file",
+          "OpenImageIO_Util.dll": "file",
+          "openjph.0.30.dll": "file",
+          "platforms": "directory",
+          "portaudio.dll": "file",
+          "Qt6Core.dll": "file",
+          "Qt6Gui.dll": "file",
+          "Qt6Network.dll": "file",
+          "Qt6OpenGL.dll": "file",
+          "Qt6OpenGLWidgets.dll": "file",
+          "Qt6Svg.dll": "file",
+          "Qt6Widgets.dll": "file",
+          "run.cmd": "file",
+          "styles": "directory",
+          "swresample-6.dll": "file",
+          "swscale-9.dll": "file",
+          "tiff.dll": "file",
+          "tls": "directory",
+          "yaml-cpp.dll": "file",
+          "z.dll": "file",
+          "zstd.dll": "file"
+        },
+        "ArcVideoFoundation": {
+          "include": "directory",
+          "lib": "directory"
+        },
+        "Serial-Studio": {
+          "bin": "directory",
+          "plugins": "directory",
+          "qml": "directory",
+          "resources": "directory",
+          "run.cmd": "file",
+          "translations": "directory"
+        },
+        "siyuan": {
+          "chrome_100_percent.pak": "file",
+          "chrome_200_percent.pak": "file",
+          "d3dcompiler_47.dll": "file",
+          "dxcompiler.dll": "file",
+          "dxil.dll": "file",
+          "ffmpeg.dll": "file",
+          "icudtl.dat": "file",
+          "libEGL.dll": "file",
+          "libGLESv2.dll": "file",
+          "LICENSE": "file",
+          "LICENSE.electron.txt": "file",
+          "LICENSES.chromium.html": "file",
+          "locales": "directory",
+          "resources": "directory",
+          "resources.pak": "file",
+          "run.cmd": "file",
+          "siyuan-3.7.3-win.exe": "file",
+          "SiYuan.exe": "file",
+          "snapshot_blob.bin": "file",
+          "v8_context_snapshot.bin": "file",
+          "vk_swiftshader.dll": "file",
+          "vk_swiftshader_icd.json": "file",
+          "vulkan-1.dll": "file"
+        }
+      },
+      "notices": {
+        "AionUi/LICENSE.electron.txt": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d",
+        "AionUi/LICENSES.chromium.html": "6965e1b04dc81a012981508299e28542abff2bc7f418071c264f0b53e0c63f34",
+        "AFFiNE/LICENSE": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d",
+        "AFFiNE/LICENSES.chromium.html": "f9c475876b01bb4d654b8f630f11219cc96198efe91d7f2602a97f0f3c86c3cb",
+        "siyuan/LICENSE": "36feaed6e6d42e6f84db2eaadbea503caf2cd81ce43a5b4b69594f290ded91cb",
+        "siyuan/LICENSE.electron.txt": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d",
+        "siyuan/LICENSES.chromium.html": "5d545ce8065079f38a82472ab93bd62fcdf73cd319f0771ef51c45c7e243f1d4"
+      }
+    }
+  },
+  "review": {
+    "date": "2026-09-20",
+    "reviewer": "Codex under maintainer-authorized Architecture and Licensing/Provenance review",
+    "rationale": "Registration of fixed completed matrix identities only. No reference source or matrix prose copied; no reuse or new product scope. Current packaged observation remains distinct from the historical review."
+  }
+}

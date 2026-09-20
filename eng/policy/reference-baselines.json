@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "license": "AGPL-3.0-only",
+  "metadata": {
+    "path": "eng/provenance/reference-inputs.json",
+    "sha256": "4d06afa72af2deeff860288b96644a63b3b1ce814ab2bf8cb7992cd3b005edd5"
+  },
+  "matrices": [
+    {
+      "id": "assistant",
+      "owner": "DesktopPlatform",
+      "maintenance": [
+        "15.07"
+      ],
+      "rows": 30,
+      "prefix": "ac",
+      "sources": [
+        "s1"
+      ]
+    },
+    {
+      "id": "notes",
+      "owner": "ArcNotes",
+      "maintenance": [
+        "18.08"
+      ],
+      "rows": 41,
+      "prefix": "an",
+      "sources": [
+        "s2",
+        "s3"
+      ]
+    },
+    {
+      "id": "scope",
+      "owner": "ArcScope",
+      "maintenance": [
+        "33.07"
+      ],
+      "rows": 31,
+      "prefix": "as",
+      "sources": [
+        "s4"
+      ]
+    },
+    {
+      "id": "slate",
+      "owner": "ArcSlate",
+      "maintenance": [
+        "36.07"
+      ],
+      "rows": 31,
+      "prefix": "al",
+      "sources": [
+        "s5",
+        "s6"
+      ]
+    },
+    {
+      "id": "distribution",
+      "owner": "DesktopPlatform",
+      "maintenance": [
+        "50.01",
+        "50.02"
+      ],
+      "rows": 12,
+      "prefix": "sd",
+      "sources": []
+    }
+  ]
+}
