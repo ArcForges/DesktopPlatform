@@ -111,3 +111,6 @@ There are no Git submodules. Contracts publishes independently from its own revi
 
 [Runtime and source ownership](docs/runtime-ownership.md) records the current nine-owner
 policy, bounded runtime checks and retained bootstrap/scaffold dispositions.
+
+[Current repository reconciliation](docs/reconciliation-inventory.md) binds current projects,
+historical dispositions and planned directory owners to exact source and candidate identities.

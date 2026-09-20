@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "substep": "WP01.00",
+  "observedOn": "2026-09-20",
+  "historicalCommit": "ede43db5b2237104dd0008b99398090c54a2cf94",
+  "designCommit": "33bcddd9508ec60c0a2b0d7b53901ee7f50d0a70",
+  "designFiles": {
+    "docs/assurance/wp01-00-inventory-policy.md": "ab6ed192920a34fb3da8a4b2a46f0717d1037cef7b8c92934917563a92b7f47a",
+    "docs/assurance/wp00-stage-acceptance.json": "69e06cd1248f61b5da2509184430ffc8c1f96d5c8550dd790f87e432393cc340",
+    "docs/architecture/27-platform-projects-and-application-assistants.md": "48532d4ecc59d986292075afae4ea4fea52a6106c94833e5e5ce4ae43594c4a5",
+    "docs/architecture/01-solution-and-project-layout.md": "ff8241d91e460ba35ae55e92b5b55cba0968b1a1fd788f7a5dc2242e52815658"
+  },
+  "counts": {
+    "owners": 9,
+    "projects": 75,
+    "historical": 166,
+    "directories": 359,
+    "native": 7
+  }
+}
