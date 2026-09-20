@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!-- SPDX-License-Identifier: AGPL-3.0-only -->
   <!--
-    Parent-bound one-shot helper. implementation-repository-layout.md Â§13 requires the same
-    self-contained Native AOT publish mode and the same five desktop RIDs as the four desktop
-    heads, so it imports the same property files instead of restating them.
+    Parent-bound helper scaffold. Current architecture 27 assigns its Native AOT runtime
+    to DesktopPlatform. The retained five-RID bootstrap is not proof of complete
+    containment or platform support; WP11/13 own the full helper capability.
   -->
   <Import Project="..\..\..\eng\build\desktop-aot.props" />
   <Import Project="..\..\..\eng\build\desktop-rids.props" />

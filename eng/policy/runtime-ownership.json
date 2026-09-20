@@ -1,0 +1,467 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-09-20",
+  "design": {
+    "commit": "e2dd78058ce2d4bd1a8434a34d049bbc1158eacb",
+    "path": "docs/architecture/30-runtime-and-source-ownership-policy.md",
+    "sha256": "3be292a0fffc23dbdb0f7d1d0fe41ad250e03661d02fee79e4d4c58b8af33e2b"
+  },
+  "owners": [
+    {
+      "repository": "DesktopPlatform",
+      "runtime": "dotnet-nativeaot-libraries-and-native-cabi",
+      "sourceCommit": "76b40214fe018fc663dd393f812f1ecf89249cdd",
+      "projects": [
+        {
+          "path": "CMakeLists.txt",
+          "role": "native-build"
+        },
+        {
+          "path": "native/CMakeLists.txt",
+          "role": "native-build"
+        },
+        {
+          "path": "native/arcgraphics-metal-abi/CMakeLists.txt",
+          "role": "native-build"
+        },
+        {
+          "path": "native/arcmedia-ffmpeg-abi/CMakeLists.txt",
+          "role": "native-build"
+        },
+        {
+          "path": "native/arcmedia-ffmpeg-abi/windows/arcmedia_ffmpeg_abi.vcxproj",
+          "role": "native-build"
+        },
+        {
+          "path": "native/arcslate-color-abi/CMakeLists.txt",
+          "role": "native-build"
+        },
+        {
+          "path": "native/arcslate-color-abi/windows/arcslate_color_abi.vcxproj",
+          "role": "native-build"
+        },
+        {
+          "path": "native/arcslate-image-abi/CMakeLists.txt",
+          "role": "native-build"
+        },
+        {
+          "path": "native/arcslate-image-abi/windows/arcslate_image_abi.vcxproj",
+          "role": "native-build"
+        },
+        {
+          "path": "native/arcslate-otio-abi/CMakeLists.txt",
+          "role": "native-build"
+        },
+        {
+          "path": "native/arcslate-otio-abi/windows/arcslate_otio_abi.vcxproj",
+          "role": "native-build"
+        },
+        {
+          "path": "src/Build/ArcForges.Build.Policy/ArcForges.Build.Policy.csproj",
+          "role": "package-container"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Application.Abstractions/ArcForges.Application.Abstractions.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Desktop.Experience/ArcForges.Desktop.Experience.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Desktop.Graphics/ArcForges.Desktop.Graphics.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Desktop.Preview/ArcForges.Desktop.Preview.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Desktop.RichContent/ArcForges.Desktop.RichContent.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Desktop.Text/ArcForges.Desktop.Text.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Foundation/ArcForges.Foundation.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.NativeInterop/ArcForges.NativeInterop.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Observability/ArcForges.Observability.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Persistence.Sqlite/ArcForges.Persistence.Sqlite.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/BuildingBlocks/ArcForges.Security/ArcForges.Security.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/DesktopHelpers/ArcForges.ContentSandbox/ArcForges.ContentSandbox.csproj",
+          "role": "aot-host"
+        },
+        {
+          "path": "src/Native/ArcForges.Native.Abstractions/ArcForges.Native.Abstractions.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/Native/ArcForges.Native.Colour.Runtime.win-x64/ArcForges.Native.Colour.Runtime.win-x64.csproj",
+          "role": "package-container"
+        },
+        {
+          "path": "src/Native/ArcForges.Native.Colour/ArcForges.Native.Colour.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+          "role": "package-container"
+        },
+        {
+          "path": "src/Native/ArcForges.Native.Image/ArcForges.Native.Image.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/Native/ArcForges.Native.Media.Runtime.win-x64/ArcForges.Native.Media.Runtime.win-x64.csproj",
+          "role": "package-container"
+        },
+        {
+          "path": "src/Native/ArcForges.Native.Media/ArcForges.Native.Media.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/Native/ArcForges.Native.Otio.Runtime.win-x64/ArcForges.Native.Otio.Runtime.win-x64.csproj",
+          "role": "package-container"
+        },
+        {
+          "path": "src/Native/ArcForges.Native.Otio/ArcForges.Native.Otio.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "tests/ArchitectureTests/ArcForges.Tests.ArchitectureTests.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
+          "path": "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj",
+          "role": "test-or-build-tool"
+        }
+      ]
+    },
+    {
+      "repository": "Contracts",
+      "runtime": "proto-generated-clients",
+      "sourceCommit": "d716045854e2e401a1a536ba2ee5c62ad1c4e8ab",
+      "projects": [
+        {
+          "path": "build.gradle.kts",
+          "role": "contract-or-test-build"
+        },
+        {
+          "path": "eng/Codegen/Codegen.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
+          "path": "eng/central-signing/build.gradle.kts",
+          "role": "contract-or-test-build"
+        },
+        {
+          "path": "package.json",
+          "role": "typescript-build"
+        },
+        {
+          "path": "src/public/dotnet/ArcForges.Contracts.PublicApi/ArcForges.Contracts.PublicApi.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/public/kotlin/contract-fixtures/build.gradle.kts",
+          "role": "contract-or-test-build"
+        },
+        {
+          "path": "src/public/kotlin/contracts-client/build.gradle.kts",
+          "role": "contract-or-test-build"
+        },
+        {
+          "path": "src/public/kotlin/contracts-connect-client/build.gradle.kts",
+          "role": "contract-or-test-build"
+        },
+        {
+          "path": "src/public/kotlin/contracts-proto/build.gradle.kts",
+          "role": "contract-or-test-build"
+        },
+        {
+          "path": "src/public/ts/api-client/package.json",
+          "role": "typescript-build"
+        },
+        {
+          "path": "src/public/ts/proto/package.json",
+          "role": "typescript-build"
+        },
+        {
+          "path": "tests/public/HelloClient/HelloClient.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
+          "path": "tests/public/HelloHost/HelloHost.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
+          "path": "tests/public/KotlinClient/build.gradle.kts",
+          "role": "contract-or-test-build"
+        },
+        {
+          "path": "tests/public/KotlinConnectClient/build.gradle.kts",
+          "role": "contract-or-test-build"
+        }
+      ]
+    },
+    {
+      "repository": "ArcNotes",
+      "runtime": "avalonia-nativeaot",
+      "sourceCommit": "e40423a1b14ce8341de35748cc2a093c7c9b77a7",
+      "projects": [
+        {
+          "path": "eng/ArcForges.Repository/ArcForges.Repository.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
+          "path": "src/ArcForges.ArcNotes.Core/ArcForges.ArcNotes.Core.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/ArcForges.ArcNotes/ArcForges.ArcNotes.csproj",
+          "role": "aot-host"
+        },
+        {
+          "path": "tests/ArcForges.ArcNotes.Tests/ArcForges.ArcNotes.Tests.csproj",
+          "role": "test-or-build-tool"
+        }
+      ]
+    },
+    {
+      "repository": "ArcScope",
+      "runtime": "avalonia-nativeaot",
+      "sourceCommit": "d247dcff36fd1123a70e5e59967a9b2294a2eeac",
+      "projects": [
+        {
+          "path": "eng/ArcForges.Repository/ArcForges.Repository.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
+          "path": "src/ArcForges.ArcScope.Core/ArcForges.ArcScope.Core.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/ArcForges.ArcScope/ArcForges.ArcScope.csproj",
+          "role": "aot-host"
+        },
+        {
+          "path": "tests/ArcForges.ArcScope.Tests/ArcForges.ArcScope.Tests.csproj",
+          "role": "test-or-build-tool"
+        }
+      ]
+    },
+    {
+      "repository": "ArcSlate",
+      "runtime": "avalonia-nativeaot",
+      "sourceCommit": "b0d255f54fb560a534cc493d5645ca4bc7b4bd0e",
+      "projects": [
+        {
+          "path": "eng/ArcForges.Repository/ArcForges.Repository.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
+          "path": "src/ArcForges.ArcSlate.Core/ArcForges.ArcSlate.Core.csproj",
+          "role": "aot-library"
+        },
+        {
+          "path": "src/ArcForges.ArcSlate/ArcForges.ArcSlate.csproj",
+          "role": "aot-host"
+        },
+        {
+          "path": "tests/ArcForges.ArcSlate.Tests/ArcForges.ArcSlate.Tests.csproj",
+          "role": "test-or-build-tool"
+        }
+      ]
+    },
+    {
+      "repository": "Cloud",
+      "runtime": "dotnet-nativeaot-cloudflare-container",
+      "sourceCommit": "4571ec8692235485712d4c4e3ef4886c162f2574",
+      "projects": [
+        {
+          "path": "package.json",
+          "role": "typescript-build"
+        },
+        {
+          "path": "src/ArcForges.Cloud/ArcForges.Cloud.csproj",
+          "role": "aot-host"
+        },
+        {
+          "path": "tests/ArcForges.Cloud.Consumer/ArcForges.Cloud.Consumer.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
+          "path": "tests/ArcForges.Cloud.Tests/ArcForges.Cloud.Tests.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
+          "path": "tests/kotlin-consumer/build.gradle.kts",
+          "role": "contract-or-test-build"
+        }
+      ]
+    },
+    {
+      "repository": "AI",
+      "runtime": "cloudflare-workflow-workers-ai",
+      "sourceCommit": "944edfe88718fc5f72a42ea0bed1c495307c22df",
+      "projects": [
+        {
+          "path": "package.json",
+          "role": "typescript-build"
+        }
+      ]
+    },
+    {
+      "repository": "Web",
+      "runtime": "react-typescript-static",
+      "sourceCommit": "84939ca1fde0f0653d2cb4d8b8f9e5dd1057abb5",
+      "projects": [
+        {
+          "path": "ArcForges.Web.esproj",
+          "role": "javascript-ide"
+        },
+        {
+          "path": "apps/site/package.json",
+          "role": "typescript-build"
+        },
+        {
+          "path": "package.json",
+          "role": "typescript-build"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "role": "typescript-build"
+        }
+      ]
+    },
+    {
+      "repository": "Mobile",
+      "runtime": "kotlin-compose-android",
+      "sourceCommit": "5031d837d2e7bf9dd1b681c837c942d2b74dc65e",
+      "projects": [
+        {
+          "path": "app/build.gradle.kts",
+          "role": "android-build"
+        },
+        {
+          "path": "build.gradle.kts",
+          "role": "android-build"
+        },
+        {
+          "path": "shared/build.gradle.kts",
+          "role": "android-build"
+        }
+      ]
+    }
+  ],
+  "retiredScaffolds": [
+    {
+      "path": "src/ArcChat",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "retired",
+      "owner": "DesktopPlatform",
+      "reason": "Standalone host retired; reusable embedded assistant features remain assigned to WP14-17."
+    },
+    {
+      "path": "src/ArcNotes",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "extracted",
+      "owner": "ArcNotes",
+      "reason": "Independent native product. Edgeless and Slides scaffolds are excluded, without a future hook."
+    },
+    {
+      "path": "src/ArcScope",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "extracted",
+      "owner": "ArcScope",
+      "reason": "Independent acquisition/measurement product; no product source in shared platform."
+    },
+    {
+      "path": "src/ArcSlate",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "extracted",
+      "owner": "ArcSlate",
+      "reason": "Independent media/timeline product; native mechanism packages remain platform-owned."
+    },
+    {
+      "path": "src/Cloud",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "replaced",
+      "owner": "Cloud",
+      "reason": "Native AOT Container with D1/R2 authority; no old JIT/database or in-host Harness placement."
+    },
+    {
+      "path": "src/Mobile",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "replaced",
+      "owner": "Mobile",
+      "reason": "Kotlin Android replaces .NET/RN delivery. Existing prerelease identity and JVM development preview remain until WP30."
+    },
+    {
+      "path": "src/Web",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "replaced",
+      "owner": "Web",
+      "reason": "React/TypeScript browser outputs replace .NET browser host."
+    },
+    {
+      "path": "src/Contracts",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "extracted",
+      "owner": "Contracts",
+      "reason": "Authored proto and generated clients replace old authored JSON DTO wire authority; Hello compatibility retained."
+    },
+    {
+      "path": "src/SDK",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "extracted",
+      "owner": "Contracts",
+      "reason": "Public SDK/CLI owner; full behavior remains WP03 and subsequent consumer gates."
+    },
+    {
+      "path": "src/Extensions",
+      "observedRepository": "DesktopPlatform",
+      "sourceCommit": "99bfe7d695ed0d65a0d035af7d219fc9b86100f5",
+      "disposition": "extracted",
+      "owner": "DesktopPlatform",
+      "reason": "Shared sandbox/extension mechanisms; catalogue business authority remains Cloud under WP41."
+    }
+  ],
+  "bootstrapBoundaries": {
+    "DesktopPlatform": "Eleven non-packable shared placeholders and ContentSandbox scaffold are not capability acceptance; native packages expose existing probes. WP01/04/07-17/53 retain their full obligations.",
+    "Contracts": "Hello schema and native-gRPC compatibility fixtures retained. Public business clients select binary gRPC-Web; WP03 completes production schemas and retires native-only Kotlin client at the first business release.",
+    "ArcNotes": "Hello native UI/transport only. Five-RID bootstrap is not full platform or Notes behavior acceptance.",
+    "ArcScope": "Hello native UI/transport only. Five-RID bootstrap is not full platform or acquisition behavior acceptance.",
+    "ArcSlate": "Hello native UI/transport only. Five-RID bootstrap is not full platform or media behavior acceptance.",
+    "Cloud": "Hello anonymous stateless AOT service. Full D1 modules and Container production profile remain WP21 onward.",
+    "AI": "Private Workflow model/tool/model Hello. Full sole production Harness remains WP52.",
+    "Web": "Site Hello only; account/chat/operations remain required at their scheduled producers.",
+    "Mobile": "Android Hello with io.github.arcforges.mobile; com.arcforges.mobile migration and stable toolchain reconciliation remain WP30 before production. JVM preview is development-only."
+  }
+}
