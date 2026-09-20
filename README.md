@@ -34,6 +34,13 @@ checkout and retains a report under `artifacts/evidence/design-policy.json`. It
 does not execute Design code examples. For reviewed source changes and read-only
 pre-merge checks, see [policy maintenance and evidence](docs/design-policy.md).
 
+## Reference planning inputs
+
+The five completed Design matrices are registered through `eng/policy/reference-baselines.json`.
+Run `python eng/reference_baselines.py` to verify the pinned documents and all six source commits
+in isolated bare repositories. See [registration, local observation and drift](docs/reference-baselines.md)
+for the packaged reference boundary and later maintenance.
+
 ## Project licence boundaries
 
 The [WP00.02 profile](docs/licence-boundary.md) checks all 35 owned build scopes,
