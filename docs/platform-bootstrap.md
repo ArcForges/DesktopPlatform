@@ -1,5 +1,9 @@
 # DesktopPlatform extraction and package pipeline
 
+This is historical extraction evidence at the source revisions below. The current
+[runtime and ownership policy](runtime-ownership.md), reviewed on 2026-09-20, governs
+repository/runtime assignments; the old Design snapshot is not current authority.
+
 ## Initial extraction plan
 
 Base: `99bfe7d695ed0d65a0d035af7d219fc9b86100f5` in `ArcForges/DesktopPlatform`.
@@ -28,7 +32,7 @@ Removal is an ownership extraction, not a claim that new product or proto implem
 Shared placeholder libraries are retained for follow-on implementation but are not release artifacts.
 The first publication supported build policy. The subsequent [native package release](native-package-release.md)
 admits the four existing Windows ABIs with their real native closure and package-consumer validation.
-This bootstrap does not close every WP02 obligation across all ten repositories or the WP06 native gates.
+This bootstrap does not close every WP02 obligation across all nine implementation repositories or the WP06 native gates.
 
 ## Local validation evidence
 

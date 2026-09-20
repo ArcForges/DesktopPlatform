@@ -108,3 +108,6 @@ There are no Git submodules. Contracts publishes independently from its own revi
 
 [AGPL-3.0-only](LICENSE). See [NOTICE.md](NOTICE.md) and the
 [dependency register](docs/compliance/third-party-license-register.md) for attribution.
+
+[Runtime and source ownership](docs/runtime-ownership.md) records the current nine-owner
+policy, bounded runtime checks and retained bootstrap/scaffold dispositions.
