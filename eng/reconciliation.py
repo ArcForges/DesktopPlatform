@@ -98,7 +98,7 @@ def validate(source, current, historical, directories, native):
 
 
 def check_projects(root, row, files, pinned):
-    require(inventory.git(root, 'remote', 'get-url', 'origin') == row['origin'], 'origin drift')
+    require(inventory.git(root, 'remote', 'get-url', 'origin').removesuffix('.git') == row['origin'].removesuffix('.git'), 'origin drift')
     expected = {r['path']: r['blob'] for r in row['projects']}
     actual = {p:b for p,b in files.items() if inventory.kind(p)}
     require(set(actual) == set(expected), 'current project set drift: ' + row['repository'])

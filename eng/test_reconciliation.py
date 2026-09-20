@@ -89,7 +89,11 @@ class ReconciliationTests(unittest.TestCase):
                      'eng/policy/licence-boundary.json':json.dumps({'schemaVersion':1,'repository':'DesktopPlatform','spdxLicense':'AGPL-3.0-only','licenceBoundary':'AGPL','projects':[{'path':project,'kind':'msbuild'}]})})
         files=policy.tree(self.root,'HEAD')
         row={'repository':'DesktopPlatform','origin':'https://github.com/ArcForges/DesktopPlatform.git','projects':[{'path':project,'blob':files[project]}]}
-        with self.assertRaisesRegex(ValueError,'escapes repository'):policy.check_projects(self.root,row,files,True)
+        for origin in [row['origin'],row['origin'].removesuffix('.git')]:
+            self.git('remote','set-url','origin',origin)
+            with self.assertRaisesRegex(ValueError,'escapes repository'):policy.check_projects(self.root,row,files,True)
+        self.git('remote','set-url','origin','https://github.com/Other/DesktopPlatform.git')
+        with self.assertRaisesRegex(ValueError,'origin drift'):policy.check_projects(self.root,row,files,True)
 
 
 if __name__ == '__main__':
