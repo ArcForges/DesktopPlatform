@@ -1,0 +1,1662 @@
+[
+  {
+    "path": "src/ArcChat/ArcChat.Application/ArcChat.Application.csproj",
+    "blob": "f29b857ec98b871c28b64fbd061a0c370d0ca093",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Assistant",
+    "disposition": "Move",
+    "producer": "WP14",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.CloudClient/ArcChat.CloudClient.csproj",
+    "blob": "f9c332f3208d952cfabc605fab268f549c5a27b7",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Communication",
+    "disposition": "Move",
+    "producer": "WP06",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.Desktop/ArcChat.Desktop.csproj",
+    "blob": "d9e6dd9777aa83dd85560a7e7421066692f73163",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Assistant",
+    "disposition": "Retire",
+    "producer": "WP14",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.Domain/ArcChat.Domain.csproj",
+    "blob": "c28f2d2ab802ca320c2481694ebaac79f1eed9f7",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Assistant",
+    "disposition": "Move",
+    "producer": "WP14",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.Infrastructure/ArcChat.Infrastructure.csproj",
+    "blob": "bb7c9b730d794a169380933ff465d00e4d792edd",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Assistant",
+    "disposition": "Move",
+    "producer": "WP14",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.LocalHub/ArcChat.LocalHub.csproj",
+    "blob": "4bebec10b461450d981dcdd3db7bc131717c22f0",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Assistant",
+    "disposition": "Retire",
+    "producer": "WP14",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.LocalRpc/ArcChat.LocalRpc.csproj",
+    "blob": "b21c7f438a5536677ae9fab6e3be392a66ab2807",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Assistant",
+    "disposition": "Move",
+    "producer": "WP14",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.LocalTools/ArcChat.LocalTools.csproj",
+    "blob": "d8fc2ba7c46dd08ca7366ce4f6b779f93f6058f5",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Assistant",
+    "disposition": "Move",
+    "producer": "WP14",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.McpClient/ArcChat.McpClient.csproj",
+    "blob": "cc2142d9d37ee4937359e4b0e25cc3abd2506710",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Assistant",
+    "disposition": "Move",
+    "producer": "WP14",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.Presentation/ArcChat.Presentation.csproj",
+    "blob": "4cda5f842fdba4d9586ceded34b6187a7f0e96c5",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Assistant",
+    "disposition": "Move",
+    "producer": "WP14",
+    "reason": "Standalone application and hub are retired; embedded assistant features are produced by WP14-17."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.Tests.Integration/ArcChat.Tests.Integration.csproj",
+    "blob": "d555b29bedb868bf29f3e65d70457fd8135a2362",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired standalone assistant test scaffold; reusable assistant suites belong to DesktopPlatform and are mapped in WP01.04."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.Tests.Ui/ArcChat.Tests.Ui.csproj",
+    "blob": "dba791b7e1779ea6b6ea71a33142a65c20cb9094",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired standalone assistant test scaffold; reusable assistant suites belong to DesktopPlatform and are mapped in WP01.04."
+  },
+  {
+    "path": "src/ArcChat/ArcChat.Tests.Unit/ArcChat.Tests.Unit.csproj",
+    "blob": "b980b55caf66b022c12717da4ec2cb8c6163389b",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired standalone assistant test scaffold; reusable assistant suites belong to DesktopPlatform and are mapped in WP01.04."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Application/ArcNotes.Application.csproj",
+    "blob": "1594374d0c4eea76e23c1be68437b0282c423db0",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.CloudClient/ArcNotes.CloudClient.csproj",
+    "blob": "84415069f3e9b47592fa0b057d30f84523575c1a",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Database/ArcNotes.Database.csproj",
+    "blob": "a810242bfc4151d62d15f817377a4bc366e5ab49",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Desktop/ArcNotes.Desktop.csproj",
+    "blob": "0bea2813555d49635180cfba57a5fed4fab14a0f",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Domain/ArcNotes.Domain.csproj",
+    "blob": "9fafc6f9baf279767c1c75fb5bdfed054da39afc",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Edgeless/ArcNotes.Edgeless.csproj",
+    "blob": "07d97decf40748f582d719184652895cb3271017",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Retire",
+    "producer": "WP01.05",
+    "reason": "Explicitly excluded Notes feature; no future project or implementation hook."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Editor/ArcNotes.Editor.csproj",
+    "blob": "3f3086fe707b81e0842f8c441959abc970e44705",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.ImportExport/ArcNotes.ImportExport.csproj",
+    "blob": "f3804f9e3263a57a2e59bc6be82d2dfe62199157",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Infrastructure/ArcNotes.Infrastructure.csproj",
+    "blob": "27e2dea148a234bd4cbdeff5cb95bd44e909d5f3",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.LocalRpc/ArcNotes.LocalRpc.csproj",
+    "blob": "ac4c86db7bfd8e6a17bdf2295cbb281ea0a59036",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Presentation/ArcNotes.Presentation.csproj",
+    "blob": "28f701a9407be2a4cb9e170298f671fa084e1b7b",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Search/ArcNotes.Search.csproj",
+    "blob": "4eee68f5e7fc0ca425b0b8a564c3192a13c5d57c",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP18",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Slides/ArcNotes.Slides.csproj",
+    "blob": "4a7a94c67478f8840344821caddc67d6f96f478f",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "src",
+    "disposition": "Retire",
+    "producer": "WP01.05",
+    "reason": "Explicitly excluded Notes feature; no future project or implementation hook."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Tests.Integration/ArcNotes.Tests.Integration.csproj",
+    "blob": "da11be8f55a6db0ab50ebd55f285c25a297801da",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Tests.Ui/ArcNotes.Tests.Ui.csproj",
+    "blob": "3007100064fd962f3c818f5d44f735d76e8bd1aa",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcNotes/ArcNotes.Tests.Unit/ArcNotes.Tests.Unit.csproj",
+    "blob": "a7c95fa97f8ebf9c34f21d7f28f2092462a4759c",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcNotes",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Acquisition/ArcScope.Acquisition.csproj",
+    "blob": "c2f3dc6d83deac39e8ed79d964541837b8812feb",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Analysis/ArcScope.Analysis.csproj",
+    "blob": "63f1a628eb26728412be3edb80483918dea8c630",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Application/ArcScope.Application.csproj",
+    "blob": "5efc54de7c2d464fd84b0c6f9e45c75a23243269",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.CloudClient/ArcScope.CloudClient.csproj",
+    "blob": "d6892f350fe562a6c831207039a66ba132ef11b6",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Decoders/ArcScope.Decoders.csproj",
+    "blob": "cdc8b5ef6f62c0ae9c07027cd8a3242061988d4b",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Desktop/ArcScope.Desktop.csproj",
+    "blob": "b1dc359caeaba0093bb8d3af8d720c651076db13",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Domain/ArcScope.Domain.csproj",
+    "blob": "5f7b2495320b432a8ffd154294672a5017ea718f",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Infrastructure/ArcScope.Infrastructure.csproj",
+    "blob": "0731553bf40699ec3a048d9baae1fcd5f7758a90",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.LocalRpc/ArcScope.LocalRpc.csproj",
+    "blob": "224113d3c033a1decf50ef7aabb455b10494da7f",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Native/ArcScope.Native.csproj",
+    "blob": "f26d2fb9a1f72b71c15d6561a9a90a71a839aac4",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Native",
+    "disposition": "Move",
+    "producer": "WP01.03",
+    "reason": "Shared native mechanism wrappers belong to DesktopPlatform; product semantics stay in their product owner."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Presentation/ArcScope.Presentation.csproj",
+    "blob": "ff9cf7fa608b4123bf537847b5f480b6d304f3ce",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Recording/ArcScope.Recording.csproj",
+    "blob": "6ba272867433e9791166ad571661a043892ee992",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Reporting/ArcScope.Reporting.csproj",
+    "blob": "af9e32cfa1c64c859ac85bba89972993e68d2384",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Tests.Integration/ArcScope.Tests.Integration.csproj",
+    "blob": "e2573282dad22f89ddc4a1e410d62f6442aa784e",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Tests.Ui/ArcScope.Tests.Ui.csproj",
+    "blob": "2aa2d8aa512ec88978f566d08e71a6689fbf2e7a",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Tests.Unit/ArcScope.Tests.Unit.csproj",
+    "blob": "53f5aa9f437b7884a31cf31e925e6fe0a2cab718",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcScope/ArcScope.Visualization/ArcScope.Visualization.csproj",
+    "blob": "93af698c9ede2d252a72c710e4996e2f4f17ce97",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP33",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Application/ArcSlate.Application.csproj",
+    "blob": "9d73f3f19739e5828e9b6782d8fc1311754017bf",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Audio/ArcSlate.Audio.csproj",
+    "blob": "0fadcb203665976df818726972d87e6ac1f74c98",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.CloudClient/ArcSlate.CloudClient.csproj",
+    "blob": "0e3d72ec2cebeb28989f6e7e7ead47c69d348a0e",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Color/ArcSlate.Color.csproj",
+    "blob": "d1722a38b88d9a6d01d143d53fea53a8d8e94baa",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Desktop/ArcSlate.Desktop.csproj",
+    "blob": "8e3a57876eb0b68af90b59d92aad834ea09c6028",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Domain/ArcSlate.Domain.csproj",
+    "blob": "5444fd9e99baa6b009d95a9c74cfc4820615387a",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.ImportExport/ArcSlate.ImportExport.csproj",
+    "blob": "dc0a95fe907192a51134ab745750efcb117882b0",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Infrastructure/ArcSlate.Infrastructure.csproj",
+    "blob": "54c015a104ad1fa895fb132169db86b263d561bc",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.LocalRpc/ArcSlate.LocalRpc.csproj",
+    "blob": "6878c197a0e98dc86121aab6bca59c7b2204e962",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Media/ArcSlate.Media.csproj",
+    "blob": "3ee4147b6358400a4ff6e5e180b3f2745796639b",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Native/ArcSlate.Native.csproj",
+    "blob": "13ac817ab2213c95f434526c12c5a73c0d6a8047",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/Native",
+    "disposition": "Move",
+    "producer": "WP01.03",
+    "reason": "Shared native mechanism wrappers belong to DesktopPlatform; product semantics stay in their product owner."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Playback/ArcSlate.Playback.csproj",
+    "blob": "528cda26be2dfc481f57a9a814aea5193566498c",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Presentation/ArcSlate.Presentation.csproj",
+    "blob": "146813e76b1b1ad7050909a2c420a5e55b63280e",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Processing/ArcSlate.Processing.csproj",
+    "blob": "ff7079c218b4566875f827447d77777f9b3062ed",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Rendering/ArcSlate.Rendering.csproj",
+    "blob": "2ea566c1727d4a441ce6fc5d084da84ce8d41c3e",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Subtitles/ArcSlate.Subtitles.csproj",
+    "blob": "9b46e2cfc69d50966ff8b4db9b1ea3705462bc09",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Tests.Integration/ArcSlate.Tests.Integration.csproj",
+    "blob": "6b212839b1e36e269bb3a1aeaefeb8700dcbb5b3",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Tests.Ui/ArcSlate.Tests.Ui.csproj",
+    "blob": "824aa7dd670498da7dab7f5f7e6464474c8473e6",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Tests.Unit/ArcSlate.Tests.Unit.csproj",
+    "blob": "ee418de5ff38f3b7ff6ed193ec06949a6add48a9",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/ArcSlate/ArcSlate.Timeline/ArcSlate.Timeline.csproj",
+    "blob": "37c5a126eea38aedb105d4146e579f6ac7401b1c",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP36",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Application.Abstractions/ArcForges.Application.Abstractions.csproj",
+    "blob": "8b0781f20d56c03e1bc82334d4c6f8bdc94b48d8",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Application.Abstractions",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Desktop.Experience/ArcForges.Desktop.Experience.csproj",
+    "blob": "914d408b6045313fcf254dc183effb18b8bd1322",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Desktop.Experience",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Desktop.Graphics/ArcForges.Desktop.Graphics.csproj",
+    "blob": "8f01de18e9ce63f23505e15bfb5bc88b1b0f024f",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Desktop.Graphics",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Desktop.Preview/ArcForges.Desktop.Preview.csproj",
+    "blob": "74a6364c6955696b2369059e935923800869dd7e",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Desktop.Preview",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Desktop.RichContent/ArcForges.Desktop.RichContent.csproj",
+    "blob": "213210d9d66ae855cbae9c945e586f04574b5bbc",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Desktop.RichContent",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Desktop.Text/ArcForges.Desktop.Text.csproj",
+    "blob": "0c462381d0c3ad2939039804512e869c769316d4",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Desktop.Text",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Foundation/ArcForges.Foundation.csproj",
+    "blob": "77f3358a521d80fe2e438aa1befae057375af2f9",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Foundation",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.NativeInterop/ArcForges.NativeInterop.csproj",
+    "blob": "852d2d837499236acbad6bc0e064224ded7b6f12",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.NativeInterop",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Observability/ArcForges.Observability.csproj",
+    "blob": "7df665343f7430b491799cd85ba925ab083b773c",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Observability",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Persistence.Postgres/ArcForges.Persistence.Postgres.csproj",
+    "blob": "e233980799890ace4d234aab5476721a08cdaf23",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Persistence.Postgres",
+    "disposition": "Retire",
+    "producer": "WP01.02",
+    "reason": "Obsolete shared scaffold is absent; current platform mechanisms and provider-owned storage replace it."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Persistence.Sqlite/ArcForges.Persistence.Sqlite.csproj",
+    "blob": "5fd701fe816a1d0309c481cb441e813465f24108",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Persistence.Sqlite",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Security/ArcForges.Security.csproj",
+    "blob": "6c91ab473e95229a27bf13e8dadedda7ec77cab0",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Security",
+    "disposition": "Keep",
+    "producer": "WP01.02",
+    "reason": "Retained mechanism scaffold; content review belongs to WP01.02."
+  },
+  {
+    "path": "src/BuildingBlocks/ArcForges.Testing/ArcForges.Testing.csproj",
+    "blob": "e55252ac1416e7b8d11c49e4bb5d9e95356d12e1",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/BuildingBlocks/ArcForges.Testing",
+    "disposition": "Retire",
+    "producer": "WP01.02",
+    "reason": "Obsolete shared scaffold is absent; current platform mechanisms and provider-owned storage replace it."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.AgentRuntime/ArcForges.Cloud.AgentRuntime.csproj",
+    "blob": "1c6873ae684a91e517146509f8e099a2ebd8019a",
+    "observedInDesktopPlatform": "absent",
+    "owner": "AI",
+    "target": "src/workflows",
+    "disposition": "Move",
+    "producer": "WP52",
+    "reason": "Sole Harness lives in AI Workflow; old in-host loop is retired."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.AppHost/ArcForges.Cloud.AppHost.csproj",
+    "blob": "eeea33a4724bde96d3177fbf012f97435cbd3139",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "deploy",
+    "disposition": "Retire",
+    "producer": "WP21",
+    "reason": "Retired development/Aspire service defaults do not define the Cloudflare production host."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.BackgroundJobs/ArcForges.Cloud.BackgroundJobs.csproj",
+    "blob": "f20d134686a261addf169f994062f16743ea091a",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "worker",
+    "disposition": "Move",
+    "producer": "WP24",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Host/ArcForges.Cloud.Host.csproj",
+    "blob": "8415fbda0fef23bda95deadd8153a903adfdb3cd",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Cloud.Host",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Infrastructure/ArcForges.Cloud.Infrastructure.csproj",
+    "blob": "9ec7dc8b4967f98e8f90eaeadcb081a18c5ad84f",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Cloud.Storage.D1",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Migrations/ArcForges.Cloud.Migrations.csproj",
+    "blob": "508fcc68b196307eabd132bb57f7bb45c571b8e2",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Cloud.Storage.D1",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.AI/ArcForges.Cloud.Modules.AI.csproj",
+    "blob": "edc4601174f690e2a66a6d3f1ac2e5f9dbae3d48",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Agent",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Agent/ArcForges.Cloud.Modules.Agent.csproj",
+    "blob": "35241321672203958e1097cca1240b45e6ab0783",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Agent",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Billing/ArcForges.Cloud.Modules.Billing.csproj",
+    "blob": "38f9f039e95748dbd6928efbc53dc627718e8a4c",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Commerce",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Catalog/ArcForges.Cloud.Modules.Catalog.csproj",
+    "blob": "86ca3913a7117ab87f940081f63cee906a1faeb2",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/PackageCatalog",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Chat/ArcForges.Cloud.Modules.Chat.csproj",
+    "blob": "222118ebb2eaf1dae24e51c021a3ad34969f12a2",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Chat",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Configuration/ArcForges.Cloud.Modules.Configuration.csproj",
+    "blob": "75d138b01da252396a23ea4144d08bf215e56358",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Configuration",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Entitlement/ArcForges.Cloud.Modules.Entitlement.csproj",
+    "blob": "29b6eddc9d0745e318a3cdf0a54f9dee6965e65a",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Entitlement",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Identity/ArcForges.Cloud.Modules.Identity.csproj",
+    "blob": "1fda0c2d2d3907b944a1c82cdcde35d132853ff8",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Identity",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Notes/ArcForges.Cloud.Modules.Notes.csproj",
+    "blob": "aa5732b6135255d692e8e695fdf078eba8f8ab13",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Notes",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Notification/ArcForges.Cloud.Modules.Notification.csproj",
+    "blob": "5a4adb6d7bd18f482ec94c8208e5fbd3bfea8369",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Notification",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Operations/ArcForges.Cloud.Modules.Operations.csproj",
+    "blob": "884b3cb978fcc683c3d7d8d9d71df06a6fb2aca6",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Audit",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Policy/ArcForges.Cloud.Modules.Policy.csproj",
+    "blob": "187ef1f4ed95d5914df72d44c5864ed9160b0221",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Policy",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Resource/ArcForges.Cloud.Modules.Resource.csproj",
+    "blob": "8c956cff633c1c9b03b043286648fe894fb20299",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Resource",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Scope/ArcForges.Cloud.Modules.Scope.csproj",
+    "blob": "1353e5d37e83e7bda8ed8e46875c0519995cbd1c",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Scope",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Search/ArcForges.Cloud.Modules.Search.csproj",
+    "blob": "7f171e80c36937bb973b09c09fdfac70a6a16172",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Search",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Slate/ArcForges.Cloud.Modules.Slate.csproj",
+    "blob": "16b8e36194fde6bf7889647ac36aa82edb0faff1",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Slate",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Modules.Sync/ArcForges.Cloud.Modules.Sync.csproj",
+    "blob": "20dd2ad440e3b82f2c72b1038d8bdddb7814329b",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/Sync",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Historical module scaffold maps to current Cloud domain owner; responsibility splits follow the 21-owner schema map at WP21."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.PublicApi/ArcForges.Cloud.PublicApi.csproj",
+    "blob": "2e809169b20851423013a278785da7c9cbc6ae14",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Cloud.Host",
+    "disposition": "Move",
+    "producer": "WP21",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Realtime/ArcForges.Cloud.Realtime.csproj",
+    "blob": "d75c18726a1b08faad6e62bf3d5b8341a94ecdb2",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "worker",
+    "disposition": "Move",
+    "producer": "WP24",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/Cloud/ArcForges.Cloud.Tests/ArcForges.Cloud.Tests.csproj",
+    "blob": "3f01c538ee1089a62888e1d4f979fcf185140e11",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Old scaffold no longer present; retain accepted responsibilities in independently built owner without copying the retired project."
+  },
+  {
+    "path": "src/Cloud/ArcForges.ServiceDefaults/ArcForges.ServiceDefaults.csproj",
+    "blob": "c6d57064c2fbf346cbe9393fd1d96c53a8a6695d",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "deploy",
+    "disposition": "Retire",
+    "producer": "WP21",
+    "reason": "Retired development/Aspire service defaults do not define the Cloudflare production host."
+  },
+  {
+    "path": "src/Contracts/ArcForges.Contracts.Agent/ArcForges.Contracts.Agent.csproj",
+    "blob": "db2c0f7ed66fee2f03113a76e156ba27be5acdd8",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "internal/proto",
+    "disposition": "Move",
+    "producer": "WP01.01",
+    "reason": "Authored proto and generated clients replace old authored DTO project; individual type visibility is assigned in WP01.01 and generated in WP03."
+  },
+  {
+    "path": "src/Contracts/ArcForges.Contracts.Foundation/ArcForges.Contracts.Foundation.csproj",
+    "blob": "8f146b6db22a275345b2e91fc90a498f88afaa3b",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "public/proto",
+    "disposition": "Move",
+    "producer": "WP01.01",
+    "reason": "Authored proto and generated clients replace old authored DTO project; individual type visibility is assigned in WP01.01 and generated in WP03."
+  },
+  {
+    "path": "src/Contracts/ArcForges.Contracts.LocalRpc/ArcForges.Contracts.LocalRpc.csproj",
+    "blob": "d7a036e1e0532c0d2cc7d2e6ed9f360cf580cb03",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "internal/proto",
+    "disposition": "Move",
+    "producer": "WP01.01",
+    "reason": "Authored proto and generated clients replace old authored DTO project; individual type visibility is assigned in WP01.01 and generated in WP03."
+  },
+  {
+    "path": "src/Contracts/ArcForges.Contracts.PublicApi/ArcForges.Contracts.PublicApi.csproj",
+    "blob": "e9290580066877e4a7145d79d411c82ba182f75b",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "public/proto",
+    "disposition": "Move",
+    "producer": "WP01.01",
+    "reason": "Authored proto and generated clients replace old authored DTO project; individual type visibility is assigned in WP01.01 and generated in WP03."
+  },
+  {
+    "path": "src/Contracts/ArcForges.Contracts.Realtime/ArcForges.Contracts.Realtime.csproj",
+    "blob": "ec0e16e42e8e1eede16a75f8d58d4d6a2c4a93fa",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "public/proto",
+    "disposition": "Move",
+    "producer": "WP01.01",
+    "reason": "Authored proto and generated clients replace old authored DTO project; individual type visibility is assigned in WP01.01 and generated in WP03."
+  },
+  {
+    "path": "src/Contracts/ArcForges.Contracts.Serialization/ArcForges.Contracts.Serialization.csproj",
+    "blob": "5c9a8a562ef3829bcae44792feb03fb0bdba943d",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "internal/proto",
+    "disposition": "Move",
+    "producer": "WP01.01",
+    "reason": "Authored proto and generated clients replace old authored DTO project; individual type visibility is assigned in WP01.01 and generated in WP03."
+  },
+  {
+    "path": "src/Contracts/ArcForges.Contracts.Sync/ArcForges.Contracts.Sync.csproj",
+    "blob": "33117bde996b0cec91e6b7859d1ff7151bac6c8d",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "public/proto",
+    "disposition": "Move",
+    "producer": "WP01.01",
+    "reason": "Authored proto and generated clients replace old authored DTO project; individual type visibility is assigned in WP01.01 and generated in WP03."
+  },
+  {
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox/ArcForges.ContentSandbox.csproj",
+    "blob": "fd44b01605cd1382e6565b47e352756033ba7068",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "src/DesktopHelpers/ArcForges.ContentSandbox",
+    "disposition": "Keep",
+    "producer": "WP11",
+    "reason": "Retain ContentSandbox host scaffold; restricted parser implementation and signed runtime remain WP11/13."
+  },
+  {
+    "path": "src/Extensions/ArcForges.Extensions.Contracts/ArcForges.Extensions.Contracts.csproj",
+    "blob": "97775d9cdbe7267f4d66d72d2f0ae6b27e5d2f9c",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "public/proto",
+    "disposition": "Move",
+    "producer": "WP03",
+    "reason": "Shared extension execution belongs to platform sandbox mechanisms; business catalog remains Cloud."
+  },
+  {
+    "path": "src/Extensions/ArcForges.Extensions.Packaging/ArcForges.Extensions.Packaging.csproj",
+    "blob": "4a4270edb4535c2da423b9cddac753cee3bea942",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/DesktopHelpers",
+    "disposition": "Move",
+    "producer": "WP41",
+    "reason": "Shared extension execution belongs to platform sandbox mechanisms; business catalog remains Cloud."
+  },
+  {
+    "path": "src/Extensions/ArcForges.Extensions.Registry/ArcForges.Extensions.Registry.csproj",
+    "blob": "db9e896dca6fe5afecb5a5f3a3d31e4f2a62311b",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "src/Modules/PackageCatalog",
+    "disposition": "Move",
+    "producer": "WP41",
+    "reason": "Authoritative catalog is Cloud PackageCatalog, not a shared desktop registry."
+  },
+  {
+    "path": "src/Extensions/ArcForges.Extensions.Runtime/ArcForges.Extensions.Runtime.csproj",
+    "blob": "ecc31c20fee8e12757ff7d237cbd380545b4d0ea",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "src/DesktopHelpers",
+    "disposition": "Move",
+    "producer": "WP41",
+    "reason": "Shared extension execution belongs to platform sandbox mechanisms; business catalog remains Cloud."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.Application/ArcChat.Mobile.Application.csproj",
+    "blob": "403d5afb9c5e94a62318746c2e8033ac6769f79d",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "app",
+    "disposition": "Move",
+    "producer": "WP30",
+    "reason": "Kotlin/Compose replaces historical .NET scaffolds; preserve current signed prerelease identity until WP30 migration."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.CloudClient/ArcChat.Mobile.CloudClient.csproj",
+    "blob": "308fa72f8e422d4ea434c8f4b670d14b3456997e",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "app",
+    "disposition": "Move",
+    "producer": "WP30",
+    "reason": "Kotlin/Compose replaces historical .NET scaffolds; preserve current signed prerelease identity until WP30 migration."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.ContractTests/ArcChat.Mobile.ContractTests.csproj",
+    "blob": "7918bebe776f1e85b428098ad190ad3f750a47a9",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Historical .NET Mobile tests are replaced by owned Kotlin/Android tests; family mapping belongs to WP01.04."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.Contracts/ArcChat.Mobile.Contracts.csproj",
+    "blob": "7f6ab16d2d1e8ac378e7e8e21c29da421050d617",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "public/proto",
+    "disposition": "Move",
+    "producer": "WP01.01",
+    "reason": "Authored public wire definitions belong to Contracts; Android consumes generated Maven artifacts, not copied DTO implementations."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.Domain/ArcChat.Mobile.Domain.csproj",
+    "blob": "0ec8a59a3db94390fb51c2878ccf8dd4683bb617",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "app",
+    "disposition": "Move",
+    "producer": "WP30",
+    "reason": "Kotlin/Compose replaces historical .NET scaffolds; preserve current signed prerelease identity until WP30 migration."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.Persistence/ArcChat.Mobile.Persistence.csproj",
+    "blob": "efe5be5af54b4debc4112d25106b23b21e9f2dfa",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "app",
+    "disposition": "Move",
+    "producer": "WP30",
+    "reason": "Kotlin/Compose replaces historical .NET scaffolds; preserve current signed prerelease identity until WP30 migration."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.Presentation/ArcChat.Mobile.Presentation.csproj",
+    "blob": "fc290388281227b9bc07892e8b017505999de691",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "app",
+    "disposition": "Move",
+    "producer": "WP30",
+    "reason": "Kotlin/Compose replaces historical .NET scaffolds; preserve current signed prerelease identity until WP30 migration."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.Realtime/ArcChat.Mobile.Realtime.csproj",
+    "blob": "fe09671901379068614cbea007ee9f3b5d9d7635",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "app",
+    "disposition": "Move",
+    "producer": "WP30",
+    "reason": "Kotlin/Compose replaces historical .NET scaffolds; preserve current signed prerelease identity until WP30 migration."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.Tests/ArcChat.Mobile.Tests.csproj",
+    "blob": "c9f6b736a9b0ee959fa35b73b3d8a211d2235af5",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Historical .NET Mobile tests are replaced by owned Kotlin/Android tests; family mapping belongs to WP01.04."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile.UiTests/ArcChat.Mobile.UiTests.csproj",
+    "blob": "2f407ed979a9b724a4c5439aef0e120bf64fe1c8",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Historical .NET Mobile tests are replaced by owned Kotlin/Android tests; family mapping belongs to WP01.04."
+  },
+  {
+    "path": "src/Mobile/ArcChat.Mobile/ArcChat.Mobile.csproj",
+    "blob": "25da18b2d13d503c0c3240bb01d4812dded58af6",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "app",
+    "disposition": "Move",
+    "producer": "WP30",
+    "reason": "Kotlin/Compose replaces historical .NET scaffolds; preserve current signed prerelease identity until WP30 migration."
+  },
+  {
+    "path": "src/SDK/ArcForges.Cli/ArcForges.Cli.csproj",
+    "blob": "73c2fb818190c2eb92cc755dd90041f7c9464bbb",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP03",
+    "reason": "Public SDK/CLI remains owned by Contracts; old authored DTO tooling is not a current build dependency."
+  },
+  {
+    "path": "src/SDK/ArcForges.SDK.Foundation/ArcForges.SDK.Foundation.csproj",
+    "blob": "adb5a4b7dd4ee27fc552a9591fb7009ab9ccd364",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP03",
+    "reason": "Public SDK/CLI remains owned by Contracts; old authored DTO tooling is not a current build dependency."
+  },
+  {
+    "path": "src/SDK/ArcForges.SDK.SourceGenerators/ArcForges.SDK.SourceGenerators.csproj",
+    "blob": "b0c041286a2116871ff31536c8128d25f4bcccb3",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP03",
+    "reason": "Public SDK/CLI remains owned by Contracts; old authored DTO tooling is not a current build dependency."
+  },
+  {
+    "path": "src/SDK/ArcForges.SDK.Testing/ArcForges.SDK.Testing.csproj",
+    "blob": "16c1dfa9f97b576e5c595ac4cf1a96d857fc4ad6",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "src",
+    "disposition": "Move",
+    "producer": "WP03",
+    "reason": "Public SDK/CLI remains owned by Contracts; old authored DTO tooling is not a current build dependency."
+  },
+  {
+    "path": "src/Web/ArcForges.Web.App/ArcForges.Web.App.csproj",
+    "blob": "9e8fa82d34c9ffd3899544b4fc8901d23461882e",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Web",
+    "target": "apps",
+    "disposition": "Move",
+    "producer": "WP47",
+    "reason": "React/TypeScript replaces historical .NET browser and site generation scaffolds."
+  },
+  {
+    "path": "src/Web/ArcForges.Web.Application/ArcForges.Web.Application.csproj",
+    "blob": "cc3b571764c41c481a96ef8e7781ee093ddffef4",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Web",
+    "target": "apps",
+    "disposition": "Move",
+    "producer": "WP47",
+    "reason": "React/TypeScript replaces historical .NET browser and site generation scaffolds."
+  },
+  {
+    "path": "src/Web/ArcForges.Web.Components/ArcForges.Web.Components.csproj",
+    "blob": "38ff35a3f980dd98a013f8ec79de97109de8b9ed",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Web",
+    "target": "apps",
+    "disposition": "Move",
+    "producer": "WP47",
+    "reason": "React/TypeScript replaces historical .NET browser and site generation scaffolds."
+  },
+  {
+    "path": "src/Web/ArcForges.Web.Infrastructure/ArcForges.Web.Infrastructure.csproj",
+    "blob": "c9fc90e1760290dd7b8da52f4c0bd8337b9be4c3",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Web",
+    "target": "apps",
+    "disposition": "Move",
+    "producer": "WP47",
+    "reason": "React/TypeScript replaces historical .NET browser and site generation scaffolds."
+  },
+  {
+    "path": "src/Web/ArcForges.Web.SiteGenerator/ArcForges.Web.SiteGenerator.csproj",
+    "blob": "3aa431501b954090bd40a16c5356ff2921397826",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Web",
+    "target": "apps",
+    "disposition": "Move",
+    "producer": "WP47",
+    "reason": "React/TypeScript replaces historical .NET browser and site generation scaffolds."
+  },
+  {
+    "path": "tests/AndroidUiTests/ArcForges.Tests.AndroidUiTests.csproj",
+    "blob": "e2cc1d9125b087d3481d2803dc781c3984525aa7",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/ArcScopePipelineTests/ArcForges.Tests.ArcScopePipelineTests.csproj",
+    "blob": "1b54f25696730dc456ee5647f5c3b87da843324d",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcScope",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/ArcSlateMediaTests/ArcForges.Tests.ArcSlateMediaTests.csproj",
+    "blob": "d4bf1d9eb0ecb0c08b989562b4645487ed4189d7",
+    "observedInDesktopPlatform": "absent",
+    "owner": "ArcSlate",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/ArchitectureTests/ArcForges.Tests.ArchitectureTests.csproj",
+    "blob": "8de7cdd620e937a69ff6fa2c7389e2a40aaebfc8",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "tests/ArchitectureTests",
+    "disposition": "Keep",
+    "producer": "WP01.04",
+    "reason": "Current shared verification project retained; family completeness reviewed in WP01.04."
+  },
+  {
+    "path": "tests/CloudIntegrationTests/ArcForges.Tests.CloudIntegrationTests.csproj",
+    "blob": "60683fb53ad1c5783929d20acbbaf2de0e54e541",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/ContractCompatibilityTests/ArcForges.Tests.ContractCompatibilityTests.csproj",
+    "blob": "6b309c5ce360bc3ae30401b175312add24179838",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/ContractSchemaTests/ArcForges.Tests.ContractSchemaTests.csproj",
+    "blob": "574f04858632c12b44d23dc72ee81b185ef2c1d7",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/DesktopExperienceGallery/ArcForges.Tests.DesktopExperienceGallery.csproj",
+    "blob": "0e3f1f1be3398bf6448bd0c76f0df34a02be816d",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/DesktopExperienceTests/ArcForges.Tests.DesktopExperienceTests.csproj",
+    "blob": "0ea35b132f8bc2454849d16c10ef8743ca415d42",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/DesktopUiTests/ArcForges.Tests.DesktopUiTests.csproj",
+    "blob": "c60de98f394095dd50be43d152ef466f9d6e285a",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/EndToEndTests/ArcForges.Tests.EndToEndTests.csproj",
+    "blob": "7926e4a418ac58f15bda193c1439bafc63f6b0ea",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Historical shared test orchestration scaffold remains a policy reference; concrete product E2E suites belong to their respective owners under WP01.04."
+  },
+  {
+    "path": "tests/GraphicsInteropTests/ArcForges.Tests.GraphicsInteropTests.csproj",
+    "blob": "108b5000f433e7fa81b7e51abc169e7d7fcdecc7",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/LocalRpcAotTests/ArcForges.Tests.LocalRpcAotTests.csproj",
+    "blob": "d09fa2d5a9c87cc816079ae6630eb4d11d059e0d",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/McpAotTests/ArcForges.Tests.McpAotTests.csproj",
+    "blob": "df08cd469310ab8611cbff034598b0f1e0f1a2bf",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/MobileContractTests/ArcForges.Tests.MobileContractTests.csproj",
+    "blob": "73b9ba97be9ba2ed28140666c44ebebb6a02520c",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Mobile",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj",
+    "blob": "e74c139d7b00e3df37deae1fcca34dd42f9dc3cb",
+    "observedInDesktopPlatform": "changed",
+    "owner": "DesktopPlatform",
+    "target": "tests/NativeAbiTests",
+    "disposition": "Keep",
+    "producer": "WP01.04",
+    "reason": "Current shared verification project retained; family completeness reviewed in WP01.04."
+  },
+  {
+    "path": "tests/NativeContentTests/ArcForges.Tests.NativeContentTests.csproj",
+    "blob": "35a018b78c22acff1f4c8f4f7a96f836890e7225",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/PersistenceRecoveryTests/ArcForges.Tests.PersistenceRecoveryTests.csproj",
+    "blob": "28f40d42cda965dfd33dceddf3218dd8792096e0",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/PublicApiContractTests/ArcForges.Tests.PublicApiContractTests.csproj",
+    "blob": "d861397fc7b14c200e05b5c0c91214364f732a7e",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Contracts",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/RealtimeReconnectTests/ArcForges.Tests.RealtimeReconnectTests.csproj",
+    "blob": "4c593a4a77e99f8d8db951c124925a4159c3af04",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/ReleaseArtifactTests/ArcForges.Tests.ReleaseArtifactTests.csproj",
+    "blob": "e56a285b0bca3528f0a8fa8b98ea8c9cc2e99447",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/RemoteToolBridgeTests/ArcForges.Tests.RemoteToolBridgeTests.csproj",
+    "blob": "e06e774e751a9206458c6664d1c738f26a3840b7",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/SyncConflictTests/ArcForges.Tests.SyncConflictTests.csproj",
+    "blob": "acc850352c72a7eefe69f1245a131ba36cd77abe",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Cloud",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/VirtualizationTests/ArcForges.Tests.VirtualizationTests.csproj",
+    "blob": "2d6ee918d763e6b1db33c72ae79ca46c6d8392cf",
+    "observedInDesktopPlatform": "absent",
+    "owner": "DesktopPlatform",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/Web/ArcForges.Web.BrowserTests/ArcForges.Web.BrowserTests.csproj",
+    "blob": "0f384de272aea8d2e922c7781bbc1c06edfdf75d",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Web",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/Web/ArcForges.Web.ComponentTests/ArcForges.Web.ComponentTests.csproj",
+    "blob": "f8bd464f7c2f773321f695f57942fb33e2ea7aff",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Web",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/Web/ArcForges.Web.ContractTests/ArcForges.Web.ContractTests.csproj",
+    "blob": "25b59f657f3a228d042a6a47a1cc384fb039fa3f",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Web",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  },
+  {
+    "path": "tests/Web/ArcForges.Web.UnitTests/ArcForges.Web.UnitTests.csproj",
+    "blob": "04b2f9dc4e6db57576dec3f3441d809a592d7af9",
+    "observedInDesktopPlatform": "absent",
+    "owner": "Web",
+    "target": "tests",
+    "disposition": "Move",
+    "producer": "WP01.04",
+    "reason": "Retired monorepo test path; owner-specific replacement retains applicable scenarios, with family coverage assigned in WP01.04."
+  }
+]

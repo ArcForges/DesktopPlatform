@@ -1,0 +1,58 @@
+[
+  {
+    "path": "native/arcgraphics-metal-abi",
+    "owner": "DesktopPlatform",
+    "disposition": "Keep",
+    "producer": "WP01.03",
+    "present": true,
+    "reason": "Retain approved foundation/probes; complete surface and admission proof belong to WP01.03/WP13."
+  },
+  {
+    "path": "native/arcmedia-ffmpeg-abi",
+    "owner": "DesktopPlatform",
+    "disposition": "Keep",
+    "producer": "WP01.03",
+    "present": true,
+    "reason": "Retain approved foundation/probes; complete surface and admission proof belong to WP01.03/WP13."
+  },
+  {
+    "path": "native/arcscope-mdf-abi",
+    "owner": "DesktopPlatform",
+    "disposition": "Retire",
+    "producer": "WP01.03",
+    "present": false,
+    "reason": "MDF excluded from V1."
+  },
+  {
+    "path": "native/arcslate-color-abi",
+    "owner": "DesktopPlatform",
+    "disposition": "Keep",
+    "producer": "WP01.03",
+    "present": true,
+    "reason": "Retain approved foundation/probes; complete surface and admission proof belong to WP01.03/WP13."
+  },
+  {
+    "path": "native/arcslate-image-abi",
+    "owner": "DesktopPlatform",
+    "disposition": "Keep",
+    "producer": "WP01.03",
+    "present": true,
+    "reason": "Retain approved foundation/probes; complete surface and admission proof belong to WP01.03/WP13."
+  },
+  {
+    "path": "native/arcslate-otio-abi",
+    "owner": "DesktopPlatform",
+    "disposition": "Keep",
+    "producer": "WP01.03",
+    "present": true,
+    "reason": "Retain approved foundation/probes; complete surface and admission proof belong to WP01.03/WP13."
+  },
+  {
+    "path": "native/shared",
+    "owner": "DesktopPlatform",
+    "disposition": "Keep",
+    "producer": "WP01.03",
+    "present": true,
+    "reason": "Retain approved foundation/probes; complete surface and admission proof belong to WP01.03/WP13."
+  }
+]

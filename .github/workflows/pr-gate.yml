@@ -35,7 +35,7 @@ jobs:
           if ($LASTEXITCODE) { throw 'Invalid package version.' }
           "value=$version" >> $env:GITHUB_OUTPUT
   managed-packages:
-    needs: [allocate-version, native, secret-scan, repository-hooks, design-policy, licence-policy, provenance-policy, reference-policy, runtime-policy]
+    needs: [allocate-version, native, secret-scan, repository-hooks, design-policy, licence-policy, provenance-policy, reference-policy, runtime-policy, reconciliation-policy]
     uses: ./.github/workflows/package-validation.yml
     with:
       version: ${{ needs.allocate-version.outputs.version }}
@@ -172,6 +172,30 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  reconciliation-policy:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Reject incomplete inventory and linked source
+        run: python -m unittest discover -s eng -p test_reconciliation.py -v
+      - name: Verify historical and current immutable project trees
+        run: python eng/reconciliation.py
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: reconciliation-policy-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/evidence/reconciliation.json
+          if-no-files-found: error
+          retention-days: 30
+
   provenance-policy:
     strategy:
       fail-fast: false
@@ -203,7 +227,7 @@ jobs:
 
   ci:
     if: always()
-    needs: [allocate-version, managed-packages, native, secret-scan, repository-hooks, design-policy, licence-policy, provenance-policy, reference-policy, runtime-policy]
+    needs: [allocate-version, managed-packages, native, secret-scan, repository-hooks, design-policy, licence-policy, provenance-policy, reference-policy, runtime-policy, reconciliation-policy]
     runs-on: ubuntu-latest
     env:
       CI_NEEDS: ${{ toJSON(needs) }}

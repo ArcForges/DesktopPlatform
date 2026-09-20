@@ -1,0 +1,896 @@
+[
+  {
+    "repository": "DesktopPlatform",
+    "origin": "https://github.com/ArcForges/DesktopPlatform.git",
+    "commit": "08c46ab9fe955c60c28e7106df519eb55bd8e3ba",
+    "tree": "6f200c915a94b65cfffe812407494002bae17846",
+    "clean": true,
+    "worktrees": [
+      {
+        "path": "C:/MyFile/Projects/ArcForges/DesktopPlatform",
+        "commit": "08c46ab9fe955c60c28e7106df519eb55bd8e3ba",
+        "branch": "refs/heads/main",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/DesktopPlatform/.worktree/wp00-04-reference-baselines",
+        "commit": "d5a30d63e044a2b3edf487bf68714d642b6a7b99",
+        "branch": "refs/heads/codex/wp00-04-reference-baselines",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/DesktopPlatform/.worktree/wp00-05-runtime-ownership",
+        "commit": "08c46ab9fe955c60c28e7106df519eb55bd8e3ba",
+        "branch": "refs/heads/codex/wp00-05-runtime-ownership",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/DesktopPlatform/.worktree/wp01-00-reconciliation-inventory",
+        "commit": "08c46ab9fe955c60c28e7106df519eb55bd8e3ba",
+        "branch": "refs/heads/codex/wp01-00-reconciliation-inventory",
+        "clean": true
+      }
+    ],
+    "candidate": {
+      "version": "1.0.0-ci.15.1",
+      "manifestSha256": "24bd7bdf42b94678ff2689742b3f296bdaeb78cf5652f76d5154c7075fbaf20d",
+      "sourceCommit": "08c46ab9fe955c60c28e7106df519eb55bd8e3ba"
+    },
+    "mainCi": "https://github.com/ArcForges/DesktopPlatform/actions/runs/35536843264",
+    "projects": [
+      {
+        "path": "CMakeLists.txt",
+        "blob": "25e7846ac9304adad34abb1d784955820da5b66e",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/CMakeLists.txt",
+        "blob": "87000cb87754a69b5f62df1a30652c4212522b3a",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/arcgraphics-metal-abi/CMakeLists.txt",
+        "blob": "892ac82b793b6d2d8abacae3c44c49bf2879c40c",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/arcmedia-ffmpeg-abi/CMakeLists.txt",
+        "blob": "c38d3134451034092dc2ea0b31931ae853543814",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/arcmedia-ffmpeg-abi/windows/arcmedia_ffmpeg_abi.vcxproj",
+        "blob": "1193dea2c42d68fdef90a5e176a9cd6173486033",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/arcslate-color-abi/CMakeLists.txt",
+        "blob": "eff3fc8659b5e34a2af131d93602e50b297a9cdf",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/arcslate-color-abi/windows/arcslate_color_abi.vcxproj",
+        "blob": "86e16259126cd118adfd28f6f6bde26c8bda06a9",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/arcslate-image-abi/CMakeLists.txt",
+        "blob": "19fc63e8d6c563fb3ca86214dabd37be06507834",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/arcslate-image-abi/windows/arcslate_image_abi.vcxproj",
+        "blob": "ce5be307c92a5bb9a84581b49df47d0abe0ab47a",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/arcslate-otio-abi/CMakeLists.txt",
+        "blob": "966e3702b40213f530e8dff8bf91eccd58e74578",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "native/arcslate-otio-abi/windows/arcslate_otio_abi.vcxproj",
+        "blob": "5b7ce9e0feb944ef210bd812023f41bdbe0a4bb9",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Build/ArcForges.Build.Policy/ArcForges.Build.Policy.csproj",
+        "blob": "26d6279f18250960eafcfd24876f215c7f151bee",
+        "disposition": "Keep",
+        "producer": "WP02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Application.Abstractions/ArcForges.Application.Abstractions.csproj",
+        "blob": "1c053fa658f7bbb17153e840891ba744b891d81f",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Desktop.Experience/ArcForges.Desktop.Experience.csproj",
+        "blob": "3772961605c198c4e204dec02af39b607dd7a615",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Desktop.Graphics/ArcForges.Desktop.Graphics.csproj",
+        "blob": "5880b50b0f64f5a64b450350b1a13795278b3e6b",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Desktop.Preview/ArcForges.Desktop.Preview.csproj",
+        "blob": "19f944d4ff43ef37cc7559d5f4f16ae6581163d8",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Desktop.RichContent/ArcForges.Desktop.RichContent.csproj",
+        "blob": "44ca1edfc5e7063cd769ae4d51853e0e7ed35527",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Desktop.Text/ArcForges.Desktop.Text.csproj",
+        "blob": "87793aa3addd8366b664f4494520c9a97c7ca514",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Foundation/ArcForges.Foundation.csproj",
+        "blob": "41ed903c7e00ec2e3d93647912052a5a40bac9ba",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.NativeInterop/ArcForges.NativeInterop.csproj",
+        "blob": "4296a8d469d84de3d133c0dd56385baf800dbf77",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Observability/ArcForges.Observability.csproj",
+        "blob": "2240e37c65a0756ab39187fd6cc6d463443e30fc",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Persistence.Sqlite/ArcForges.Persistence.Sqlite.csproj",
+        "blob": "6b4a9d54a67da08b17f2ae1d5842ac05d712d15d",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/BuildingBlocks/ArcForges.Security/ArcForges.Security.csproj",
+        "blob": "87fa93b3448a701333fc2a74219b8e320ba0d65d",
+        "disposition": "Keep",
+        "producer": "WP01.02",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/DesktopHelpers/ArcForges.ContentSandbox/ArcForges.ContentSandbox.csproj",
+        "blob": "63f22e07804e1b9af3a7955fed864187a14366c4",
+        "disposition": "Keep",
+        "producer": "WP11",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Native/ArcForges.Native.Abstractions/ArcForges.Native.Abstractions.csproj",
+        "blob": "32742a65b4e25d04b40e0dfb519ef3201359c6ba",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Native/ArcForges.Native.Colour.Runtime.win-x64/ArcForges.Native.Colour.Runtime.win-x64.csproj",
+        "blob": "54f158a9af6c9337d8f5b9057f2a37871e7387d2",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Native/ArcForges.Native.Colour/ArcForges.Native.Colour.csproj",
+        "blob": "79676a56736dd0ace226cf1f71c2d1f60b2ab4c4",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Native/ArcForges.Native.Image.Runtime.win-x64/ArcForges.Native.Image.Runtime.win-x64.csproj",
+        "blob": "a1649f7e50bfd602b4bc8d755366a546687bbe55",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Native/ArcForges.Native.Image/ArcForges.Native.Image.csproj",
+        "blob": "9132f77575e4d1940f4648f7f208d86cf6087bca",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Native/ArcForges.Native.Media.Runtime.win-x64/ArcForges.Native.Media.Runtime.win-x64.csproj",
+        "blob": "6888263b03c3ebdaed94040dc35201f3b726c30c",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Native/ArcForges.Native.Media/ArcForges.Native.Media.csproj",
+        "blob": "3cf66f75b2849777ccc027f4f15e0b48f09bf315",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Native/ArcForges.Native.Otio.Runtime.win-x64/ArcForges.Native.Otio.Runtime.win-x64.csproj",
+        "blob": "d47a3be469d905ce5d01b956ee323d3b755b72f7",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/Native/ArcForges.Native.Otio/ArcForges.Native.Otio.csproj",
+        "blob": "56fa2f251ef41a4e68e09792b7b1d442432e8250",
+        "disposition": "Keep",
+        "producer": "WP13",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/ArchitectureTests/ArcForges.Tests.ArchitectureTests.csproj",
+        "blob": "f1c0f3c9c1eed1a1e286ce1449f38bd16c2a3d6b",
+        "disposition": "Keep",
+        "producer": "WP01.04",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj",
+        "blob": "bfae1c5eb2425f36dc6bab237d5ebca5a6940efe",
+        "disposition": "Keep",
+        "producer": "WP01.04",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      }
+    ]
+  },
+  {
+    "repository": "Contracts",
+    "origin": "https://github.com/ArcForges/Contracts.git",
+    "commit": "d716045854e2e401a1a536ba2ee5c62ad1c4e8ab",
+    "tree": "1511a6642483fd70b4de85f36d2649a24db55576",
+    "clean": true,
+    "worktrees": [
+      {
+        "path": "C:/MyFile/Projects/ArcForges/Contracts",
+        "commit": "d716045854e2e401a1a536ba2ee5c62ad1c4e8ab",
+        "branch": "refs/heads/main",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/Contracts/.worktree/wp00-04-reference-naming",
+        "commit": "ee16cb255a50c17ac9561c45117a420b279fb46f",
+        "branch": "refs/heads/codex/wp00-04-reference-naming",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/Contracts/.worktree/wp00-05-runtime-ownership",
+        "commit": "6ff3f1b492f3caebfd38da5f9c3ece11184a604f",
+        "branch": "refs/heads/codex/wp00-05-runtime-ownership",
+        "clean": true
+      }
+    ],
+    "candidate": {
+      "version": "1.0.0-ci.58.1",
+      "manifestSha256": "64f3f76a0d6dc01cadda0c9ecac1a374079cdbb44921d77eecbf84a37deac097",
+      "sourceCommit": "d716045854e2e401a1a536ba2ee5c62ad1c4e8ab"
+    },
+    "mainCi": "https://github.com/ArcForges/Contracts/actions/runs/35536018400",
+    "projects": [
+      {
+        "path": "build.gradle.kts",
+        "blob": "b1a82b96c78d070abfaf3369104baace852b8b82",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "eng/Codegen/Codegen.csproj",
+        "blob": "75f6a3c70813e3d1e4390af604138514e3e40fb7",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "eng/central-signing/build.gradle.kts",
+        "blob": "968379e00d8fa143611fa0767a934520078f5153",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "package.json",
+        "blob": "1aa386b7b7ae94eb6a7b71d18bf624366a259123",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/public/dotnet/ArcForges.Contracts.PublicApi/ArcForges.Contracts.PublicApi.csproj",
+        "blob": "fa1b854b10eeb33bc0d4cc95c180d4ebc2dd53cd",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/public/kotlin/contract-fixtures/build.gradle.kts",
+        "blob": "06a18cce968b2478df18631e279268041b5bce08",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/public/kotlin/contracts-client/build.gradle.kts",
+        "blob": "d136458c085612cf798eb7e4f35ea0bdc9eefb00",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/public/kotlin/contracts-connect-client/build.gradle.kts",
+        "blob": "aee1aa8ed040241c39f85c39ab2c01fd319cf96c",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/public/kotlin/contracts-proto/build.gradle.kts",
+        "blob": "d670b7bceb9d9b7bf95e639279444f2d3dbd5109",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/public/ts/api-client/package.json",
+        "blob": "28cc70e6e73cf160effd548fb4cefdf74dbb0739",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/public/ts/proto/package.json",
+        "blob": "2fcdc953f86548729a05b0332d75b4c0f548f489",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/public/HelloClient/HelloClient.csproj",
+        "blob": "145766c682227d6dc8fc9fdc24872caccdef0253",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/public/HelloHost/HelloHost.csproj",
+        "blob": "fd7b7a19dc69ae6c96b167cd2241efd30c8b6a45",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/public/KotlinClient/build.gradle.kts",
+        "blob": "5cfe7a11c7fd8cfbdf550ad756e96b558279b8af",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/public/KotlinConnectClient/build.gradle.kts",
+        "blob": "fb292439baa02220936bb1ed0ee7ff36cd3fab4c",
+        "disposition": "Keep",
+        "producer": "WP03",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      }
+    ]
+  },
+  {
+    "repository": "ArcNotes",
+    "origin": "https://github.com/ArcForges/ArcNotes.git",
+    "commit": "e40423a1b14ce8341de35748cc2a093c7c9b77a7",
+    "tree": "510cb6f84cfd36abf6c757b9ed7bcf0d427e137d",
+    "clean": true,
+    "worktrees": [
+      {
+        "path": "C:/MyFile/Projects/ArcForges/ArcNotes",
+        "commit": "e40423a1b14ce8341de35748cc2a093c7c9b77a7",
+        "branch": "refs/heads/main",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/ArcNotes/.worktree/wp00-90-stage-acceptance",
+        "commit": "e40423a1b14ce8341de35748cc2a093c7c9b77a7",
+        "branch": "refs/heads/codex/wp00-90-stage-acceptance",
+        "clean": true
+      }
+    ],
+    "candidate": {
+      "version": "0.1.0-ci.8.1",
+      "verificationArchiveSha256": "a3c26c35d5ee9dfe6d62dfe82796cb92bbcb81db25d24f1c279a253c4186aaa0",
+      "sourceCommit": "e40423a1b14ce8341de35748cc2a093c7c9b77a7",
+      "nativeRuns": [
+        {
+          "rid": "linux-x64",
+          "archiveSha256": "99b2f81a451ed99b195c8784830c57f71b27b06f0fccd1d064297268da5ca91b",
+          "smokeSha256": "0d12e7f6d4f98917a809b2e8d4ef3b4c0e871e3652a5eea46bf19a1d9f375f4f",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "osx-arm64",
+          "archiveSha256": "717772ee943bf9e74351d2dbfcff8beee36ddb271fd5a5ab7238b16d6afaea2c",
+          "smokeSha256": "62472b699f15a3f0043a8c8a2b964aaeaaefee827783ce07fb4ac1cbdb3b50ab",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "osx-x64",
+          "archiveSha256": "5948d3b86e884a23bba003862c55a095662c1487b3b1ed7fb5c4d7325a3b8d3f",
+          "smokeSha256": "121424c4b5cc5442a719bab53f96f6e8dacaabaf2ca56c737135f22ed189ca4d",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "win-arm64",
+          "archiveSha256": "d5cc73c8a55e0e6ccf49747ea85af7941a6ac10e86680fc1bec938e04399cdce",
+          "smokeSha256": "791e24409e15e7ca5f756b28f8a464fd0402e1a567afc678b3cde25b9331df12",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "win-x64",
+          "archiveSha256": "06fe56ddf2ed02f199b1a6c21ce09f7a0074f9ee305f62cbe374aa34fd6a794d",
+          "smokeSha256": "d43c08e7780eccd08fc7da25e20312c29730342002577a9911eb034eda32efbf",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        }
+      ]
+    },
+    "mainCi": "https://github.com/ArcForges/ArcNotes/actions/runs/35425608146",
+    "projects": [
+      {
+        "path": "eng/ArcForges.Repository/ArcForges.Repository.csproj",
+        "blob": "20a51da180a8b012de47ec9d6b7cf00c96dad2cd",
+        "disposition": "Keep",
+        "producer": "WP18",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/ArcForges.ArcNotes.Core/ArcForges.ArcNotes.Core.csproj",
+        "blob": "c0b0a7c802b9faf2601f0b8e1d273818b15f5e21",
+        "disposition": "Keep",
+        "producer": "WP18",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/ArcForges.ArcNotes/ArcForges.ArcNotes.csproj",
+        "blob": "47c6a559a45dd8023a4b8209dc83d31f4b1e5c70",
+        "disposition": "Keep",
+        "producer": "WP18",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/ArcForges.ArcNotes.Tests/ArcForges.ArcNotes.Tests.csproj",
+        "blob": "fab08f5e2abe006bdb72f36e06d390dbdb1ff62c",
+        "disposition": "Keep",
+        "producer": "WP18",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      }
+    ]
+  },
+  {
+    "repository": "ArcScope",
+    "origin": "https://github.com/ArcForges/ArcScope.git",
+    "commit": "d247dcff36fd1123a70e5e59967a9b2294a2eeac",
+    "tree": "91419a71287443588e3a180a6a2e7b7e9d8fe3e2",
+    "clean": true,
+    "worktrees": [
+      {
+        "path": "C:/MyFile/Projects/ArcForges/ArcScope",
+        "commit": "d247dcff36fd1123a70e5e59967a9b2294a2eeac",
+        "branch": "refs/heads/main",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/ArcScope/.worktree/wp00-90-stage-acceptance",
+        "commit": "d247dcff36fd1123a70e5e59967a9b2294a2eeac",
+        "branch": "refs/heads/codex/wp00-90-stage-acceptance",
+        "clean": true
+      }
+    ],
+    "candidate": {
+      "version": "0.1.0-ci.8.1",
+      "verificationArchiveSha256": "b856d95171596d2434583af51804cee215f36cbe2506d8d2755901705ee5e864",
+      "sourceCommit": "d247dcff36fd1123a70e5e59967a9b2294a2eeac",
+      "nativeRuns": [
+        {
+          "rid": "linux-x64",
+          "archiveSha256": "6b35f26f367dca8c21699c45440da0c593bbe6debea0fc1faeecd348b3c4972f",
+          "smokeSha256": "130b9a5d543e6b64af5b78c44ea7bec99adc7e90db29c972f3a4573a70a06487",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "osx-arm64",
+          "archiveSha256": "dc1605c99b60b179633ecb734592950322591246e95f59c0fb787379fc780a0d",
+          "smokeSha256": "b45c96f24e7877afe4541afc44415f792c8efdad8029ee76d278d01605d32504",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "osx-x64",
+          "archiveSha256": "8a03ff9ff492da0e646b7f92f3974b0e74e3ea380210f5ae9b4b224db47ee1ba",
+          "smokeSha256": "035441bbdf95b93cfdae8f3ba80eaa0f10185afc40f815f0df5bb16428ec218c",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "win-arm64",
+          "archiveSha256": "2b6c32a89cdd45ba51bd80cd6a4de8867090ee0e1d38d586a0d689d983d45c92",
+          "smokeSha256": "95009276d6ecd7e11a06a740d973e8c0a4a4fefdcc08bd5f1de8cd74486112f1",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "win-x64",
+          "archiveSha256": "edb4ea523bf87ac02bbd62f0bbcea28867ed207c0aedc6f4dc70bc7ed1ac0da7",
+          "smokeSha256": "97ffbdadbb52f9c5f5e5f6f00b20b44b27a85e6389f22e3d6585622d3c64c6e0",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        }
+      ]
+    },
+    "mainCi": "https://github.com/ArcForges/ArcScope/actions/runs/35426873548",
+    "projects": [
+      {
+        "path": "eng/ArcForges.Repository/ArcForges.Repository.csproj",
+        "blob": "20a51da180a8b012de47ec9d6b7cf00c96dad2cd",
+        "disposition": "Keep",
+        "producer": "WP33",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/ArcForges.ArcScope.Core/ArcForges.ArcScope.Core.csproj",
+        "blob": "c0b0a7c802b9faf2601f0b8e1d273818b15f5e21",
+        "disposition": "Keep",
+        "producer": "WP33",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/ArcForges.ArcScope/ArcForges.ArcScope.csproj",
+        "blob": "aee25802b5bde26ebb54a3547347ea6c363dbc8f",
+        "disposition": "Keep",
+        "producer": "WP33",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/ArcForges.ArcScope.Tests/ArcForges.ArcScope.Tests.csproj",
+        "blob": "4a5675eb0a162e3d1429366361c11cbbc9769176",
+        "disposition": "Keep",
+        "producer": "WP33",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      }
+    ]
+  },
+  {
+    "repository": "ArcSlate",
+    "origin": "https://github.com/ArcForges/ArcSlate.git",
+    "commit": "b0d255f54fb560a534cc493d5645ca4bc7b4bd0e",
+    "tree": "c0e546663f52f0ae4fef451ff4dd679d35ce7981",
+    "clean": true,
+    "worktrees": [
+      {
+        "path": "C:/MyFile/Projects/ArcForges/ArcSlate",
+        "commit": "b0d255f54fb560a534cc493d5645ca4bc7b4bd0e",
+        "branch": "refs/heads/main",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/ArcSlate/.worktree/wp00-90-stage-acceptance",
+        "commit": "b0d255f54fb560a534cc493d5645ca4bc7b4bd0e",
+        "branch": "refs/heads/codex/wp00-90-stage-acceptance",
+        "clean": true
+      }
+    ],
+    "candidate": {
+      "version": "0.1.0-ci.8.1",
+      "verificationArchiveSha256": "a14db6d00e928b33abf8ea8e2d405f2d1030ef72855a08e34f99760844a4265e",
+      "sourceCommit": "b0d255f54fb560a534cc493d5645ca4bc7b4bd0e",
+      "nativeRuns": [
+        {
+          "rid": "linux-x64",
+          "archiveSha256": "d23812de1598848b917d7d5c0c8863ca67f06e37a353bf80c8a33224667f55ff",
+          "smokeSha256": "b05877fd37e103de95d07db2c0a7b380e429cbdef53611d8e48bfe9d067d638b",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "osx-arm64",
+          "archiveSha256": "79463644d337d0bb0d482f2f39f610b3f851b9b1aa532f6133ab6af94c3a4995",
+          "smokeSha256": "28365b2ca9436bc55ebef0c12d9b14659f2f58e3bc33064b2ce5bc0c6ece3a06",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "osx-x64",
+          "archiveSha256": "31e4576de83018fcb43e18329776d71dd6d1680cee10c7ade068ac166c7632e4",
+          "smokeSha256": "6103b10b0b561b1accb692c24d91eff98609ab979b424e401ea5fcebd4935005",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "win-arm64",
+          "archiveSha256": "a016e5995a28767eba636d7fa33d260b5232ae31447fad5a261e15d0c25cf2c2",
+          "smokeSha256": "5c585ecb81d4ee15cb6c47b5353113040c48184b61553594ccba6bbf7e4ccc00",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        },
+        {
+          "rid": "win-x64",
+          "archiveSha256": "873de67ab858650b68d98beca7aac14fdae52a6dcc838c04dec6e91d8430830d",
+          "smokeSha256": "d13799a7ebd6385f18004244e54888ef794aba3586ef50067e62b274c6e6c8dc",
+          "observedCloudCommit": "2cf5a58633a7e09db05ebc1741f1cab83547a832"
+        }
+      ]
+    },
+    "mainCi": "https://github.com/ArcForges/ArcSlate/actions/runs/35427484761",
+    "projects": [
+      {
+        "path": "eng/ArcForges.Repository/ArcForges.Repository.csproj",
+        "blob": "20a51da180a8b012de47ec9d6b7cf00c96dad2cd",
+        "disposition": "Keep",
+        "producer": "WP36",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/ArcForges.ArcSlate.Core/ArcForges.ArcSlate.Core.csproj",
+        "blob": "c0b0a7c802b9faf2601f0b8e1d273818b15f5e21",
+        "disposition": "Keep",
+        "producer": "WP36",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/ArcForges.ArcSlate/ArcForges.ArcSlate.csproj",
+        "blob": "1f2a2999800bc7845fac192ed0e6204f7c01f9a6",
+        "disposition": "Keep",
+        "producer": "WP36",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/ArcForges.ArcSlate.Tests/ArcForges.ArcSlate.Tests.csproj",
+        "blob": "609d45bab405b7eb40a4e15061fa9e1a6e4ff969",
+        "disposition": "Keep",
+        "producer": "WP36",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      }
+    ]
+  },
+  {
+    "repository": "Cloud",
+    "origin": "https://github.com/ArcForges/Cloud.git",
+    "commit": "4571ec8692235485712d4c4e3ef4886c162f2574",
+    "tree": "9c49531f1e1c89e67bdc9029029bd4ece89bdba6",
+    "clean": true,
+    "worktrees": [
+      {
+        "path": "C:/MyFile/Projects/ArcForges/Cloud",
+        "commit": "4571ec8692235485712d4c4e3ef4886c162f2574",
+        "branch": "refs/heads/main",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/Cloud/.worktree/wp00-05-runtime-ownership",
+        "commit": "4571ec8692235485712d4c4e3ef4886c162f2574",
+        "branch": "refs/heads/codex/wp00-05-runtime-ownership",
+        "clean": true
+      }
+    ],
+    "candidate": {
+      "version": "0.1.0-ci.18.1",
+      "manifestSha256": "1023abce52924b7db060ac2c5e5fad53ef108dde863470b959f5c507fb7e612a",
+      "sourceCommit": "4571ec8692235485712d4c4e3ef4886c162f2574"
+    },
+    "mainCi": "https://github.com/ArcForges/Cloud/actions/runs/35535883611",
+    "projects": [
+      {
+        "path": "package.json",
+        "blob": "9dcc0a0322d85844860c4eaa4c94140c2c8bc256",
+        "disposition": "Keep",
+        "producer": "WP21",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "src/ArcForges.Cloud/ArcForges.Cloud.csproj",
+        "blob": "2960523c89be8d20dd2abaa6ff816e276614a2c5",
+        "disposition": "Keep",
+        "producer": "WP21",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/ArcForges.Cloud.Consumer/ArcForges.Cloud.Consumer.csproj",
+        "blob": "bd7168f08439256710f60a26ea4f91296ea771fc",
+        "disposition": "Keep",
+        "producer": "WP21",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/ArcForges.Cloud.Tests/ArcForges.Cloud.Tests.csproj",
+        "blob": "25bfa222199d806a951a8a0fe73dda22b04b6f10",
+        "disposition": "Keep",
+        "producer": "WP21",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "tests/kotlin-consumer/build.gradle.kts",
+        "blob": "14def5970080a2e185e5327af9148eea7fdec80b",
+        "disposition": "Keep",
+        "producer": "WP21",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      }
+    ]
+  },
+  {
+    "repository": "AI",
+    "origin": "https://github.com/ArcForges/AI.git",
+    "commit": "944edfe88718fc5f72a42ea0bed1c495307c22df",
+    "tree": "7fbb95546504b0fbe6d71fd529e45371b08a800e",
+    "clean": true,
+    "worktrees": [
+      {
+        "path": "C:/MyFile/Projects/ArcForges/AI",
+        "commit": "944edfe88718fc5f72a42ea0bed1c495307c22df",
+        "branch": "refs/heads/main",
+        "clean": true
+      },
+      {
+        "path": "C:/MyFile/Projects/ArcForges/AI/.worktree/wp00-05-runtime-ownership",
+        "commit": "944edfe88718fc5f72a42ea0bed1c495307c22df",
+        "branch": "refs/heads/codex/wp00-05-runtime-ownership",
+        "clean": true
+      }
+    ],
+    "candidate": {
+      "version": "0.1.0-ci.26.1",
+      "manifestSha256": "a48dcfd9f35b5c1972d2079606073b742681103f81ca74e966d44218a47c26ef",
+      "sourceCommit": "944edfe88718fc5f72a42ea0bed1c495307c22df"
+    },
+    "mainCi": "https://github.com/ArcForges/AI/actions/runs/35535890121",
+    "projects": [
+      {
+        "path": "package.json",
+        "blob": "535eb62a0aba8fc50fd251948cda16e2d7da24ce",
+        "disposition": "Keep",
+        "producer": "WP52",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      }
+    ]
+  },
+  {
+    "repository": "Web",
+    "origin": "https://github.com/ArcForges/Web.git",
+    "commit": "84939ca1fde0f0653d2cb4d8b8f9e5dd1057abb5",
+    "tree": "18370fe45c84efc957008f5954d4be089042aed3",
+    "clean": true,
+    "worktrees": [
+      {
+        "path": "C:/MyFile/Projects/ArcForges/Web",
+        "commit": "84939ca1fde0f0653d2cb4d8b8f9e5dd1057abb5",
+        "branch": "refs/heads/main",
+        "clean": true
+      }
+    ],
+    "candidate": {
+      "version": "0.1.0-ci.22.1",
+      "sourceCommit": "84939ca1fde0f0653d2cb4d8b8f9e5dd1057abb5",
+      "manifestSha256": "17e520c4e9d9e45b6636f32bf03764cf80d113f15a2bc9185708a37780221974",
+      "archiveSha256": "ad36fbf27582f9571e92b22772172bbb14dfab9eeecce102adcc28de3d6d3d6f",
+      "verifiedMembers": 49
+    },
+    "mainCi": "https://github.com/ArcForges/Web/actions/runs/35437014881",
+    "projects": [
+      {
+        "path": "ArcForges.Web.esproj",
+        "blob": "3349d5ca919aa5f4fbcce0f2ee84da7e5c246e16",
+        "disposition": "Keep",
+        "producer": "WP47",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "apps/site/package.json",
+        "blob": "c7dfdd8ce47cf34e385c6b76436f7b8c0abc8eb5",
+        "disposition": "Keep",
+        "producer": "WP47",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "package.json",
+        "blob": "41c715894ad6dd067af8087a22d24d393da85d3c",
+        "disposition": "Keep",
+        "producer": "WP47",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "packages/ui/package.json",
+        "blob": "758009ce025ea86a6fd5983a6ecaf1f273233e26",
+        "disposition": "Keep",
+        "producer": "WP47",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      }
+    ]
+  },
+  {
+    "repository": "Mobile",
+    "origin": "https://github.com/ArcForges/Mobile.git",
+    "commit": "5031d837d2e7bf9dd1b681c837c942d2b74dc65e",
+    "tree": "bf4f170f365e5546b5ef2e26d26f575e6b390187",
+    "clean": true,
+    "worktrees": [
+      {
+        "path": "C:/MyFile/Projects/ArcForges/Mobile",
+        "commit": "5031d837d2e7bf9dd1b681c837c942d2b74dc65e",
+        "branch": "refs/heads/main",
+        "clean": true
+      }
+    ],
+    "candidate": {
+      "version": "0.1.0-ci.14.1",
+      "sourceCommit": "5031d837d2e7bf9dd1b681c837c942d2b74dc65e",
+      "releaseReceiptSha256": "33f08579b7b4d854f6bab241a62d2be0ac6e1ed45c324194272334c35ad80216",
+      "signedApkSha256": "418c406dd4b1cd12b5cd9b489a863340e3c6ccb172d8aa8809ad0c14de4d4de9",
+      "signedAabSha256": "6780866e2b833e4eddc2c9632f63734a7ed82e6a50abb5af3f53fdd224ef14d5",
+      "versionCode": 1401,
+      "identity": "io.github.arcforges.mobile"
+    },
+    "mainCi": "https://github.com/ArcForges/Mobile/actions/runs/35444269638",
+    "projects": [
+      {
+        "path": "app/build.gradle.kts",
+        "blob": "e9c6106f0636c779b9029eb1843a49f67d80050a",
+        "disposition": "Keep",
+        "producer": "WP30",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "build.gradle.kts",
+        "blob": "daded22d08c0c4b003a7f28336236e579eca6653",
+        "disposition": "Keep",
+        "producer": "WP30",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      },
+      {
+        "path": "shared/build.gradle.kts",
+        "blob": "50f73dd0ab90a1c44164caa86532e4a704442aa0",
+        "disposition": "Keep",
+        "producer": "WP30",
+        "reason": "Retain current owned build/probe compatibility; scheduled producer completes accepted behavior."
+      }
+    ]
+  }
+]

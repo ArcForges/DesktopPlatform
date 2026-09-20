@@ -1,0 +1,2874 @@
+[
+  {
+    "owner": "AI",
+    "path": ".github/workflows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "AI",
+    "path": "eng",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "AI",
+    "path": "fixtures",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP52",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "AI",
+    "path": "src/context",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP52",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "AI",
+    "path": "src/models",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP52",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "AI",
+    "path": "src/objects",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP52",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "AI",
+    "path": "src/ports",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP52",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "AI",
+    "path": "src/streams",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP52",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "AI",
+    "path": "src/workflows",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP52",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "AI",
+    "path": "tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": ".github/workflows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "eng",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "eng/ArcForges.Repository",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "fixtures",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "src",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP18",
+    "reason": "Owned target root for reviewed historical responsibility migration; no blanket source transfer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "src/ArcForges.ArcNotes",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "src/ArcForges.ArcNotes.Core",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "src/ArcNotes.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "src/ArcNotes.AssistantIntegration",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "src/ArcNotes.Desktop",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "src/ArcNotes.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "src/ArcNotes.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "tests/Acceptance",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "tests/Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "tests/ArcForges.ArcNotes.Tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "tests/Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcNotes",
+    "path": "tests/Integration",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP18",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": ".github/workflows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "eng",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "eng/ArcForges.Repository",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "fixtures",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "src",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP33",
+    "reason": "Owned target root for reviewed historical responsibility migration; no blanket source transfer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "src/ArcForges.ArcScope",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "src/ArcForges.ArcScope.Core",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "src/ArcScope.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "src/ArcScope.AssistantIntegration",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "src/ArcScope.Desktop",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "src/ArcScope.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "src/ArcScope.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "tests/Acceptance",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "tests/Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "tests/ArcForges.ArcScope.Tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "tests/Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcScope",
+    "path": "tests/Integration",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP33",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": ".github/workflows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "eng",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "eng/ArcForges.Repository",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "fixtures",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "src",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP36",
+    "reason": "Owned target root for reviewed historical responsibility migration; no blanket source transfer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "src/ArcForges.ArcSlate",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "src/ArcForges.ArcSlate.Core",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "src/ArcSlate.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "src/ArcSlate.AssistantIntegration",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "src/ArcSlate.Desktop",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "src/ArcSlate.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "src/ArcSlate.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "tests/Acceptance",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "tests/Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "tests/ArcForges.ArcSlate.Tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "tests/Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "ArcSlate",
+    "path": "tests/Integration",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP36",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": ".github/workflows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "deploy",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "eng",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "fixtures",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/ArcForges.Cloud",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Cloud.Host",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Cloud.Integrations",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Cloud.Storage.D1",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Agent",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Agent/Agent.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Agent/Agent.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Agent/Agent.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Audit",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Audit/Audit.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Audit/Audit.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Audit/Audit.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Chat",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Chat/Chat.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Chat/Chat.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Chat/Chat.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Commerce",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Commerce/Commerce.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Commerce/Commerce.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Commerce/Commerce.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Configuration",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Configuration/Configuration.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Configuration/Configuration.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Configuration/Configuration.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Devices",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Devices/Devices.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Devices/Devices.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Devices/Devices.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Entitlement",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Entitlement/Entitlement.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Entitlement/Entitlement.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Entitlement/Entitlement.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Identity",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Identity/Identity.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Identity/Identity.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Identity/Identity.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Notes",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Notes/Notes.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Notes/Notes.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Notes/Notes.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Notification",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Notification/Notification.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Notification/Notification.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Notification/Notification.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/PackageCatalog",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/PackageCatalog/PackageCatalog.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/PackageCatalog/PackageCatalog.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/PackageCatalog/PackageCatalog.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Policy",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Policy/Policy.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Policy/Policy.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Policy/Policy.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Resource",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Resource/Resource.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Resource/Resource.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Resource/Resource.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Scope",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Scope/Scope.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Scope/Scope.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Scope/Scope.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Search",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Search/Search.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Search/Search.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Search/Search.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Slate",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Slate/Slate.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Slate/Slate.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Slate/Slate.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Support",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Support/Support.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Support/Support.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Support/Support.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Sync",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Sync/Sync.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Sync/Sync.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Sync/Sync.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Task",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Task/Task.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Task/Task.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Task/Task.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/TrustSafety",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/TrustSafety/TrustSafety.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/TrustSafety/TrustSafety.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/TrustSafety/TrustSafety.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Workspace",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Workspace/Workspace.Application",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Workspace/Workspace.Domain",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "src/Modules/Workspace/Workspace.Infrastructure",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "storage/migrations",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "storage/plans",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "tests/ArcForges.Cloud.Consumer",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "tests/ArcForges.Cloud.Tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "tests/Bindings",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "tests/Integration",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "tests/Module",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "tests/Recovery",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "tests/Sql",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "tests/kotlin-consumer",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "worker",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "worker/src/bindings",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "worker/src/container",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "worker/src/events",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "worker/src/jobs",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Cloud",
+    "path": "worker/src/routing",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP21",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": ".github/workflows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "eng",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "eng/Codegen",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "eng/central-signing",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "fixtures",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "internal/ai-http/v1",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "internal/proto",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "public/http/v1",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "public/proto",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Owned target root for reviewed historical responsibility migration; no blanket source transfer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/internal",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/public/csharp",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP03",
+    "reason": "Architecture 27 legacy C# directory spelling; current generated C# owner is src/public/dotnet. Preserve actual project/package identity."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/public/dotnet",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/public/dotnet/ArcForges.Contracts.PublicApi",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/public/kotlin/contract-fixtures",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/public/kotlin/contracts-client",
+    "disposition": "Retire",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Retain bootstrap compatibility until first business release; retirement is scheduled, not already executed."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/public/kotlin/contracts-connect-client",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/public/kotlin/contracts-proto",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/public/ts/api-client",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "src/public/ts/proto",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "tests/public/HelloClient",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "tests/public/HelloHost",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "tests/public/KotlinClient",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Contracts",
+    "path": "tests/public/KotlinConnectClient",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP03",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": ".github/workflows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "artifacts",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "eng",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "eng/ArcForges.Build.Policy",
+    "disposition": "Move",
+    "present": false,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "fixtures",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP01.02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native-ide",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcgraphics-metal-abi",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcmedia-ffmpeg-abi",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcmedia-ffmpeg-abi/windows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcscope-mdf-abi",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcslate-color-abi",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcslate-color-abi/windows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcslate-image-abi",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcslate-image-abi/windows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcslate-otio-abi",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "native/arcslate-otio-abi/windows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "samples/AssistantHost",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP17",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/ArcChat",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/ArcNotes",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/ArcScope",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/ArcSlate",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Assistant",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP14",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Assistant/ArcForges.Assistant.Abstractions",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP14",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Assistant/ArcForges.Assistant.Avalonia",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP17",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Assistant/ArcForges.Assistant.Cloud",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP17",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Assistant/ArcForges.Assistant.Core",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP15",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Assistant/ArcForges.Assistant.Persistence.Sqlite",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP15",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Build",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Build/ArcForges.Build.Policy",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Application.Abstractions",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Capabilities",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP09",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.DesignSystem",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP10",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Desktop.Experience",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Desktop.Graphics",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Desktop.Preview",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Desktop.RichContent",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Desktop.Shell",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP10",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Desktop.Text",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Execution",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP16",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Foundation",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.LocalRpc",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP08",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.NativeInterop",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Observability",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP12",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Persistence.Postgres",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.02",
+    "reason": "Historical target ownership; item-specific migration remains recorded in historical.json."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Persistence.Sqlite",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP07",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Security",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP11",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Testing",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.02",
+    "reason": "Historical target ownership; item-specific migration remains recorded in historical.json."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/BuildingBlocks/ArcForges.Update",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP53",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Cloud",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Communication",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP06",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Communication/ArcForges.Cloud.Client",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP06",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Communication/ArcForges.Device.Runtime",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP17",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Contracts",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP11",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP11",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox.Broker",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP11",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox.Contracts",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP11",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox.Runtime.linux-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP11",
+    "reason": "Helper runtime family; restricted fixture parser at WP11 and production composition at WP13."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox.Runtime.linux-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP11",
+    "reason": "Helper runtime family; restricted fixture parser at WP11 and production composition at WP13."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox.Runtime.osx-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP11",
+    "reason": "Helper runtime family; restricted fixture parser at WP11 and production composition at WP13."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox.Runtime.osx-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP11",
+    "reason": "Helper runtime family; restricted fixture parser at WP11 and production composition at WP13."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox.Runtime.win-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP11",
+    "reason": "Helper runtime family; restricted fixture parser at WP11 and production composition at WP13."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/DesktopHelpers/ArcForges.ContentSandbox.Runtime.win-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP11",
+    "reason": "Helper runtime family; restricted fixture parser at WP11 and production composition at WP13."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Extensions",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Mobile",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Abstractions",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Colour",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Colour.Runtime.linux-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Colour.Runtime.linux-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Colour.Runtime.osx-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Colour.Runtime.osx-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Colour.Runtime.win-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Colour.Runtime.win-x64",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Graphics",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Graphics.Runtime.linux-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Graphics.Runtime.linux-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Graphics.Runtime.osx-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Graphics.Runtime.osx-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Graphics.Runtime.win-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Graphics.Runtime.win-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Image",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Image.Runtime.linux-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Image.Runtime.linux-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Image.Runtime.osx-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Image.Runtime.osx-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Image.Runtime.win-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Image.Runtime.win-x64",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Instruments",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Instruments.Runtime.linux-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Instruments.Runtime.linux-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Instruments.Runtime.osx-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Instruments.Runtime.osx-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Instruments.Runtime.win-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Instruments.Runtime.win-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Media",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Media.Runtime.linux-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Media.Runtime.linux-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Media.Runtime.osx-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Media.Runtime.osx-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Media.Runtime.win-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Media.Runtime.win-x64",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Otio",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Otio.Runtime.linux-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Otio.Runtime.linux-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Otio.Runtime.osx-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Otio.Runtime.osx-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Otio.Runtime.win-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Otio.Runtime.win-x64",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Pdf",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Pdf.Runtime.linux-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Pdf.Runtime.linux-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Pdf.Runtime.osx-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Pdf.Runtime.osx-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Pdf.Runtime.win-arm64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Native/ArcForges.Native.Pdf.Runtime.win-x64",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP13",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/SDK",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "src/Web",
+    "disposition": "Retire",
+    "present": false,
+    "producer": "WP01.05",
+    "reason": "Retired monorepo or excluded MDF path; do not restore as an integration dependency."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "tests/ArchitectureTests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "tests/Consumers",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP05",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "tests/Contracts",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP05",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "tests/Integration",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP05",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "tests/Native",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP05",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "tests/NativeAbiTests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "DesktopPlatform",
+    "path": "tests/Unit",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP05",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": ".github/workflows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "app",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "core/contracts",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "core/database",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "core/designsystem",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "core/model",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "core/network",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "core/security",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "core/testing",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "eng",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "feature/auth",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "feature/chat",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "feature/devices",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "feature/home",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "feature/library",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "feature/settings",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "feature/tasks",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "fixtures",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "shared",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP30",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Mobile",
+    "path": "tests",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": ".github/workflows",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "apps",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP47",
+    "reason": "Owned target root for reviewed historical responsibility migration; no blanket source transfer."
+  },
+  {
+    "owner": "Web",
+    "path": "apps/account",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP48",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "apps/chat",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP49",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "apps/operations",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP45",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "apps/site",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP47",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "eng",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP02",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "fixtures",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP47",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "packages/auth",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP47",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "packages/client",
+    "disposition": "Keep",
+    "present": false,
+    "producer": "WP47",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "packages/ui",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP47",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  },
+  {
+    "owner": "Web",
+    "path": "tests",
+    "disposition": "Keep",
+    "present": true,
+    "producer": "WP01.04",
+    "reason": "Required owned directory; implement substantive behavior only in its scheduled producer."
+  }
+]
