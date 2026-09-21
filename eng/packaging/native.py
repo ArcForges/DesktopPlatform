@@ -15,6 +15,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "eng"))
 import native_provenance
+import build_identity
 VCPKG_COMMIT = "36677bbd0b3bf11da7376e62e14bffcc54d2eaeb"
 
 
@@ -251,7 +252,8 @@ def stage(directory, vcpkg, installed_root):
     available = {path.name.lower(): path for path in (binary_root / "native").glob("*.dll")}
     available.update({path.name.lower(): path for path in crt.glob("*.dll")})
     entries = [p for p in json.loads((ROOT / "eng/packaging/packages.json").read_text())["packages"] if p["kind"] == "native"]
-    artifact = {"schemaVersion": 1, "sourceCommit": commit, "rid": "win-x64", "packages": []}
+    identity = build_identity.build_identity(ROOT)
+    artifact = {"schemaVersion": 1, "sourceCommit": commit, "rid": "win-x64", "packages": [], "build": identity}
     for entry in entries:
         destination = directory / entry["id"]
         runtime = destination / "runtimes/win-x64/native"
@@ -277,6 +279,17 @@ def stage(directory, vcpkg, installed_root):
                 if not system_dependency(dependency):
                     pending.append(dependency)
         owned = selected[entry["library"].lower() + ".dll"]
+        library = ctypes.CDLL(str(runtime / owned['name']), winmode=0x900)
+        class Buffer(ctypes.Structure):
+            _fields_ = [('data', ctypes.c_void_p), ('capacity', ctypes.c_uint64), ('required', ctypes.c_uint64)]
+        probe = getattr(library, entry['prefix'] + '_get_build_info')
+        probe.argtypes = [ctypes.POINTER(Buffer)]
+        probe.restype = ctypes.c_int32
+        output = ctypes.create_string_buffer(4096)
+        buffer = Buffer(ctypes.cast(output, ctypes.c_void_p), len(output), 0)
+        require(probe(ctypes.byref(buffer)) == 0 and buffer.required < len(output), 'Native build identity probe failed.')
+        require(output.raw[:buffer.required].decode('utf-8').endswith(build_identity.native_suffix(identity)),
+                'Native binary build identity differs from the actual producer.')
         require(set(owned["exports"]) == {entry["prefix"] + suffix for suffix in ["_get_abi_version", "_get_build_info", "_get_last_error"]},
                 "Owned native export set differs from the admitted ABI.")
         for original, relative in [(ROOT / entry["header"], "include/arc/" + Path(entry["header"]).name),
@@ -358,6 +371,7 @@ def verify_stage(directory, commit):
 def verify_identity(artifact, commit):
     require(artifact["schemaVersion"] == 1 and artifact["sourceCommit"] == commit and artifact["rid"] == "win-x64",
             "Native artifact source/RID mismatch.")
+    build_identity.verify_source_build(ROOT, artifact['build'])
     expected = {p["id"] for p in json.loads((ROOT / "eng/packaging/packages.json").read_text())["packages"] if p["kind"] == "native"}
     require(len(artifact["packages"]) == len(expected) and {p["id"] for p in artifact["packages"]} == expected,
             "Native artifact package set mismatch.")

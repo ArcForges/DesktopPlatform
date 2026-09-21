@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "arc_build_identity.hpp"
 #include "arc_native_abi_internal.hpp"
 
 #include <algorithm>
@@ -76,11 +77,25 @@ arc_status_t arc::abi::get_abi_version(uint32_t* out_major, uint32_t* out_minor)
 
 arc_status_t arc::abi::write_build_info(std::string_view value, arc_mut_buffer_t* out_utf8) noexcept
 {
-    const arc_status_t status = copy_utf8(value, out_utf8);
-    if (status != ARC_OK && status != ARC_BUFFER_TOO_SMALL) {
-        return fail(status, "Build-info output buffer is invalid", 0);
+    // Preserve exact sizing and error semantics without allocating across the C ABI.
+    constexpr std::string_view identity(arc_build_identity);
+    if (out_utf8 == nullptr) {
+        return fail(ARC_INVALID_ARGUMENT, "Build-info output buffer is invalid", 0);
     }
-    return status;
+    out_utf8->required = static_cast<uint64_t>(value.size() + identity.size());
+    if (out_utf8->data == nullptr && out_utf8->capacity != 0) {
+        return fail(ARC_INVALID_ARGUMENT, "Build-info output buffer is invalid", 0);
+    }
+    if (out_utf8->capacity < out_utf8->required) {
+        return ARC_BUFFER_TOO_SMALL;
+    }
+    if (out_utf8->data == nullptr) {
+        return fail(ARC_INVALID_ARGUMENT, "Build-info output buffer is invalid", 0);
+    }
+    auto* const data = static_cast<char*>(out_utf8->data);
+    std::memcpy(data, value.data(), value.size());
+    std::memcpy(data + value.size(), identity.data(), identity.size());
+    return ARC_OK;
 }
 
 arc_status_t arc::abi::get_last_error(arc_error_info_t* out_error) noexcept

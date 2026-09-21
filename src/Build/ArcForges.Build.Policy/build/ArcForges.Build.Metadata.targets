@@ -1,0 +1,44 @@
+<Project>
+  <!-- SPDX-License-Identifier: AGPL-3.0-only -->
+  <Target Name="ArcForgesStampBuildIdentity" BeforeTargets="GetAssemblyAttributes"
+          DependsOnTargets="InitializeSourceControlInformation"
+          Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <PropertyGroup>
+      <ArcForgesSourceCommit Condition="'$(ArcForgesSourceCommit)' == '' and '$(GITHUB_SHA)' != ''">$(GITHUB_SHA)</ArcForgesSourceCommit>
+      <ArcForgesSourceCommit Condition="'$(ArcForgesSourceCommit)' == ''">$(SourceRevisionId)</ArcForgesSourceCommit>
+      <ArcForgesSourceCommit Condition="'$(ArcForgesSourceCommit)' == ''">local</ArcForgesSourceCommit>
+      <ArcForgesBuildKind Condition="'$(ArcForgesBuildKind)' == '' and '$(GITHUB_ACTIONS)' == 'true'">ci</ArcForgesBuildKind>
+      <ArcForgesBuildKind Condition="'$(ArcForgesBuildKind)' == ''">local</ArcForgesBuildKind>
+      <ArcForgesBuildId Condition="'$(ArcForgesBuildId)' == '' and '$(GITHUB_RUN_ID)' != ''">$(GITHUB_RUN_ID).$(GITHUB_RUN_ATTEMPT)</ArcForgesBuildId>
+      <ArcForgesBuildId Condition="'$(ArcForgesBuildId)' == ''">local.$(ArcForgesSourceCommit)</ArcForgesBuildId>
+      <ArcForgesPipelineRun Condition="'$(ArcForgesPipelineRun)' == '' and '$(GITHUB_RUN_ID)' != ''">https://github.com/$(GITHUB_REPOSITORY)/actions/runs/$(GITHUB_RUN_ID)</ArcForgesPipelineRun>
+      <ArcForgesPipelineRun Condition="'$(ArcForgesPipelineRun)' == ''">local</ArcForgesPipelineRun>
+      <_ArcForgesGitTimeFormat>%ct</_ArcForgesGitTimeFormat>
+      <_ArcForgesGitTimeFormat Condition="$([MSBuild]::IsOSPlatform('Windows'))">%%ct</_ArcForgesGitTimeFormat>
+    </PropertyGroup>
+    <Exec Command="git show -s --format=$(_ArcForgesGitTimeFormat) HEAD" WorkingDirectory="$(MSBuildProjectDirectory)"
+          Condition="'$(ArcForgesSourceDateEpoch)' == ''" ConsoleToMSBuild="true"
+          StandardOutputImportance="Low" StandardErrorImportance="Low" IgnoreExitCode="true"
+          IgnoreStandardErrorWarningFormat="true">
+      <Output TaskParameter="ConsoleOutput" ItemName="_ArcForgesGitEpoch" />
+    </Exec>
+    <PropertyGroup>
+      <_ArcForgesGitEpochText>@(_ArcForgesGitEpoch)</_ArcForgesGitEpochText>
+      <ArcForgesSourceDateEpoch Condition="'$(ArcForgesSourceDateEpoch)' == '' and $([System.Text.RegularExpressions.Regex]::IsMatch('$(_ArcForgesGitEpochText)', '^[1-9][0-9]*$'))">$(_ArcForgesGitEpochText)</ArcForgesSourceDateEpoch>
+      <ArcForgesSourceDateEpoch Condition="'$(ArcForgesSourceDateEpoch)' == ''">0</ArcForgesSourceDateEpoch>
+    </PropertyGroup>
+    <Error Code="AFP006" Condition="'$(ArcForgesBuildKind)' == 'ci' and (!$([System.Text.RegularExpressions.Regex]::IsMatch('$(ArcForgesSourceCommit)', '^[a-f0-9]{40}$')) or !$([System.Text.RegularExpressions.Regex]::IsMatch('$(ArcForgesBuildId)', '^[1-9][0-9]*\.[1-9][0-9]*$')) or !$([System.Text.RegularExpressions.Regex]::IsMatch('$(ArcForgesSourceDateEpoch)', '^[1-9][0-9]*$')) or !$([System.Text.RegularExpressions.Regex]::IsMatch('$(ArcForgesPipelineRun)', '^https://github\.com/[^/]+/[^/]+/actions/runs/[1-9][0-9]*$')))"
+           Text="CI assemblies require a complete source, run/attempt and source timestamp identity." />
+    <Error Code="AFP006" Condition="'$(ArcForgesBuildKind)' != 'ci' and '$(ArcForgesBuildKind)' != 'local'"
+           Text="Build identity kind must be ci or local." />
+    <Error Code="AFP006" Condition="'$(GITHUB_ACTIONS)' == 'true' and ('$(ArcForgesBuildKind)' != 'ci' or '$(ArcForgesSourceCommit)' != '$(GITHUB_SHA)' or '$(ArcForgesBuildId)' != '$(GITHUB_RUN_ID).$(GITHUB_RUN_ATTEMPT)' or '$(ArcForgesPipelineRun)' != 'https://github.com/$(GITHUB_REPOSITORY)/actions/runs/$(GITHUB_RUN_ID)')"
+           Text="Build identity must match the actual GitHub producer execution." />
+    <ItemGroup>
+      <AssemblyMetadata Include="ArcForges.SourceCommit" Value="$(ArcForgesSourceCommit)" />
+      <AssemblyMetadata Include="ArcForges.BuildId" Value="$(ArcForgesBuildId)" />
+      <AssemblyMetadata Include="ArcForges.PipelineRun" Value="$(ArcForgesPipelineRun)" />
+      <AssemblyMetadata Include="ArcForges.SourceDateEpoch" Value="$(ArcForgesSourceDateEpoch)" />
+      <AssemblyMetadata Include="ArcForges.BuildKind" Value="$(ArcForgesBuildKind)" />
+    </ItemGroup>
+  </Target>
+</Project>

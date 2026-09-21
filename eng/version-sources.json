@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "owner": "DesktopPlatform",
+  "axes": {
+    "AppVersion": {
+      "kind": "release",
+      "absence": "not-applicable",
+      "reason": "DesktopPlatform publishes libraries, not an installed application."
+    },
+    "ContractSet": {
+      "kind": "contracts",
+      "absence": "not-applicable",
+      "reason": "Business RPC schemas are owned by Contracts; this owner has no wire-contract set."
+    },
+    "CapabilityVersion": {
+      "kind": "declarations",
+      "absence": "not-produced",
+      "reason": "Existing ABI probes are not production capability descriptors.",
+      "producer": "WP09 and the owning product capability work packages"
+    },
+    "NativeFormatVersion": {
+      "kind": "declarations",
+      "absence": "not-produced",
+      "reason": "No portable product format is implemented by this foundation.",
+      "producer": "WP18/28, WP34 and WP38 product format owners"
+    },
+    "StorageSchemaVersion": {
+      "kind": "migrations",
+      "absence": "not-produced",
+      "reason": "No owned migration set is implemented.",
+      "producer": "WP07 and product storage owners"
+    },
+    "NativeAbiVersion": {
+      "kind": "native-abi",
+      "sources": [
+        "native/shared/include/arc/arc_native_abi.h"
+      ]
+    },
+    "PolicySchemaVersion": {
+      "kind": "declarations",
+      "absence": "not-produced",
+      "reason": "MSBuild policy is not a signed product policy schema.",
+      "producer": "WP03 and WP44"
+    },
+    "ExtensionProtocolVersion": {
+      "kind": "declarations",
+      "absence": "not-produced",
+      "reason": "No extension protocol is implemented.",
+      "producer": "WP03 and WP41"
+    },
+    "PackageVersion": {
+      "kind": "packages"
+    }
+  }
+}

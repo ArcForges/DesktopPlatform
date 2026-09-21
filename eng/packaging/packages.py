@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 import native
+import build_identity
 
 ROOT = Path(__file__).resolve().parents[2]
 REPOSITORY = "https://github.com/ArcForges/DesktopPlatform"
@@ -135,10 +136,13 @@ def pack(directory, package_version, native_directory=ROOT / "artifacts/native-p
     require(not audit["dirty"], "Commit reviewed changes before producing source-bound NuGet candidates.")
     commit = source_commit()
     native.verify_stage(native_directory, commit)
+    identity = build_identity.build_identity(ROOT)
+    axes = build_identity.resolve_axes(ROOT, json.loads((ROOT / 'eng/version-sources.json').read_text(encoding='utf-8')),
+                                      packages=build_identity.dependency_versions(ROOT, native_directory))
     packages = []
     for entry in catalogue():
         args = ["dotnet", "pack", entry["project"], "-c", "Release", "--no-restore", "-o", str(directory),
-                f"-p:PackageVersion={package_version}", f"-p:RepositoryCommit={commit}"]
+                f"-p:PackageVersion={package_version}", f"-p:Version={package_version}", f"-p:RepositoryCommit={commit}"]
         if entry["kind"] == "native":
             args.append(f"-p:NativePayloadRoot={native_directory / entry['id']}")
         run(*args)
@@ -149,6 +153,12 @@ def pack(directory, package_version, native_directory=ROOT / "artifacts/native-p
         with zipfile.ZipFile(package_path) as original:
             contents = [(info, original.read(info.filename)) for info in original.infolist()]
         for index, (info, data) in enumerate(contents):
+            if info.filename == '[Content_Types].xml':
+                types = ET.fromstring(data)
+                if not any(node.get('Extension') == 'json' for node in types):
+                    ET.SubElement(types, '{http://schemas.openxmlformats.org/package/2006/content-types}Default',
+                                  Extension='json', ContentType='application/json')
+                    contents[index] = (info, ET.tostring(types, encoding='utf-8', xml_declaration=True))
             if info.filename.endswith(".nuspec"):
                 specification = ET.fromstring(data)
                 namespace = specification.tag.split("}")[0][1:]
@@ -169,13 +179,16 @@ def pack(directory, package_version, native_directory=ROOT / "artifacts/native-p
         with zipfile.ZipFile(package_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for info, data in contents:
                 archive.writestr(info, data)
+            report = {'schema': 'arcforges.build-identity.v1', 'owner': 'DesktopPlatform',
+                      'artifact': {'id': entry['id'], 'version': package_version}, 'build': identity, 'axes': axes}
+            archive.writestr('build-identity.json', build_identity.canonical(report))
         digest = inspect(directory / name, entry, package_version, commit)
         packages.append({"id": entry["id"], "version": package_version, "file": name, "sha256": digest})
     native_artifact = (native_directory / "native-artifact.json").read_bytes()
     (directory / "native-artifact.json").write_bytes(native_artifact)
     manifest = {"schemaVersion": 1, "repository": REPOSITORY, "sourceCommit": commit,
                 "version": package_version, "packages": packages,
-                "nativeArtifactSha256": hashlib.sha256(native_artifact).hexdigest()}
+                "nativeArtifactSha256": hashlib.sha256(native_artifact).hexdigest(), "build": identity}
     (directory / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     verify(directory, package_version, commit)
 
@@ -190,6 +203,14 @@ def verify(directory, package_version, commit=None):
     native_artifact = json.loads(native_bytes)
     native.verify_identity(native_artifact, commit)
     entries = catalogue()
+    build_identity.verify_source_build(ROOT, manifest['build'])
+    documents = []
+    for entry in entries:
+        if entry['kind'] == 'native':
+            with zipfile.ZipFile(directory / f"{entry['id']}.{package_version}.nupkg") as archive:
+                documents.append((entry['id'] + '/sbom.json', archive.read('sbom.json')))
+    axes = build_identity.resolve_axes(ROOT, json.loads((ROOT / 'eng/version-sources.json').read_text(encoding='utf-8')),
+                                      packages=build_identity.dependency_versions(ROOT, native_documents=documents))
     rows = manifest["packages"]
     require(len(rows) == len(entries) and {row["id"] for row in rows} == {entry["id"] for entry in entries},
             "Manifest does not match publication allowlist.")
@@ -202,6 +223,11 @@ def verify(directory, package_version, commit=None):
         require(row["file"] == name and row["version"] == package_version, "Manifest package name/version mismatch.")
         digest = inspect(directory / name, entry, package_version, commit)
         require(digest == row["sha256"], f"Package hash mismatch: {name}")
+        with zipfile.ZipFile(directory / name) as archive:
+            report = json.loads(archive.read('build-identity.json'))
+            build_identity.verify_report(report, entry['id'], package_version, commit)
+            require(report['build'] == manifest['build'], 'Packaged build identity differs from producer.')
+            require(report['axes'] == axes, 'Packaged version axes differ from independent sources.')
         if entry["kind"] == "native":
             producer = next(p for p in native_artifact["packages"] if p["id"] == entry["id"])
             with zipfile.ZipFile(directory / name) as archive:
@@ -214,11 +240,16 @@ def verify(directory, package_version, commit=None):
 
 def smoke(directory, package_version, commit=None):
     verify(directory, package_version, commit)
+    smoke_policy(directory, package_version)
+
+
+def smoke_policy(directory, package_version):
+    """Exercise the build-only package; complete release acceptance also requires verify()."""
     # Outside every checkout, with no inherited Directory.Build files or shared package cache.
     temporary_root = Path(tempfile.mkdtemp(prefix="arcforges-package-consumer-")).resolve()
     require(not temporary_root.is_relative_to(ROOT), "Consumer must be outside the producer checkout.")
     print(f"Isolated consumer and evidence: {temporary_root}", flush=True)
-    env = os.environ.copy()
+    env = {key: value for key, value in os.environ.items() if not key.startswith('GITHUB_')}
     env["NUGET_PACKAGES"] = str(temporary_root / ".packages")
     env["NUGET_HTTP_CACHE_PATH"] = str(temporary_root / ".http-cache")
     env["CI"] = "false"  # First fixture restore creates its lock; the next is explicitly locked.
@@ -251,7 +282,11 @@ def smoke(directory, package_version, commit=None):
 <ItemGroup><PackageVersion Include="{entry['id']}" Version="{package_version}" /></ItemGroup></Project>
 '''
         central.write_text(central_text, encoding="utf-8")
-        (consumer / "Program.cs").write_text('Console.WriteLine("package-consumer-ok");\n', encoding="utf-8")
+        (consumer / "Program.cs").write_text('''using System.Reflection;
+var metadata = typeof(Program).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().ToDictionary(a => a.Key, a => a.Value);
+if (metadata["ArcForges.BuildKind"] != "local" || metadata["ArcForges.BuildId"] != "local.local" || metadata["ArcForges.SourceDateEpoch"] != "0") throw new Exception("Local fixture metadata mismatch");
+Console.WriteLine("package-consumer-ok");
+''', encoding="utf-8")
         run("dotnet", "restore", str(project), "--use-lock-file", "--configfile", str(temporary_root / "NuGet.config"), cwd=consumer, env=env)
         env["CI"] = "true"
         run("dotnet", "restore", str(project), "--locked-mode", "--configfile", str(temporary_root / "NuGet.config"), cwd=consumer, env=env)
@@ -267,6 +302,8 @@ def smoke(directory, package_version, commit=None):
         central.write_text(central_text, encoding="utf-8")
         run("dotnet", "build", str(project), "-c", "Release", "--no-restore", "-p:LangVersion=preview", cwd=consumer, env=env, expected_error="AFP004")
         run("dotnet", "build", str(project), "-c", "Release", "--no-restore", "-p:RestoreLockedMode=false", cwd=consumer, env=env, expected_error="AFP005")
+        run("dotnet", "build", str(project), "-c", "Release", "--no-restore", "-p:ArcForgesBuildKind=ci", cwd=consumer, env=env, expected_error="AFP006")
+        run("dotnet", "build", str(project), "-c", "Release", "--no-restore", "-p:ArcForgesBuildKind=unknown", cwd=consumer, env=env, expected_error="AFP006")
         installed = temporary_root / ".packages" / entry["id"].lower() / package_version.lower()
         restored = installed / f"{entry['id'].lower()}.{package_version.lower()}.nupkg"
         original = directory / f"{entry['id']}.{package_version}.nupkg"

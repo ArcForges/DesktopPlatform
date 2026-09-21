@@ -12,6 +12,7 @@ file(GLOB_RECURSE ARCFORGES_SHIM_HEADERS CONFIGURE_DEPENDS
 
 add_library(arcgraphics_metal_abi SHARED ${ARCFORGES_SHIM_SOURCES} ${ARCFORGES_SHIM_HEADERS} ${ARCFORGES_SHARED_ABI_SOURCE})
 arcforges_declare_target_licence(arcgraphics_metal_abi)
+add_dependencies(arcgraphics_metal_abi arcforges_build_identity)
 target_compile_features(arcgraphics_metal_abi PRIVATE cxx_std_20)
 set_target_properties(arcgraphics_metal_abi PROPERTIES
     CXX_EXTENSIONS OFF

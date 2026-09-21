@@ -12,7 +12,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ArcForgesRepositoryRoot)native\shared\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IntDir)identity;$(ArcForgesRepositoryRoot)native\shared\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
@@ -23,4 +23,7 @@
       <AdditionalDependencies>bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <Target Name="ArcForgesNativeBuildIdentity" BeforeTargets="ClCompile">
+    <Exec Command="python &quot;$(ArcForgesRepositoryRoot)eng\build_identity.py&quot; --native-header &quot;$(IntDir)identity\arc_build_identity.hpp&quot;" />
+  </Target>
 </Project>
