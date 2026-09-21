@@ -109,6 +109,24 @@ def check_projects(root, row, files, pinned):
     return audited
 
 
+def reviewed_projects(row, updates):
+    expected = {p['path']:p['blob'] for p in row['projects']}
+    seen = set()
+    for update in updates:
+        runtime.fields(update, 'repository path originalBlob reviewedBlob producer authorityCommit authorityPath reason')
+        require(update['repository'] == 'DesktopPlatform', 'project update outside implementation owner')
+        runtime.path(update['path']); runtime.path(update['authorityPath'])
+        for key in ['originalBlob', 'reviewedBlob', 'authorityCommit']: runtime.digest(update[key])
+        require(re.fullmatch(r'WP\d{2}\.\d{2}', update['producer']) and update['reason'].strip(), 'unowned project update')
+        require(update['path'] not in seen, 'duplicate project update')
+        seen.add(update['path'])
+        if row['repository'] == update['repository']:
+            require(expected.get(update['path']) == update['originalBlob'], 'project update baseline mismatch')
+            require(update['reviewedBlob'] != update['originalBlob'], 'empty project update')
+            expected[update['path']] = update['reviewedBlob']
+    return dict(row, projects=[dict(project, blob=expected[project['path']]) for project in row['projects']])
+
+
 def check_history(files, historical, platform_files):
     actual = {p:b for p,b in files.items() if p.endswith('.csproj')}
     require(actual == {r['path']:r['blob'] for r in historical}, 'historical project/blob drift')
@@ -165,7 +183,7 @@ def main():
                 require({p:b for p,b in pinned_trees[n].items() if inventory.kind(p)} == {p['path']:p['blob'] for p in row['projects']}, 'recorded project blob mismatch')
                 files = tree(root, 'HEAD')
                 actual_trees[n] = files
-                audit = check_projects(root, row, files, pinned=True)
+                audit = check_projects(root, reviewed_projects(row, read('project-updates')), files, pinned=True)
                 report['repositories'].append({'repository':n,'commit':before[n][0],'clean':not bool(before[n][1]),'snapshotCommit':row['commit'],'snapshotIsHead':before[n][0]==row['commit'],'projects':len(audit['projects']),'result':'passed'})
             check_history(tree(roots['DesktopPlatform'], source['historicalCommit']), historical, pinned_trees['DesktopPlatform'])
             check_directories(directories, pinned_trees)

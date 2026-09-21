@@ -1,0 +1,12 @@
+[
+  {
+    "repository": "DesktopPlatform",
+    "path": "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj",
+    "originalBlob": "bfae1c5eb2425f36dc6bab237d5ebca5a6940efe",
+    "reviewedBlob": "87b5bfceadd816497a18225b52a1149c53355dbe",
+    "producer": "WP01.03",
+    "authorityCommit": "7abe9bc4c1964a23d5dc3894dbe3a0357ec31a00",
+    "authorityPath": "docs/assurance/wp01-03-native-reconciliation-policy.md",
+    "reason": "Move the independent native oracle into its test assembly; remove the NativeInterop reference and enable unsafe ABI declarations in the test project."
+  }
+]

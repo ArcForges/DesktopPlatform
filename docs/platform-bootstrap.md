@@ -16,7 +16,7 @@ Design authority: `ArcForges/ArcForges-Design` commit `f6e0cd2` (merged final re
    instructions, work logs and delivery workflows. Their complete source remains at the base commit;
    the independent old copy and all other repositories are untouched.
 3. Rebuild platform-only solutions, package pins and architecture checks. Existing placeholders remain
-   explicitly non-packable. NativeInterop remains an internal ABI probe, pending capability separation.
+   explicitly non-packable. NativeInterop is a name-only scaffold. Independent ABI oracle bindings live only in NativeAbiTests; production bindings belong to the Native capability packages.
 4. Add the real `ArcForges.Build.Policy` package and an explicit release allowlist. Build and pack with
    an allocated version; verify metadata/hash and restore in an isolated consumer with a private cache.
    PRs retain candidates. Initial delivery used a manually triggered main-branch NuGet OIDC release;

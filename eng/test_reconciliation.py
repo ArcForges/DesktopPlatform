@@ -75,6 +75,27 @@ class ReconciliationTests(unittest.TestCase):
         for changed in [{},{**files,'src/B/B.csproj':'0'*40},{'src/A/A.csproj':'0'*40}]:
             with self.subTest(changed=changed),self.assertRaises(ValueError):policy.check_projects(self.root,row,changed,True)
 
+    def test_reviewed_project_update_preserves_snapshot_and_rejects_unreviewed_drift(self):
+        row = next(r for r in policy.read('current') if r['repository'] == 'DesktopPlatform')
+        original = copy.deepcopy(row)
+        updates = policy.read('project-updates')
+        reviewed = policy.reviewed_projects(row, updates)
+        self.assertEqual(row, original)
+        expected = {p['path']:p['blob'] for p in reviewed['projects']}
+        self.assertEqual(expected[updates[0]['path']], updates[0]['reviewedBlob'])
+        self.assertEqual(sum(a != b for a,b in zip(row['projects'],reviewed['projects'])), 1)
+        for field,value in [('path','src/Unknown/Unknown.csproj'),('originalBlob','0'*40),
+                            ('reviewedBlob',updates[0]['originalBlob']),('repository','Contracts'),
+                            ('producer',''),('authorityCommit','invalid')]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                policy.reviewed_projects(row,[dict(updates[0],**{field:value})])
+        with self.assertRaisesRegex(ValueError,'duplicate'):
+            policy.reviewed_projects(row, updates + updates)
+        project = updates[0]['path']
+        fixture = dict(row, projects=[{'path':project,'blob':updates[0]['reviewedBlob']}])
+        with self.assertRaisesRegex(ValueError,'pinned project blob drift'):
+            policy.check_projects(self.root, fixture, {project:'0'*40}, True)
+
     def test_present_absent_and_foreign_directory(self):
         self.commit({'src/A/A.csproj':'<Project />'})
         trees={'DesktopPlatform':policy.tree(self.root,'HEAD'),'Contracts':{}}

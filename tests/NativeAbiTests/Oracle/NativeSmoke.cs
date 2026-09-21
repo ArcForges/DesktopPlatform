@@ -5,14 +5,14 @@ using System.Text;
 
 namespace ArcForges.NativeInterop;
 
-public readonly record struct NativeProbeResult(
+internal readonly record struct NativeProbeResult(
     string LibraryName,
     uint AbiMajor,
     uint AbiMinor,
     int Status,
     string BuildInfo);
 
-public static unsafe class NativeSmoke
+internal static unsafe class NativeSmoke
 {
     private const int BufferTooSmall = 1;
     private const int InvalidArgument = -1;
