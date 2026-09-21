@@ -279,17 +279,6 @@ def stage(directory, vcpkg, installed_root):
                 if not system_dependency(dependency):
                     pending.append(dependency)
         owned = selected[entry["library"].lower() + ".dll"]
-        library = ctypes.CDLL(str(runtime / owned['name']), winmode=0x900)
-        class Buffer(ctypes.Structure):
-            _fields_ = [('data', ctypes.c_void_p), ('capacity', ctypes.c_uint64), ('required', ctypes.c_uint64)]
-        probe = getattr(library, entry['prefix'] + '_get_build_info')
-        probe.argtypes = [ctypes.POINTER(Buffer)]
-        probe.restype = ctypes.c_int32
-        output = ctypes.create_string_buffer(4096)
-        buffer = Buffer(ctypes.cast(output, ctypes.c_void_p), len(output), 0)
-        require(probe(ctypes.byref(buffer)) == 0 and buffer.required < len(output), 'Native build identity probe failed.')
-        require(output.raw[:buffer.required].decode('utf-8').endswith(build_identity.native_suffix(identity)),
-                'Native binary build identity differs from the actual producer.')
         require(set(owned["exports"]) == {entry["prefix"] + suffix for suffix in ["_get_abi_version", "_get_build_info", "_get_last_error"]},
                 "Owned native export set differs from the admitted ABI.")
         for original, relative in [(ROOT / entry["header"], "include/arc/" + Path(entry["header"]).name),

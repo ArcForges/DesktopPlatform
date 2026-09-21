@@ -1,5 +1,8 @@
 # Existing native ABI package release
 
+> Historical implementation and evidence. Current CI/local execution is governed by
+> [AGENTS.md](../AGENTS.md) and P2-017; the runtime and package-consumer gates recorded below are no longer required.
+
 ## Scope fixed before implementation
 
 Base: DesktopPlatform `7bdbf6c4656721088081cdf85c9f1ec8d78bc848`. The requested delivery is the

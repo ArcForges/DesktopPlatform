@@ -16,46 +16,35 @@ Windows release. See [scope and validation evidence](../../docs/native-package-r
 
 ## Local and PR candidates
 
-Build/test/install both Windows CMake profiles and stage their audited native payload as described in
-[native producer builds](../../deploy/README.md). Then run from this repository:
+Use existing native dependencies and build/stage the Windows CMake profiles as described in
+[native producer builds](../../deploy/README.md). CI builds/stages native binaries on Windows,
+then performs locked managed build, architecture tests and one package production pass on Linux.
+Source, licence, provenance and security checks precede publication. No macOS outputs are produced.
 
 ```powershell
 dotnet restore DesktopPlatform.slnx --locked-mode
 dotnet build DesktopPlatform.slnx -c Release --no-restore
 dotnet test --project tests/ArchitectureTests/ArcForges.Tests.ArchitectureTests.csproj -c Release --no-build
 python eng/packaging/packages.py pack --version 1.0.0-ci.local.1
-python -m unittest discover -s eng/packaging -p 'test_*.py' -v
+```
+
+Packing validates the native input at its handoff, builds the explicit allowlist and validates
+the completed candidate once. Publication checks the source/version and retained package integrity
+at the credentialed handoff, then pushes those bytes. No public package download or consumer rerun
+is part of completion. The candidate artifact remains `nuget-candidate-<run-id>-<producer-attempt>`.
+
+Use a new empty `--directory` for each candidate; do not overwrite or rebuild a version solely
+for verification. Runtime CTest, P/Invoke, Build.Policy, JIT/AOT and C17 consumer tools remain
+explicit local diagnostics for affected behavior, outside default CI/build/release commands:
+
+```powershell
 python eng/packaging/packages.py smoke --version 1.0.0-ci.local.1
 python eng/packaging/native_consumer.py --version 1.0.0-ci.local.1
 ```
 
-Use a new empty `--directory` for each subsequent candidate and pass it to verification/consumption;
-use `--native-directory` when packing from an alternate staged payload. For guard tests set
-`ARCFORGES_PACKAGE_DIRECTORY` to that candidate directory. The tools reject overwriting candidates.
-Consumers retain temporary directories outside the repository for inspecting projects and lock files.
-
-PR and main CI share one reusable gate, in this order:
-
-1. Compile/test both native profiles, execute producer C# ABI tests, audit dependency/source closure
-   and upload `native-stage-<run-id>-<producer-attempt>`. Source/secret checks run alongside native build.
-2. After native and source gates succeed, download and hash-check that source commit's native artifact.
-   Restore/build/test managed projects, pack the allowlist once, and verify content and negative fixtures.
-3. Consume those exact packages in independent Windows/Linux Build.Policy projects. On Windows, also
-   build/run JIT and Native AOT callers of each native package separately and all four together, link/run
-   a C17 caller from packaged headers/import libraries, and reject wrong RID and missing/tampered DLLs.
-4. The aggregate gate requires every job to succeed. Only the main workflow can then authenticate and
-   upload the same candidate bytes. Failed or skipped prerequisites cannot reach publication.
-
-CI records source commit/version/package SHA256 and native artifact digest in `manifest.json` and tests
-those bytes. Consumers use an empty NuGet cache and source mapping forcing ArcForges
-packages to the candidate feed. Their build/run and negative central-version/compiler/lock fixtures
-must pass. CI retains the candidate as `nuget-candidate-<run-id>-<producer-attempt>` for 30 days.
-Windows also retains consumer projects, locks and the hashed success report as
-`native-consumer-evidence-<run-id>-<attempt>`; a failed run may retain partial fixtures without a success report.
-The producer exports that exact artifact name to consumers and publication, so retrying a consumer
-continues to use the original tested bytes and rebuilding in another attempt has a distinct artifact. These artifacts are
-internal test inputs, not stable public feed availability. Local builds with uncommitted changes are
-only development evidence; public candidates always come from a clean CI checkout.
+These commands reject CI execution. Use the existing local toolchain; do not install tools or
+repeat passing tests to expand coverage. Candidate guard fixtures are offline unit tests, not
+a requirement to download and inspect published packages. See [AGENTS.md](../../AGENTS.md).
 
 ## First-time nuget.org setup
 
@@ -103,7 +92,7 @@ and must run through all gates. Local builds and PR candidates never upload to t
 Duplicate versions fail; there is deliberately no `--skip-duplicate`. NuGet cannot atomically publish
 ten packages. If upload partially succeeds, inspect the registry and retained manifest and re-run all
 jobs to allocate a new complete version; do not promote a partial release set or retry it blindly.
-Retrying only failed consumers before upload keeps the original candidate. A bad published version is superseded by a new
+Retrying a diagnosed failed publication uses the retained candidate. A bad published version is superseded by a new
 version; consumers retain their prior exact version/lock until the upgrade is approved.
 
 ## Consume
@@ -167,9 +156,9 @@ NuGet and npm SDK packages; this repository does not duplicate that schema gener
 ## Admit further capabilities
 
 Add only implemented, verified packages with explicit metadata, version compatibility, licence/source
-closure and a real isolated package consumer. Extend the validator and consumer proof with
+closure and relevant local behavior evidence. Extend the validator for
 that capability. Native capabilities require one explicit managed
 package and matching per-RID runtime package, complete transitive native assets under `runtimes/<rid>/native`,
 ABI/AOT evidence, and NOTICE/SBOM. New content-parsing APIs also require the relevant sandbox acceptance;
-the existing metadata/error queries do not accept untrusted media. New RIDs need native producer and
-real package consumer execution on those targets before admission.
+the existing metadata/error queries do not accept untrusted media. New RIDs need producer builds and honest platform-specific evidence before admission;
+macOS CI and hosted runtime consumers remain prohibited.

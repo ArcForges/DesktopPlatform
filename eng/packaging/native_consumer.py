@@ -29,6 +29,8 @@ def execute(executable, directory, env, failure=False):
 
 
 def consume(directory, version, commit):
+    packages.require(not os.environ.get("GITHUB_ACTIONS") and os.environ.get("CI", "").lower() != "true",
+                     "Native consumers are explicit local diagnostics only; CI execution is prohibited.")
     packages.require(os.name == "nt", "win-x64 native consumers require Windows.")
     manifest = packages.verify(directory, version, commit)
     root = Path(tempfile.mkdtemp(prefix="arcforges-native-consumer-")).resolve()

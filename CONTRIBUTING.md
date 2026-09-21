@@ -4,11 +4,13 @@ Use an isolated `.worktree/` branch and the [README verification commands](READM
 Shared mechanism changes belong here; product rules and business RPC schemas belong to their owners.
 Keep C# 14, C++20, explicit source provenance, committed dependency locks and warnings-as-errors.
 
-PR CI validates the managed solution, package metadata and a clean package consumer on Windows and Linux,
-Windows native CMake/ABI probes, formatting, dependency review and secret scanning. Weekly/manual deep
-checks retain C# CodeQL and Linux native clang-tidy, sanitizers and fuzzers. Native publication is a later
-capability admission with per-RID AOT, licence and dependency evidence, not a consequence of passing probes.
+PR CI compiles/stages Windows native outputs, builds/packages the managed solution on Linux,
+and runs targeted offline architecture/policy tests, formatting, dependency review and secret scanning.
+Weekly/manual Deep check retains C# CodeQL only. No macOS, native runtime, installed-consumer,
+GUI/device/browser or live-service CI is permitted under [AGENTS.md](AGENTS.md).
 
-Run `pre-commit run --all-files`; the Windows `win-slnx-release-x64` pre-push hook checks the independent
-IDE build. Include the actual commands/results and any unverified boundary in the PR description.
-The [packaging guide](eng/packaging/README.md) explains candidate and release flows.
+Run relevant format/static checks once. The independent IDE build and runtime diagnostics are explicit
+local opt-in when affected, never automatic pre-push work. Reuse installed tools and dependencies.
+Include actual results and untested coverage in the PR description. Publication completion uses
+provider status, without public package re-downloads or repeated hash/consumer checks.
+The [packaging guide](eng/packaging/README.md) explains the reduced candidate and release flows.

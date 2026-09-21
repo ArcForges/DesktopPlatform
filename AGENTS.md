@@ -17,3 +17,12 @@ The accepted architecture lives in [ArcForges-Design](https://github.com/ArcForg
   Do not add tracked PowerShell or shell helper scripts.
 - Record what actually ran. A successful package-policy smoke does not prove native capability AOT,
   product behavior, release signing or NuGet publication. Run the checks documented in the README.
+
+## Validation policy (P2-017)
+
+Follow the [current CI/local authority](https://github.com/ArcForges/ArcForges-Design/blob/47db6670a727317939b91245e8c0b288834acf99/docs/assurance/ci-and-local-validation-policy.md).
+- Never add or execute macOS CI, native/runtime/package-consumer execution, GUI, browser, device, live-service or published-package installation tests in any CI trigger or nested build script.
+- Keep necessary Windows/Linux compilation, packaging, targeted offline unit/static checks and non-duplicated security checks. Runtime diagnostics are explicit local opt-in only for affected behavior using existing tools. Do not silently build/test from commit or push hooks.
+- Preserve locks, required signatures, licence/provenance and one identity/integrity check at each real trust handoff. Do not routinely download public artifacts or repeat archive/hash/consumer verification after publication. Narrow FFmpeg licence/configuration and Windows signature inspection remain legal admission checks.
+- Do not reinstall vcpkg, SDKs or toolchains to expand validation. Do not create tags or republish solely for verification. Stop on a network failure and report the exact operation; no proxy configuration, port 7890, wsl.exe or WSL wrappers.
+- Record removed coverage honestly. Review the complete latest PR and merge only after applicable checks succeed. Post-merge work stops after commit/job/publication status and a clean primary fast-forward; retain branches/worktrees.
