@@ -49,6 +49,50 @@ public sealed class RepositoryPolicyTests
     }
 
     [Xunit.Fact]
+    public void ProductionNativeBindingsHaveOneCapabilityOwner()
+    {
+        var owners = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["ArcMediaNative"] = "ArcForges.Native.Media",
+            ["ArcSlateColorNative"] = "ArcForges.Native.Colour",
+            ["ArcSlateImageNative"] = "ArcForges.Native.Image",
+            ["ArcSlateOtioNative"] = "ArcForges.Native.Otio",
+        };
+        var exports = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string file in Files("*.cs").Where(file => Path.GetRelativePath(Root, file)
+            .Replace('\\', '/').StartsWith("src/", StringComparison.Ordinal)))
+        {
+            string source = File.ReadAllText(file);
+            Xunit.Assert.DoesNotMatch(@"\bDllImport\s*\(", source);
+            int declarations = System.Text.RegularExpressions.Regex.Count(source, @"\bLibraryImport\s*\(");
+            int matched = 0;
+            foreach (System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(
+                source, """LibraryImport\("([^"]+)", EntryPoint = "([^"]+)"\)"""))
+            {
+                matched++;
+                string library = match.Groups[1].Value;
+                Xunit.Assert.True(owners.TryGetValue(library, out string? owner), library);
+                Xunit.Assert.Equal(Path.Combine(Root, "src", "Native", owner!), Path.GetDirectoryName(file));
+                Xunit.Assert.True(exports.Add(library + ":" + match.Groups[2].Value), "Duplicate production binding: " + match.Value);
+            }
+
+            Xunit.Assert.Equal(declarations, matched);
+        }
+
+        Xunit.Assert.Equal(12, exports.Count);
+        foreach (string file in Files("*.csproj").Where(file => Path.GetRelativePath(Root, file)
+            .Replace('\\', '/').StartsWith("src/", StringComparison.Ordinal)))
+        {
+            foreach (var reference in XDocument.Load(file).Descendants("ProjectReference"))
+            {
+                string target = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(file)!,
+                    reference.Attribute("Include")!.Value.Replace('\\', Path.DirectorySeparatorChar)));
+                Xunit.Assert.StartsWith(Path.Combine(Root, "src") + Path.DirectorySeparatorChar, target, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+    }
+
+    [Xunit.Fact]
     public void PublishedProjectsAreExplicitAndContainNoPlaceholders()
     {
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "eng", "packaging", "packages.json")));

@@ -1,4 +1,5 @@
 # ArcForges.NativeInterop
 
-Retained DesktopPlatform scaffold; not a published capability.
-See the [repository README](../../../README.md) for ownership and current evidence.
+Retained name-only scaffold; not a published capability. Production native bindings
+belong to ArcForges.Native.Media, Colour, Image and Otio. The independent ABI
+oracle moved to tests/NativeAbiTests/Oracle; production projects cannot consume it.

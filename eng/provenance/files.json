@@ -40,6 +40,7 @@
     "docs/dev-conventions.md",
     "docs/licence-boundary.md",
     "docs/native-package-release.md",
+    "docs/native-reconciliation.md",
     "docs/platform-bootstrap.md",
     "docs/provenance.md",
     "docs/reconciliation-inventory.md",
