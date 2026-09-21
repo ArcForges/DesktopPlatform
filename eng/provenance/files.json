@@ -70,6 +70,7 @@
     "eng/policy/reconciliation/directories.json",
     "eng/policy/reconciliation/historical.json",
     "eng/policy/reconciliation/native.json",
+    "eng/policy/reconciliation/project-updates.json",
     "eng/policy/reconciliation/source.json",
     "eng/policy/reference-baselines.json",
     "eng/policy/reuse-policy.json",
