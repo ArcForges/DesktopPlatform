@@ -56,7 +56,7 @@ authenticated through OIDC and uploaded `ArcForges.Build.Policy` `1.0.0-ci.2.1`.
 ## Automatic publication after main updates
 
 The publication workflow now runs on every push to `main`, including merged PRs. It allocates an
-immutable prerelease version, completes the reusable native/source/package/consumer gate,
+immutable prerelease version, completes the reusable native-build/source/package gate,
 then publishes the tested bytes. No manual release form or approval step is part of the configured
 flow. Independent runs prevent newer merges from replacing queued releases. See the current
 [package production instructions](../eng/packaging/README.md) for numbering, setup and recovery.

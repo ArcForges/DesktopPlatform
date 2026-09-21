@@ -22,7 +22,7 @@ maintained in [ArcForges-Design](https://github.com/ArcForges/ArcForges-Design).
 `eng/policy` contains generated glossary and invariant data from the exact Design
 commit in `design-source.json`. The portable checker compares fresh exports and
 validates document links, scoped citations, occurrence classifications and the
-work-package graph. CI requires these checks on Windows and Linux before packaging.
+work-package graph. CI requires these platform-independent checks once on Linux before packaging.
 
 ```text
 python -m unittest discover -s eng -p test_design_policy.py -v
@@ -55,8 +55,8 @@ python eng/licence_boundary.py --evaluate-managed
 ## Build and verify
 
 Source reuse and the existing native artifact closure are enforced by the
-[provenance records and review process](docs/provenance.md). Windows and Linux CI
-check the real inventory, immutable history and failure tests before packaging.
+[provenance records and review process](docs/provenance.md). Linux policy CI
+checks the real inventory, immutable history and failure tests before packaging.
 
 Install the .NET SDK selected by `global.json` and Python 3.11 or newer. No Mobile/Web workloads are needed.
 
@@ -69,12 +69,12 @@ dotnet test --project tests/ArchitectureTests/ArcForges.Tests.ArchitectureTests.
 CMake 4.3.3, Ninja 1.13.1, sccache and a C++20 compiler are needed only for native producer builds.
 Follow [native prerequisites and commands](deploy/README.md). `win.slnx` additionally builds the native
 Windows projects and stages their DLLs for `NativeAbiTests`; CI uses the independent CMake path.
-After native staging, follow the [complete package verification](eng/packaging/README.md) to pack and
-run independent C#, Native AOT and C17 consumers. See [native package scope and evidence](docs/native-package-release.md).
+After native staging, follow [package production](eng/packaging/README.md). C#, Native AOT and C17
+consumer diagnostics are explicit local opt-in only when an affected behavior needs them. See [native package scope and evidence](docs/native-package-release.md).
 
 The scheduled/manual [Deep check](.github/workflows/deep-check.yml) runs C# CodeQL only.
-C++ verification uses the PR/release native compilation, CMake/CTest, managed ABI tests and isolated
-package consumers; Deep check no longer runs native clang-tidy, sanitizers or fuzzers. To validate the
+C++ CI compiles and stages the Windows native libraries. CTest, managed ABI execution and isolated
+package consumers are local opt-in only; no macOS or hosted runtime testing is permitted. To validate the
 current configuration, use Actions → Deep check → Run workflow and select the desired branch.
 Re-running a historical workflow uses its original commit and can still execute the removed jobs.
 
@@ -84,7 +84,7 @@ Re-running a historical workflow uses its original commit and can still execute 
 NuGet trusted-publisher setup and consumer examples. Only admitted packages are published; shared
 placeholders remain excluded. These runtime packages expose the existing ABI, not future product APIs.
 Every push to `main`, including a merged PR, automatically allocates a prerelease version. Native
-compilation/tests and source checks must finish before packing; isolated package consumers and the
+compilation and source checks must finish before packing; targeted offline checks and the
 aggregate gate must pass before the same package bytes are published to nuget.org through OIDC.
 No manual workflow run, version entry or publish checkbox is required.
 

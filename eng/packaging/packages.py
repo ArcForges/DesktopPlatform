@@ -182,7 +182,7 @@ def pack(directory, package_version, native_directory=ROOT / "artifacts/native-p
             report = {'schema': 'arcforges.build-identity.v1', 'owner': 'DesktopPlatform',
                       'artifact': {'id': entry['id'], 'version': package_version}, 'build': identity, 'axes': axes}
             archive.writestr('build-identity.json', build_identity.canonical(report))
-        digest = inspect(directory / name, entry, package_version, commit)
+        digest = hashlib.sha256((directory / name).read_bytes()).hexdigest()
         packages.append({"id": entry["id"], "version": package_version, "file": name, "sha256": digest})
     native_artifact = (native_directory / "native-artifact.json").read_bytes()
     (directory / "native-artifact.json").write_bytes(native_artifact)
@@ -239,6 +239,8 @@ def verify(directory, package_version, commit=None):
 
 
 def smoke(directory, package_version, commit=None):
+    require(not os.environ.get("GITHUB_ACTIONS") and os.environ.get("CI", "").lower() != "true",
+            "Package consumers are explicit local diagnostics only; CI execution is prohibited.")
     verify(directory, package_version, commit)
     smoke_policy(directory, package_version)
 

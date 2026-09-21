@@ -22,11 +22,15 @@ No third-party library is rewritten or rebuilt to add ArcForges identity.
 
 The source timestamp is commit time, not wall-clock compilation time. Native and managed jobs have
 their own preserved build/run records; a later consumer retry does not manufacture a new identity.
-The ordinary and Native AOT package-only C# consumers retrieve managed assembly and native export
-metadata. The independent C17 caller checks the same native suffix using packaged headers/libraries.
+Optional local ordinary/Native AOT consumers can retrieve managed assembly and native export
+metadata, and the local C17 diagnostic can inspect the suffix. CI does not execute these consumers
+or load owned DLLs during staging. The FFmpeg legal configuration probe remains a narrow licence check.
 
 Run `python -m unittest discover -s eng -p test_build_identity.py -v` for synthetic nine-source mutation,
 invalid/absent axes, duplicate subjects, aliases and real Git identity rejection tests. These mechanism
 fixtures do not assert production implementations for absent axes. Run the README build/architecture
 suite and the packaging guide for actual binary and package evidence. Build-local results and CI/public
 package evidence remain distinct.
+
+Current validation follows [AGENTS.md](../AGENTS.md) and P2-017: no macOS/runtime-consumer CI or
+post-publication download/hash cycle. Historical WP02.04 runtime receipts do not require repetition.

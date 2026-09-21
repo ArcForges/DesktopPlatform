@@ -83,22 +83,18 @@ under the standard triplets named by their presets. The optional macOS shader-to
 app-local for both Debug and Release. The generated test executable therefore runs directly from its output
 directory without native-runtime path or build-mode environment variables.
 
-CI never builds `win.slnx`; the hosted Windows job builds the CMake presets only. The Windows-only
-`win-slnx-release-x64` `pre-push` hook in [.pre-commit-config.yaml](../.pre-commit-config.yaml) builds it as
-`Release|x64` locally, which is what keeps the two Windows entry points from drifting apart. It locates
-MSBuild through `vswhere` and skips itself on non-Windows hosts, so the Ubuntu repository-hooks job is
-unaffected.
+CI builds the Windows CMake presets only. `win.slnx` remains a local IDE entry point;
+its full build is an explicit command when relevant, not an automatic pre-push hook.
+CTest and native ABI execution are local opt-in diagnostics, never CI gates.
 
-Build, test and stage each profile from the configured compiler shell:
+Build and stage each profile from the existing configured compiler shell:
 
 ```powershell
 cmake --preset win-x64-runtime-shared
 cmake --build --preset win-x64-runtime-shared
-ctest --preset win-x64-runtime-shared
 cmake --install artifacts/cmake/win-x64/runtime-shared
 cmake --preset win-x64-shim-static
 cmake --build --preset win-x64-shim-static
-ctest --preset win-x64-shim-static
 cmake --install artifacts/cmake/win-x64/shim-static
 python eng/packaging/native.py stage --vcpkg-root C:/vcpkg
 ```
@@ -107,4 +103,5 @@ The final command audits the PE import/export closure, supplies app-local Visual
 copies licences/SBOMs and matching upstream sources, then seals `artifacts/native-packages` with hashes
 and the source commit. It rejects an existing populated output; use a new `--directory` for another
 development candidate. Continue with [package production](../eng/packaging/README.md). This stage is
-an input to NuGet packing; public upload waits for the independent package consumers as well.
+an input to NuGet packing; public upload waits for the reduced build/static/package gate.
+Run CTest manually only for a relevant native behavior change. No macOS CI is produced.

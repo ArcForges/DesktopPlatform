@@ -70,9 +70,9 @@ They exercise dirty/wrong-pin refusal, preview immutability, deprecated-body exc
 sentence punctuation, same-spelled rules in different documents and the CLI's real
 failure exit/report. A current-corpus pass alone is insufficient.
 
-Both CI platforms run the fixtures and fetch/verify the pinned real corpus before
+The Linux policy job runs these platform-independent fixtures and verifies the pinned corpus before
 package creation. Their full reports are retained as `design-policy-*` artifacts.
-Existing native, managed, independent package-consumer and publication gates remain
-required. Local immutable export verification passed; PR CI, merge and publication
+Native/managed compilation, package and publication checks remain required under P2-017;
+package consumers and native execution are local opt-in only. Local immutable export verification passed; PR CI, merge and publication
 remain pending until the corresponding run artifacts are reviewed. Policy checks
 establish no provider, device, product behavior or commercial activation evidence.
