@@ -34,7 +34,7 @@ def consume(directory, version, commit):
     root = Path(tempfile.mkdtemp(prefix="arcforges-native-consumer-")).resolve()
     packages.require(not root.is_relative_to(packages.ROOT), "Consumer must not inherit producer build files.")
     print("Native consumer evidence: " + str(root), flush=True)
-    env = os.environ.copy()
+    env = {key: value for key, value in os.environ.items() if not key.startswith('GITHUB_')}
     env["NUGET_PACKAGES"] = str(root / ".packages")
     env["NUGET_HTTP_CACHE_PATH"] = str(root / ".http-cache")
     (root / "global.json").write_bytes((packages.ROOT / "global.json").read_bytes())
@@ -53,6 +53,8 @@ def consume(directory, version, commit):
     runtimes = [entry for entry in packages.catalogue() if entry["kind"] == "native"]
     cases = [(entry["library"], [entry]) for entry in runtimes] + [("All", runtimes)]
     evidence = {"sourceCommit": commit, "version": version, "rid": "win-x64", "packages": manifest["packages"], "cases": []}
+    native_build = json.loads((directory / 'native-artifact.json').read_text(encoding='utf-8'))['build']
+    expected_suffix = packages.build_identity.native_suffix(native_build)
     evidence_root = packages.ROOT / "artifacts/native-consumer-evidence"
     evidence_root.mkdir(parents=True, exist_ok=True)
     published = None
@@ -86,6 +88,10 @@ using ArcForges.Native.Abstractions;
             api = f"{name}.{family}Abi"
             program += f'''if ({api}.GetAbiVersion() != new NativeAbiVersion(1, 0)) throw new Exception("ABI mismatch");
 Console.WriteLine({api}.GetBuildInfo());
+if (!{api}.GetBuildInfo().EndsWith({json.dumps(expected_suffix)}, StringComparison.Ordinal)) throw new Exception("Native build identity mismatch");
+var metadata{family} = System.Reflection.CustomAttributeExtensions.GetCustomAttributes<System.Reflection.AssemblyMetadataAttribute>(typeof({api}).Assembly).ToDictionary(a => a.Key, a => a.Value);
+if (metadata{family}["ArcForges.SourceCommit"] != "{commit}" || metadata{family}["ArcForges.BuildId"] != "{manifest['build']['buildId']}" || metadata{family}["ArcForges.PipelineRun"] != "{manifest['build']['pipelineRun'] or 'local'}" || metadata{family}["ArcForges.SourceDateEpoch"] != "{manifest['build']['sourceDateEpoch']}") throw new Exception("Managed build identity mismatch");
+if (System.Reflection.CustomAttributeExtensions.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(typeof({api}).Assembly)?.InformationalVersion.Split('+')[0] != "{version}") throw new Exception("Managed release mismatch");
 if ({api}.GetLastError().Status != NativeStatus.Ok) throw new Exception("Initial error state");
 unsafe {{ uint minor; if (Faults.{family}(null, &minor) != -1) throw new Exception("Invalid argument accepted"); }}
 var error{family} = {api}.GetLastError();
@@ -156,7 +162,7 @@ internal static unsafe partial int {family}(uint* major, uint* minor);
     finally:
         original.write_bytes(content)
     print("PASS: modified native DLL rejected before loading.", flush=True)
-    c_consumer(root, published, runtimes, version, env)
+    c_consumer(root, published, runtimes, version, env, expected_suffix)
     execute(published / "Consumer.exe", root, env)
     evidence["c17"] = {"result": "passed", "exeSha256": hashlib.sha256((published / "ConsumerC.exe").read_bytes()).hexdigest()}
     evidence["rejections"] = ["wrong-rid", "missing-owned-dll", "missing-transitive-dll", "changed-dll"]
@@ -164,7 +170,7 @@ internal static unsafe partial int {family}(uint* major, uint* minor);
     print("Complete packaged native consumer validation passed. Evidence: " + str(root), flush=True)
 
 
-def c_consumer(root, published, entries, version, env):
+def c_consumer(root, published, entries, version, env, expected_suffix):
     source = '#include <stdint.h>\n#include <stdio.h>\n#include <string.h>\n'
     includes = []
     libraries = []
@@ -180,9 +186,10 @@ def c_consumer(root, published, entries, version, env):
   if ({prefix}_get_abi_version(&major, &minor) != ARC_OK || major != 1 || minor != 0) return 1;
   arc_mut_buffer_t query = {{0}};
   if ({prefix}_get_build_info(&query) != ARC_BUFFER_TOO_SMALL || query.required > 4096 || query.required == 0) return 2;
-  char text[4096];
+  char text[4096] = {{0}};
   arc_mut_buffer_t output = {{text, sizeof(text), 0}};
   if ({prefix}_get_build_info(&output) != ARC_OK || output.required != query.required) return 3;
+  if (output.required >= sizeof(text) || strstr(text, {json.dumps(expected_suffix)}) == NULL) return 7;
   if ({prefix}_get_abi_version(NULL, &minor) != ARC_INVALID_ARGUMENT) return 4;
   arc_error_info_t error = {{0}};
   error.struct_size = sizeof(error); error.struct_version = 1;

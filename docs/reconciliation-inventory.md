@@ -13,3 +13,7 @@ Run `python -m unittest discover -s eng -p test_reconciliation.py -v`, then `pyt
 The WP00 receipt supplies the already verified public NuGet/npm/Maven/native/desktop/Web/Android/Cloud/AI evidence. The checker validates its exact hash and source identities, not current registry availability or new runtime behavior. Changes to the inventory require review against actual Git trees and the producing step; do not edit a count to hide a missing entry. The existing runtime, licence and provenance checks remain required. Full contract assignment, shared content review, native surface work, test-family mapping and physical moves remain WP01.01 through WP01.05.
 
 Reviewed implementation changes to an existing DesktopPlatform project use `project-updates.json`: retain the original snapshot blob, record the exact reviewed replacement blob, producing step and merged Design authority. The checker still verifies every original snapshot and rejects other project content drift, new/missing projects and source escapes. WP01.03 records only the NativeAbiTests oracle relocation.
+
+WP02.04 records the reviewed native CMake changes for build-identity generation and explicit target
+dependencies, under Design commit `257f77ce8d476a4efd8746fc0b7e4e6358c32a67`. Original snapshots and
+all unrelated project blobs remain checked.

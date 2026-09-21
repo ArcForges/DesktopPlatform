@@ -82,8 +82,10 @@ class ReconciliationTests(unittest.TestCase):
         reviewed = policy.reviewed_projects(row, updates)
         self.assertEqual(row, original)
         expected = {p['path']:p['blob'] for p in reviewed['projects']}
-        self.assertEqual(expected[updates[0]['path']], updates[0]['reviewedBlob'])
-        self.assertEqual(sum(a != b for a,b in zip(row['projects'],reviewed['projects'])), 1)
+        for update in updates:
+            self.assertEqual(expected[update['path']], update['reviewedBlob'])
+        self.assertEqual({a['path'] for a,b in zip(row['projects'],reviewed['projects']) if a != b},
+                         {update['path'] for update in updates})
         for field,value in [('path','src/Unknown/Unknown.csproj'),('originalBlob','0'*40),
                             ('reviewedBlob',updates[0]['originalBlob']),('repository','Contracts'),
                             ('producer',''),('authorityCommit','invalid')]:

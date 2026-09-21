@@ -10,7 +10,9 @@
         "build/ArcForges.Build.Policy.targets",
         "README.md",
         "LICENSE",
-        "NOTICE.md"
+        "NOTICE.md",
+        "build-identity.json",
+        "build/ArcForges.Build.Metadata.targets"
       ]
     },
     {
@@ -22,7 +24,8 @@
         "lib/net10.0/ArcForges.Native.Abstractions.dll",
         "README.md",
         "LICENSE",
-        "NOTICE.md"
+        "NOTICE.md",
+        "build-identity.json"
       ]
     },
     {
@@ -36,7 +39,8 @@
         "lib/net10.0/ArcForges.Native.Media.dll",
         "README.md",
         "LICENSE",
-        "NOTICE.md"
+        "NOTICE.md",
+        "build-identity.json"
       ]
     },
     {
@@ -50,7 +54,8 @@
         "lib/net10.0/ArcForges.Native.Colour.dll",
         "README.md",
         "LICENSE",
-        "NOTICE.md"
+        "NOTICE.md",
+        "build-identity.json"
       ]
     },
     {
@@ -64,7 +69,8 @@
         "lib/net10.0/ArcForges.Native.Image.dll",
         "README.md",
         "LICENSE",
-        "NOTICE.md"
+        "NOTICE.md",
+        "build-identity.json"
       ]
     },
     {
@@ -78,7 +84,8 @@
         "lib/net10.0/ArcForges.Native.Otio.dll",
         "README.md",
         "LICENSE",
-        "NOTICE.md"
+        "NOTICE.md",
+        "build-identity.json"
       ]
     },
     {
@@ -109,7 +116,8 @@
         "include/arc/arc_media_abi.h",
         "include/arc/arc_native_abi.h",
         "sdk/win-x64/lib/ArcMediaNative.lib",
-        "buildTransitive/ArcForges.Native.Media.Runtime.win-x64.targets"
+        "buildTransitive/ArcForges.Native.Media.Runtime.win-x64.targets",
+        "build-identity.json"
       ]
     },
     {
@@ -138,7 +146,8 @@
         "include/arc/arc_slate_color_abi.h",
         "include/arc/arc_native_abi.h",
         "sdk/win-x64/lib/ArcSlateColorNative.lib",
-        "buildTransitive/ArcForges.Native.Colour.Runtime.win-x64.targets"
+        "buildTransitive/ArcForges.Native.Colour.Runtime.win-x64.targets",
+        "build-identity.json"
       ]
     },
     {
@@ -167,7 +176,8 @@
         "include/arc/arc_slate_image_abi.h",
         "include/arc/arc_native_abi.h",
         "sdk/win-x64/lib/ArcSlateImageNative.lib",
-        "buildTransitive/ArcForges.Native.Image.Runtime.win-x64.targets"
+        "buildTransitive/ArcForges.Native.Image.Runtime.win-x64.targets",
+        "build-identity.json"
       ]
     },
     {
@@ -196,7 +206,8 @@
         "include/arc/arc_slate_otio_abi.h",
         "include/arc/arc_native_abi.h",
         "sdk/win-x64/lib/ArcSlateOtioNative.lib",
-        "buildTransitive/ArcForges.Native.Otio.Runtime.win-x64.targets"
+        "buildTransitive/ArcForges.Native.Otio.Runtime.win-x64.targets",
+        "build-identity.json"
       ]
     }
   ]

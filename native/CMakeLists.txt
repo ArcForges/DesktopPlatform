@@ -10,6 +10,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(ARCFORGES_SHARED_ABI_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/shared/src/arc_native_abi.cpp")
 set(ARCFORGES_SHARED_ABI_PRIVATE_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/shared/src")
+find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+set(_identity_header "${CMAKE_CURRENT_BINARY_DIR}/identity/arc_build_identity.hpp")
+add_custom_target(arcforges_build_identity
+    COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/eng/build_identity.py" --native-header "${_identity_header}"
+    BYPRODUCTS "${_identity_header}"
+    VERBATIM)
+arcforges_declare_target_licence(arcforges_build_identity)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/identity")
 
 function(arcforges_add_abi_fuzzer name library prefix)
     if(NOT ARCFORGES_BUILD_FUZZERS)

@@ -8,6 +8,7 @@ file(GLOB_RECURSE ARCFORGES_SHIM_HEADERS CONFIGURE_DEPENDS
 
 add_library(arcmedia_ffmpeg_abi SHARED ${ARCFORGES_SHIM_SOURCES} ${ARCFORGES_SHIM_HEADERS} ${ARCFORGES_SHARED_ABI_SOURCE})
 arcforges_declare_target_licence(arcmedia_ffmpeg_abi)
+add_dependencies(arcmedia_ffmpeg_abi arcforges_build_identity)
 target_compile_features(arcmedia_ffmpeg_abi PRIVATE cxx_std_20)
 set_target_properties(arcmedia_ffmpeg_abi PROPERTIES
     CXX_EXTENSIONS OFF

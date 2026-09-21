@@ -93,6 +93,8 @@ jobs:
           python-version-file: .python-version
       - name: Reject source, export, citation and dependency drift
         run: python -m unittest discover -s eng -p test_design_policy.py -v
+      - name: Reject aliased version axes and invalid build identities
+        run: python -m unittest discover -s eng -p test_build_identity.py -v
       - name: Verify exports against an isolated immutable Design checkout
         run: python eng/design_policy.py
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

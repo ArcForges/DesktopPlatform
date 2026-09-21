@@ -120,3 +120,6 @@ historical dispositions and planned directory owners to exact source and candida
 Python-running CI jobs select `.python-version`. Install the reviewed hook tooling with `python -m pip install --require-hashes -r eng/requirements-ci.txt`; all transitive tools are exact and hash-verified. After downloading that closure to a wheel directory, `pip install --no-index --find-links <directory> --require-hashes -r eng/requirements-ci.txt` verifies an offline repeat. Dependency updates review the complete closure and hashes.
 
 For ordinary local native compilation, reuse the already installed vcpkg and suitable installed dependencies. Pass the existing installed-root to the build or use ignored local configuration; do not reinstall vcpkg or rebuild working dependencies just for a patch-version difference. The admitted CI candidate still uses the committed producer baseline and provenance. Local compatibility results record the actual tools and do not attest arbitrary local binaries as the publishable candidate.
+
+[Build identity and independent version axes](docs/build-identity.md) documents package reports, compiled
+metadata, runtime retrieval and the distinction between current ABI probes and future product schemas.

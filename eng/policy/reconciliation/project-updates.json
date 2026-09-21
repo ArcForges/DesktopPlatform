@@ -8,5 +8,65 @@
     "authorityCommit": "7abe9bc4c1964a23d5dc3894dbe3a0357ec31a00",
     "authorityPath": "docs/assurance/wp01-03-native-reconciliation-policy.md",
     "reason": "Move the independent native oracle into its test assembly; remove the NativeInterop reference and enable unsafe ABI declarations in the test project."
+  },
+  {
+    "repository": "DesktopPlatform",
+    "path": "native/CMakeLists.txt",
+    "originalBlob": "87000cb87754a69b5f62df1a30652c4212522b3a",
+    "reviewedBlob": "6e4184f8f28696855c0761d016f4f9ecc9b15964",
+    "producer": "WP02.04",
+    "authorityCommit": "257f77ce8d476a4efd8746fc0b7e4e6358c32a67",
+    "authorityPath": "docs/assurance/wp02-04-version-identity-profile.md",
+    "reason": "Generate the source/run identity header before compiling owned native ABI libraries; preserve target ownership, dependency closure and ABI signatures."
+  },
+  {
+    "repository": "DesktopPlatform",
+    "path": "native/arcgraphics-metal-abi/CMakeLists.txt",
+    "originalBlob": "892ac82b793b6d2d8abacae3c44c49bf2879c40c",
+    "reviewedBlob": "bb1954369ace6bb336ccc9ec9e9b534036bbf4e3",
+    "producer": "WP02.04",
+    "authorityCommit": "257f77ce8d476a4efd8746fc0b7e4e6358c32a67",
+    "authorityPath": "docs/assurance/wp02-04-version-identity-profile.md",
+    "reason": "Generate the source/run identity header before compiling owned native ABI libraries; preserve target ownership, dependency closure and ABI signatures."
+  },
+  {
+    "repository": "DesktopPlatform",
+    "path": "native/arcmedia-ffmpeg-abi/CMakeLists.txt",
+    "originalBlob": "c38d3134451034092dc2ea0b31931ae853543814",
+    "reviewedBlob": "2793175aab2a3be9be79dcec8de243fc4dc572ac",
+    "producer": "WP02.04",
+    "authorityCommit": "257f77ce8d476a4efd8746fc0b7e4e6358c32a67",
+    "authorityPath": "docs/assurance/wp02-04-version-identity-profile.md",
+    "reason": "Generate the source/run identity header before compiling owned native ABI libraries; preserve target ownership, dependency closure and ABI signatures."
+  },
+  {
+    "repository": "DesktopPlatform",
+    "path": "native/arcslate-color-abi/CMakeLists.txt",
+    "originalBlob": "eff3fc8659b5e34a2af131d93602e50b297a9cdf",
+    "reviewedBlob": "16757d9aac9cbc7f2cfcc4a764790f6fb0c90b33",
+    "producer": "WP02.04",
+    "authorityCommit": "257f77ce8d476a4efd8746fc0b7e4e6358c32a67",
+    "authorityPath": "docs/assurance/wp02-04-version-identity-profile.md",
+    "reason": "Generate the source/run identity header before compiling owned native ABI libraries; preserve target ownership, dependency closure and ABI signatures."
+  },
+  {
+    "repository": "DesktopPlatform",
+    "path": "native/arcslate-image-abi/CMakeLists.txt",
+    "originalBlob": "19fc63e8d6c563fb3ca86214dabd37be06507834",
+    "reviewedBlob": "bbc5c82721bc49bee518e6eaa9ebeb91f81513f6",
+    "producer": "WP02.04",
+    "authorityCommit": "257f77ce8d476a4efd8746fc0b7e4e6358c32a67",
+    "authorityPath": "docs/assurance/wp02-04-version-identity-profile.md",
+    "reason": "Generate the source/run identity header before compiling owned native ABI libraries; preserve target ownership, dependency closure and ABI signatures."
+  },
+  {
+    "repository": "DesktopPlatform",
+    "path": "native/arcslate-otio-abi/CMakeLists.txt",
+    "originalBlob": "966e3702b40213f530e8dff8bf91eccd58e74578",
+    "reviewedBlob": "d0149927067c6183d7a709d688dbed3f3b35eaa7",
+    "producer": "WP02.04",
+    "authorityCommit": "257f77ce8d476a4efd8746fc0b7e4e6358c32a67",
+    "authorityPath": "docs/assurance/wp02-04-version-identity-profile.md",
+    "reason": "Generate the source/run identity header before compiling owned native ABI libraries; preserve target ownership, dependency closure and ABI signatures."
   }
 ]

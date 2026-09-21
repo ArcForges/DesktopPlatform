@@ -114,6 +114,24 @@ class PackageGuards(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Missing upstream licence/source"):
             packages.verify(target, manifest["version"], manifest["sourceCommit"])
 
+    def test_changed_axis_rejected_after_rehashing_archive(self):
+        def tamper(files, _):
+            report = json.loads(files['build-identity.json'])
+            report['axes']['NativeAbiVersion']['values'][0]['version'] = '9.0'
+            files['build-identity.json'] = json.dumps(report).encode()
+        target, manifest = self.mutate_native(tamper)
+        with self.assertRaisesRegex(ValueError, 'independent sources'):
+            packages.verify(target, manifest['version'], manifest['sourceCommit'])
+
+    def test_changed_run_rejected_after_rehashing_archive(self):
+        def tamper(files, _):
+            report = json.loads(files['build-identity.json'])
+            report['build']['buildId'] = 'incorrect'
+            files['build-identity.json'] = json.dumps(report).encode()
+        target, manifest = self.mutate_native(tamper)
+        with self.assertRaisesRegex(ValueError, 'identity'):
+            packages.verify(target, manifest['version'], manifest['sourceCommit'])
+
 
 if __name__ == "__main__":
     unittest.main()
