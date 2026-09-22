@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 import unittest
 
-from dependency_policy import ROOT, POLICY, audit, check_admission, check_history, closure, exact, framework_upgrade
+from dependency_policy import ROOT, POLICY, audit, check_admission, check_history, check_python, closure, exact, framework_upgrade, python_closure
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'packaging'))
 from release_channels import selected, verified_tag
 
@@ -50,6 +50,17 @@ class AdmissionTests(unittest.TestCase):
         self.policy['publisher']['repository'] = 'someone/DesktopPlatform'
         with self.assertRaisesRegex(ValueError, 'Wrong publisher'):
             check_admission(self.policy, self.actual)
+
+    def test_python_licence_and_immutable_hashes(self):
+        actual = python_closure(ROOT)
+        row = next(iter(self.policy['pythonClosure'].values()))
+        row['licence'] = 'GPL-3.0-only'
+        with self.assertRaisesRegex(ValueError, 'Forbidden Python'):
+            check_python(self.policy, actual)
+        row['licence'] = 'MIT'
+        row['hashes'] = ['0' * 64]
+        with self.assertRaisesRegex(ValueError, 'Mutable Python'):
+            check_python(self.policy, actual)
 
     def test_major_upgrade_requires_runtime_assessment(self):
         before = {'frameworkVersions': {'dotnetSdk': '10.0.400'}}

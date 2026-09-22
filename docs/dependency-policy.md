@@ -1,7 +1,7 @@
 # Dependency admission and deliberate releases
 
 `eng/policy/dependency-policy.json` admits the exact current NuGet lock closure and
-binds normalized source hashes of manifests, locks, projects and native/source
+admits the exact hash-required Python hook-tool closure and binds normalized source hashes of manifests, locks, projects and native/source
 provenance records. The cached NuGet nuspec expressions and their hashes record
 the reviewed metadata; no restore or public artifact download is part of this
 offline policy check. Existing provenance, native licence/configuration, package

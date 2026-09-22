@@ -83,14 +83,48 @@ def check_admission(policy, actual):
             'Missing native/source gate')
 
 
+def python_closure(root):
+    result, current = {}, None
+    for line in (root / 'eng/requirements-ci.txt').read_text().splitlines():
+        if not line.strip() or line.startswith('#'):
+            continue
+        match = re.fullmatch(r'([A-Za-z0-9_-]+)==([^\s]+)\s*\\?', line)
+        if match:
+            exact(match[2])
+            current = match[1].lower().replace('_', '-') + '/' + match[2]
+            require(current not in result, 'Duplicate Python requirement')
+            result[current] = []
+        else:
+            match = re.fullmatch(r'\s+--hash=sha256:([0-9a-f]{64})\s*\\?', line)
+            require(match and current, 'Floating Python requirement or missing checksum')
+            result[current].append(match[1])
+    require(result and all(result.values()), 'Incomplete Python checksum closure')
+    return {key: sorted(value) for key, value in result.items()}
+
+
+def check_python(policy, actual):
+    require(set(policy['pythonClosure']) == set(actual), 'Unadmitted Python closure')
+    for key, hashes in actual.items():
+        row = policy['pythonClosure'][key]
+        require(row['hashes'] == hashes, 'Mutable Python coordinate: ' + key)
+        require(row['licence'] in {'MIT', 'BSD-3-Clause', 'PSF-2.0'}, 'Forbidden Python licence')
+        require(row['evidence'] and all(re.fullmatch('[0-9a-f]{64}', e['sha256']) and e['source']
+                                      for e in row['evidence']), 'Missing Python licence evidence')
+
+
 def check_history(policy, receipts):
-    seen = {}
+    seen, python = {}, {}
     for receipt in receipts:
         for key, row in receipt['nugetClosure'].items():
             require(key not in seen or seen[key] == row['contentHash'], 'Historical immutable version changed: ' + key)
             seen[key] = row['contentHash']
+        for key, row in receipt['pythonClosure'].items():
+            require(key not in python or python[key] == row['hashes'], 'Historical Python coordinate changed: ' + key)
+            python[key] = row['hashes']
     for key, row in policy['nugetClosure'].items():
         require(key not in seen or seen[key] == row['contentHash'], 'Historical immutable version changed: ' + key)
+    for key, row in policy['pythonClosure'].items():
+        require(key not in python or python[key] == row['hashes'], 'Historical Python coordinate changed: ' + key)
 
 
 def framework_upgrade(previous, current):
@@ -114,7 +148,7 @@ def history(root, policy):
     paths = [p for p in files(root) if p.startswith(prefix) and p.endswith('.json')]
     require(policy['reviewReceipt'] in paths, 'Missing immutable review receipt')
     receipt = json.loads((root / policy['reviewReceipt']).read_text())
-    require(receipt == {'review': policy['review'], 'nugetClosure': policy['nugetClosure']}, 'Active receipt mismatch')
+    require(receipt == {key: policy[key] for key in ['review', 'nugetClosure', 'pythonClosure']}, 'Active receipt mismatch')
     receipts, visited, current = [], set(), policy['reviewReceipt']
     while current is not None:
         require(current in paths and current not in visited, 'Invalid review predecessor chain')
@@ -136,6 +170,7 @@ def audit(root=ROOT, stable=False):
     require(policy['inputHashes'] == hashes(root), 'Dependency inputs changed; record reviewed upgrade evidence')
     actual = closure(root)
     check_admission(policy, actual)
+    check_python(policy, python_closure(root))
     history(root, policy)
     config = ET.parse(root / 'NuGet.config')
     require([(e.get('key'), e.get('value')) for e in config.findall('./packageSources/add')]
@@ -149,6 +184,7 @@ def audit(root=ROOT, stable=False):
     if stable:
         require(all('-' not in key.rsplit('/', 1)[1] for key in actual), 'Stable closure contains prerelease')
     return {'result': 'passed', 'repository': 'DesktopPlatform', 'dependencies': len(actual),
+            'pythonToolDependencies': len(policy['pythonClosure']),
             'inputs': len(policy['inputHashes']), 'stable': stable,
             'nativeAndSourceEvidence': 'Existing independent native/provenance gates remain required'}
 
