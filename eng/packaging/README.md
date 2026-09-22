@@ -61,9 +61,9 @@ using the NuGet account that owns the packages. No long-lived API key is needed.
 | Permissions | Publish new packages and new versions |
 | GitHub repository variable `NUGET_USER` | Your NuGet profile username, not email |
 
-Create the GitHub `nuget` environment, restrict deployments to `main`, and leave required reviewers and
+Create the GitHub `nuget` environment, restrict deployments to `main` and `v*` tags, and leave required reviewers and
 wait timers unset for unattended publication. The workflow independently rejects publication outside
-pushes to this repository's main branch, rejects a missing or placeholder `NUGET_USER` before expensive
+pushes to this repository's main branch or canonical stable tags on main ancestry, rejects a missing or placeholder `NUGET_USER` before expensive
 work, and requests `id-token: write` only in the publish job. PR candidate validation needs no NuGet
 account. These account settings are external prerequisites; committing YAML does not configure them.
 
@@ -71,17 +71,18 @@ account. These account settings are external prerequisites; committing YAML does
 
 Every push to `ArcForges/DesktopPlatform` `main`, including a merged PR, automatically starts
 **Publish NuGet**. There is no manual dispatch form, version input or publish checkbox. PRs, other
-branches and tags do not publish; PR CI continues to produce and verify internal candidates.
+branches do not publish; deliberate canonical `vX.Y.Z` tags publish `X.Y.Z` after tag/source and main-ancestry checks; PR CI continues to produce and verify internal candidates.
 
 The workflow allocates `1.0.0-ci.<workflow-run-number>.<run-attempt>` once before build, for example
 `1.0.0-ci.3.1`, then `1.0.0-ci.4.1`. GitHub owns the counter; no version commit or tag is written back
 to the repository. The counter continues from earlier runs of this workflow, and failed runs can leave
 gaps. Re-running all jobs uses the new attempt suffix. Retrying only failed downstream jobs retains
-the already allocated version and producer artifact. This remains a prerelease stream; changing the
-`1.0.0` release line or stable-release policy requires changing the workflow through a reviewed PR.
+the already allocated version and producer artifact. Main remains a prerelease stream. Stable tags
+select the exact stable version before building and reject prerelease dependency closures. Never create
+a tag solely for verification. See [dependency admission](../../docs/dependency-policy.md).
 
-Each main push runs independently with its own immutable version, so a later merge cannot cancel or
-replace a pending publication. The run performs the complete gate above on the merged commit. Only after all candidate jobs
+Main and stable-tag publications share one non-cancelling queue, so a later merge cannot cancel or
+replace a pending publication. Each main push retains its own immutable version. The run performs the complete gate above on the merged commit. Only after all candidate jobs
 succeed does it obtain an OIDC credential and upload those exact `.nupkg` bytes. The summary records
 the version and source commit. The account must own or be allowed to create each admitted package ID.
 NuGet validation and indexing follow upload; a successful push does not mean search/restore is already

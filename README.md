@@ -86,7 +86,8 @@ placeholders remain excluded. These runtime packages expose the existing ABI, no
 Every push to `main`, including a merged PR, automatically allocates a prerelease version. Native
 compilation and source checks must finish before packing; targeted offline checks and the
 aggregate gate must pass before the same package bytes are published to nuget.org through OIDC.
-No manual workflow run, version entry or publish checkbox is required.
+No manual workflow run, version entry or publish checkbox is required for main candidates.
+Deliberate canonical stable tags use the same gated pipeline; see [dependency admission](docs/dependency-policy.md).
 
 Contracts is a separate repository with handwritten proto as the business RPC authority. It also owns
 schema validation, compatibility checks, generators and generated SDK packaging:

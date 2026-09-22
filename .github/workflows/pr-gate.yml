@@ -116,6 +116,10 @@ jobs:
         with:
           cmakeVersion: '4.3.3'
           ninjaVersion: '1.13.1'
+      - name: Verify reviewed dependency closure and publication refusal fixtures
+        run: |
+          python eng/dependency_policy.py
+          python -m unittest discover -s eng -p test_dependency_policy.py -v
       - name: Reject incomplete declarations and invalid reference graphs
         run: python -m unittest discover -s eng -p test_licence_boundary.py -v
       - name: Verify actual managed build declarations
@@ -215,7 +219,7 @@ jobs:
       - name: Verify actual source inventory and active native registrations
         shell: pwsh
         run: |
-          python eng/check_provenance.py --owner DesktopPlatform
+          python eng/check_provenance.py --owner DesktopPlatform --base "${{ startsWith(github.ref, 'refs/tags/') && github.sha || '' }}"
           if ($LASTEXITCODE) { throw 'Source provenance check failed.' }
           python eng/native_provenance.py
           if ($LASTEXITCODE) { throw 'Native provenance registration failed.' }

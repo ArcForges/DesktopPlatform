@@ -132,7 +132,8 @@ def pack(directory, package_version, native_directory=ROOT / "artifacts/native-p
     require(not list(directory.glob("*.nupkg")) and not (directory / "manifest.json").exists(),
             "Output already contains a candidate; choose a new empty --directory, never overwrite tested bytes.")
     run("python", str(ROOT / "eng/licence_boundary.py"))
-    audit = native.native_provenance.provenance.run(ROOT, "DesktopPlatform")
+    audit = native.native_provenance.provenance.run(ROOT, "DesktopPlatform",
+        base=os.environ.get("GITHUB_SHA") if os.environ.get("GITHUB_REF", "").startswith("refs/tags/") else None)
     require(not audit["dirty"], "Commit reviewed changes before producing source-bound NuGet candidates.")
     commit = source_commit()
     native.verify_stage(native_directory, commit)
