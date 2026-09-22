@@ -26,3 +26,9 @@ Follow the [current CI/local authority](https://github.com/ArcForges/ArcForges-D
 - Preserve locks, required signatures, licence/provenance and one identity/integrity check at each real trust handoff. Do not routinely download public artifacts or repeat archive/hash/consumer verification after publication. Narrow FFmpeg licence/configuration and Windows signature inspection remain legal admission checks.
 - Do not reinstall vcpkg, SDKs or toolchains to expand validation. Do not create tags or republish solely for verification. Stop on a network failure and report the exact operation; no proxy configuration, port 7890, wsl.exe or WSL wrappers.
 - Record removed coverage honestly. Review the complete latest PR and merge only after applicable checks succeed. Post-merge work stops after commit/job/publication status and a clean primary fast-forward; retain branches/worktrees.
+
+## Dependency admission (WP02.05)
+
+- Keep `eng/policy/dependency-policy.json` bound to the complete actual dependency inputs. A dependency or framework change requires a reviewed replacement receipt, closure/licence and maintenance review and every upgrade checklist item. Hash refresh alone is insufficient.
+- Preserve existing source/native provenance and public/internal import gates. Stable closures cannot import prerelease dependencies; only recorded exact foundation candidates are permitted in development.
+- Framework major upgrades require explicit runtime/AOT/trim and affected Android Kotlin/JVM/ART/R8 assessment under VG-08. Record conditional local coverage honestly without adding forbidden CI or provisioning tools.

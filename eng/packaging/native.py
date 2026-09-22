@@ -236,7 +236,8 @@ def owned_build_tools(profile, installed_root, root=ROOT):
 def stage(directory, vcpkg, installed_root):
     require(os.name == "nt", "Windows native staging must run on the Windows producer.")
     require(not directory.exists() or not any(directory.iterdir()), "Native stage already exists; choose a new empty directory.")
-    audit = native_provenance.provenance.run(ROOT, "DesktopPlatform")
+    audit = native_provenance.provenance.run(ROOT, "DesktopPlatform",
+        base=os.environ.get("GITHUB_SHA") if os.environ.get("GITHUB_REF", "").startswith("refs/tags/") else None)
     require(not audit["dirty"], "Commit reviewed changes before producing a source-bound native artifact.")
     profile = native_provenance.profile()
     build_tools = owned_build_tools(profile, installed_root)
