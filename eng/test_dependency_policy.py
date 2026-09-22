@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 import unittest
 
-from dependency_policy import ROOT, POLICY, audit, check_admission, check_history, closure, exact
+from dependency_policy import ROOT, POLICY, audit, check_admission, check_history, closure, exact, framework_upgrade
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'packaging'))
 from release_channels import selected, verified_tag
 
@@ -50,6 +50,15 @@ class AdmissionTests(unittest.TestCase):
         self.policy['publisher']['repository'] = 'someone/DesktopPlatform'
         with self.assertRaisesRegex(ValueError, 'Wrong publisher'):
             check_admission(self.policy, self.actual)
+
+    def test_major_upgrade_requires_runtime_assessment(self):
+        before = {'frameworkVersions': {'dotnetSdk': '10.0.400'}}
+        after = {'frameworkVersions': {'dotnetSdk': '11.0.100'}}
+        with self.assertRaisesRegex(ValueError, 'framework major'):
+            framework_upgrade(before, after)
+        after['frameworkMajorReview'] = {'changed': ['dotnetSdk'], 'owner': 'Architecture owner',
+            'nativeAotTrim': 'fixture', 'nativeAbi': 'fixture', 'androidKotlinArtR8': 'fixture', 'localCoverage': 'not run: fixture'}
+        framework_upgrade(before, after)
 
     def test_review_cannot_authorize_rewriting_an_existing_version(self):
         old = copy.deepcopy(self.policy)

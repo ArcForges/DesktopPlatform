@@ -32,7 +32,7 @@ def files(root):
 
 def inputs(root):
     return [p for p in files(root) if p.endswith(('.csproj', '.props', '.targets', 'packages.lock.json'))
-            or p in {'global.json', 'NuGet.Config', '.python-version', 'eng/requirements-ci.txt',
+            or p in {'global.json', 'NuGet.config', '.python-version', 'eng/requirements-ci.txt',
                      'eng/native-toolchain.json', 'eng/packaging/packages.json', 'vcpkg.json',
                      'vcpkg-configuration.json'}
             or p.startswith(('eng/native/vcpkg/', 'eng/provenance/artifact-profiles/',
@@ -93,6 +93,17 @@ def check_history(policy, receipts):
         require(key not in seen or seen[key] == row['contentHash'], 'Historical immutable version changed: ' + key)
 
 
+def framework_upgrade(previous, current):
+    changes = {key for key, value in current['frameworkVersions'].items()
+               if key in previous['frameworkVersions'] and
+               value.split('.')[0] != previous['frameworkVersions'][key].split('.')[0]}
+    if changes:
+        assessment = current.get('frameworkMajorReview', {})
+        require(set(assessment.get('changed', [])) == changes and assessment.get('owner')
+                and all(assessment.get(key) for key in ['nativeAotTrim', 'nativeAbi', 'androidKotlinArtR8', 'localCoverage']),
+                'Missing framework major runtime-posture review')
+
+
 def history(root, policy):
     from check_provenance import baseline, git
     base = baseline(root, os.environ.get('GITHUB_SHA') if os.environ.get('GITHUB_REF', '').startswith('refs/tags/') else None)
@@ -104,7 +115,19 @@ def history(root, policy):
     require(policy['reviewReceipt'] in paths, 'Missing immutable review receipt')
     receipt = json.loads((root / policy['reviewReceipt']).read_text())
     require(receipt == {'review': policy['review'], 'nugetClosure': policy['nugetClosure']}, 'Active receipt mismatch')
-    check_history(policy, [json.loads((root / path).read_text()) for path in paths])
+    receipts, visited, current = [], set(), policy['reviewReceipt']
+    while current is not None:
+        require(current in paths and current not in visited, 'Invalid review predecessor chain')
+        visited.add(current)
+        item = json.loads((root / current).read_text())
+        receipts.insert(0, item)
+        current = item['review']['previousReceipt']
+    require(visited == set(paths), 'Dropped historical review from chain')
+    require(policy['review']['frameworkVersions'] == {'dotnetSdk': json.loads((root / 'global.json').read_text())['sdk']['version']},
+            'Framework selection does not match review')
+    for before, after in zip(receipts, receipts[1:]):
+        framework_upgrade(before['review'], after['review'])
+    check_history(policy, receipts)
 
 
 def audit(root=ROOT, stable=False):
@@ -114,7 +137,7 @@ def audit(root=ROOT, stable=False):
     actual = closure(root)
     check_admission(policy, actual)
     history(root, policy)
-    config = ET.parse(root / 'NuGet.Config')
+    config = ET.parse(root / 'NuGet.config')
     require([(e.get('key'), e.get('value')) for e in config.findall('./packageSources/add')]
             == [('nuget.org', policy['publisher']['feed'])], 'Untrusted restore feed')
     for name in inputs(root):

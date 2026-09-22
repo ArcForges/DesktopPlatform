@@ -6,6 +6,7 @@
     "Directory.Build.props": "5755571e24d77ac71c2acee2d14e511b308269d84fc8b01ef6be19cdf08fa418",
     "Directory.Build.targets": "f38a795efa407c99b0190316cbfece23d0e84d179b5ec63ba88257746412a917",
     "Directory.Packages.props": "f272ea30477a252562e648a8e53380e9e39eae5ee5f8c6670675066e24187c0b",
+    "NuGet.config": "274d3bbf1913f74ace4d77a96223ea744018536aca462b58b6283ac94cfc2f07",
     "eng/build/desktop-aot.props": "eda4a383b69a800f73e7bb4572e0695d33012ff275c4f27436caea2b11d276ef",
     "eng/build/desktop-rids.props": "83f9c4d73353858171cf959b773cfb833afe08f522ce44356dcd27f8aeb2e357",
     "eng/native/vcpkg/ports/opentimelineio/patches/0001-python-off-do-not-require-pybind11.patch": "e919261d941ace1e4a311783e43e6113b1fad76041fd9aaac2665d9af603e383",
@@ -442,6 +443,7 @@
       "Directory.Build.props": "5755571e24d77ac71c2acee2d14e511b308269d84fc8b01ef6be19cdf08fa418",
       "Directory.Build.targets": "f38a795efa407c99b0190316cbfece23d0e84d179b5ec63ba88257746412a917",
       "Directory.Packages.props": "f272ea30477a252562e648a8e53380e9e39eae5ee5f8c6670675066e24187c0b",
+      "NuGet.config": "274d3bbf1913f74ace4d77a96223ea744018536aca462b58b6283ac94cfc2f07",
       "eng/build/desktop-aot.props": "eda4a383b69a800f73e7bb4572e0695d33012ff275c4f27436caea2b11d276ef",
       "eng/build/desktop-rids.props": "83f9c4d73353858171cf959b773cfb833afe08f522ce44356dcd27f8aeb2e357",
       "eng/native/vcpkg/ports/opentimelineio/patches/0001-python-off-do-not-require-pybind11.patch": "e919261d941ace1e4a311783e43e6113b1fad76041fd9aaac2665d9af603e383",
@@ -624,7 +626,11 @@
       "tests/ArchitectureTests/packages.lock.json": "e2090c8b97e17e0ec5899d8819ac16997a6e0e1df1f3b545c55e5cb39d823168",
       "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj": "81a1022efb59721ac50a5df024bed99736f8633dbfb7aff3c4cb7b9b49a22cfe",
       "tests/NativeAbiTests/packages.lock.json": "5affbe5a36928cc0cb9c2916d0f001f133b101523419cac181304aa091b57095"
-    }
+    },
+    "frameworkVersions": {
+      "dotnetSdk": "10.0.400"
+    },
+    "previousReceipt": null
   },
   "reviewReceipt": "eng/policy/dependency-reviews/wp02-05-r1.json"
 }
