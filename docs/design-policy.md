@@ -73,6 +73,17 @@ failure exit/report. A current-corpus pass alone is insufficient.
 The Linux policy job runs these platform-independent fixtures and verifies the pinned corpus before
 package creation. Their full reports are retained as `design-policy-*` artifacts.
 Native/managed compilation, package and publication checks remain required under P2-017;
-package consumers and native execution are local opt-in only. Local immutable export verification passed; PR CI, merge and publication
-remain pending until the corresponding run artifacts are reviewed. Policy checks
+package consumers and native execution are local opt-in only. Local immutable export verification passed before merge; WP00 is accepted in the Design
+[WP00 stage acceptance](https://github.com/ArcForges/ArcForges-Design/blob/7e56614ced01a12c84eb2047071d14399249ee90/docs/assurance/wp00-stage-acceptance.md). Policy checks
 establish no provider, device, product behavior or commercial activation evidence.
+
+## Delivery model (P2-018)
+
+[P2-018](https://github.com/ArcForges/ArcForges-Design-B/blob/fd16c5f285de0bda2d0320cdff4d52c34c9098ed/docs/decisions/phase-2-specification-decisions.md#rule-p2-018) replaces the numbered serial
+sequence with the [delivery graph](https://github.com/ArcForges/ArcForges-Design-B/blob/fd16c5f285de0bda2d0320cdff4d52c34c9098ed/docs/planning/delivery/README.md). This checker still validates the
+retired package-level forward and reverse graphs, package header dependencies, topological order and serial
+execution line, so it cannot accept a Design commit that contains P2-018. Keep the pin at a pre-P2-018 commit,
+which remains valid for the glossary and invariant exports, until the governance task `GOV.14` replaces the
+graph check with the delivery-graph validation specified in the
+[design policy export](https://github.com/ArcForges/ArcForges-Design-B/blob/fd16c5f285de0bda2d0320cdff4d52c34c9098ed/docs/architecture/29-design-policy-export.md). DesktopPlatform then moves the pin
+through the normal reviewed refresh above. The P2-018 alignment changed no checker code, pin or export.
