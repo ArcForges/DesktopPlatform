@@ -79,11 +79,11 @@ establish no provider, device, product behavior or commercial activation evidenc
 
 ## Delivery model (P2-018)
 
-[P2-018](https://github.com/ArcForges/ArcForges-Design-B/blob/fd16c5f285de0bda2d0320cdff4d52c34c9098ed/docs/decisions/phase-2-specification-decisions.md#rule-p2-018) replaces the numbered serial
-sequence with the [delivery graph](https://github.com/ArcForges/ArcForges-Design-B/blob/fd16c5f285de0bda2d0320cdff4d52c34c9098ed/docs/planning/delivery/README.md). This checker still validates the
+[P2-018](https://github.com/ArcForges/ArcForges-Design-B/blob/f8dff2d0144c7db020d35711d606334639dd078b/docs/decisions/phase-2-specification-decisions.md#rule-p2-018) replaces the numbered serial
+sequence with the [delivery graph](https://github.com/ArcForges/ArcForges-Design-B/blob/f8dff2d0144c7db020d35711d606334639dd078b/docs/planning/delivery/README.md). This checker still validates the
 retired package-level forward and reverse graphs, package header dependencies, topological order and serial
 execution line, so it cannot accept a Design commit that contains P2-018. Keep the pin at a pre-P2-018 commit,
 which remains valid for the glossary and invariant exports, until the governance task `GOV.14` replaces the
 graph check with the delivery-graph validation specified in the
-[design policy export](https://github.com/ArcForges/ArcForges-Design-B/blob/fd16c5f285de0bda2d0320cdff4d52c34c9098ed/docs/architecture/29-design-policy-export.md). DesktopPlatform then moves the pin
+[design policy export](https://github.com/ArcForges/ArcForges-Design-B/blob/f8dff2d0144c7db020d35711d606334639dd078b/docs/architecture/29-design-policy-export.md). DesktopPlatform then moves the pin
 through the normal reviewed refresh above. The P2-018 alignment changed no checker code, pin or export.
