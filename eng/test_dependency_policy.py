@@ -8,7 +8,7 @@ import unittest
 
 from dependency_policy import ROOT, POLICY, audit, check_admission, check_history, check_python, closure, exact, framework_upgrade, python_closure
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'packaging'))
-from release_channels import selected, verified_tag
+from release_channels import authorized, bound_candidate, publication, selected, verified_tag
 
 
 class AdmissionTests(unittest.TestCase):
@@ -105,6 +105,68 @@ class AdmissionTests(unittest.TestCase):
         self.assertEqual(seen, ['a' * 40])
         with self.assertRaisesRegex(ValueError, 'tag target'):
             verified_tag('refs/tags/v1.2.3', 'b' * 40, resolve, seen.append)
+
+    PUBLISHER = {'GITHUB_REPOSITORY': 'ArcForges/DesktopPlatform', 'GITHUB_EVENT_NAME': 'push',
+                 'GITHUB_SHA': 'a' * 40, 'GITHUB_REF': 'refs/heads/main', 'GITHUB_RUN_ID': '9001',
+                 'GITHUB_RUN_NUMBER': '24', 'GITHUB_RUN_ATTEMPT': '1'}
+
+    @staticmethod
+    def candidate(version, producer_attempt, run_id='9001'):
+        return {'version': version, 'sourceCommit': 'a' * 40,
+                'build': {'runId': run_id, 'runAttempt': str(producer_attempt)}}
+
+    def test_publication_keeps_the_allocated_candidate_across_supported_retries(self):
+        seen = []
+        # Initial execution: preflight allocates in attempt 1 and the same attempt publishes it.
+        env = dict(self.PUBLISHER)
+        version = selected(env, seen.append)
+        self.assertEqual(version, '1.0.0-ci.24.1')
+        self.assertEqual(publication(env, version, self.candidate(version, 1), 'nuget-candidate-9001-1', seen.append),
+                         ('1.0.0-ci.24.1', 1, 1))
+        # Failed-jobs-only retry: preflight is not re-run, so attempt 2 publishes the retained allocation,
+        # whether the producer artifact is retained from attempt 1 or packing was re-run in attempt 2.
+        retry = {**env, 'GITHUB_RUN_ATTEMPT': '2'}
+        self.assertEqual(publication(retry, version, self.candidate(version, 1), 'nuget-candidate-9001-1', seen.append),
+                         ('1.0.0-ci.24.1', 1, 1))
+        self.assertEqual(publication(retry, version, self.candidate(version, 2), 'nuget-candidate-9001-2', seen.append),
+                         ('1.0.0-ci.24.1', 1, 2))
+        # Re-running all jobs is an intentional new candidate: preflight allocates the new attempt suffix.
+        rerun = {**env, 'GITHUB_RUN_ATTEMPT': '3'}
+        fresh = selected(rerun, seen.append)
+        self.assertEqual(fresh, '1.0.0-ci.24.3')
+        self.assertEqual(publication(rerun, fresh, self.candidate(fresh, 3), 'nuget-candidate-9001-3', seen.append),
+                         ('1.0.0-ci.24.3', 3, 3))
+        # Stable tags select the tag version in every attempt.
+        tag = {**retry, 'GITHUB_REF': 'refs/tags/v1.2.3'}
+        self.assertEqual(publication(tag, '1.2.3', self.candidate('1.2.3', 1), 'nuget-candidate-9001-1', seen.append),
+                         ('1.2.3', None, 1))
+        self.assertEqual(seen, ['a' * 40])
+
+    def test_publication_rejects_mismatched_candidate_identities(self):
+        seen = []
+        env = {**self.PUBLISHER, 'GITHUB_RUN_ATTEMPT': '2'}
+        for expected in ('1.0.0-ci.23.1', '1.0.0-ci.24.3', '1.0.0-ci.24', '1.0.0-ci.24.0', '1.0.0-ci.024.1',
+                         '1.0.0-ci.24.1.1', '1.0.0-ci.24.1-rc', '1.2.3', '', None):
+            with self.subTest(expected=expected), self.assertRaisesRegex(ValueError, 'does not match publisher identity'):
+                authorized(env, expected, seen.append)
+        with self.assertRaisesRegex(ValueError, 'does not match publisher identity'):
+            authorized({**env, 'GITHUB_REF': 'refs/tags/v1.2.3'}, '1.2.4', seen.append)
+        version, good = '1.0.0-ci.24.1', self.candidate('1.0.0-ci.24.1', 2)
+        cases = [
+            ('other version', dict(good, version='1.0.0-ci.24.2'), 'nuget-candidate-9001-2', 'version and source'),
+            ('other source', dict(good, sourceCommit='b' * 40), 'nuget-candidate-9001-2', 'version and source'),
+            ('other run', self.candidate(version, 2, run_id='9000'), 'nuget-candidate-9000-2', 'this workflow run'),
+            ('no producer', dict(good, build={}), 'nuget-candidate-9001-2', 'this workflow run'),
+            ('future producer', self.candidate(version, 3), 'nuget-candidate-9001-3', 'outside its allocation'),
+            ('artifact of another attempt', good, 'nuget-candidate-9001-1', 'artifact name'),
+            ('artifact of another run', good, 'nuget-candidate-9000-2', 'artifact name'),
+            ('unbound latest artifact', good, 'nuget-candidate-latest', 'artifact name'),
+        ]
+        for label, manifest, artifact, message in cases:
+            with self.subTest(label), self.assertRaisesRegex(ValueError, message):
+                bound_candidate(env, version, 1, manifest, artifact)
+        with self.assertRaisesRegex(ValueError, 'outside its allocation'):
+            bound_candidate(env, '1.0.0-ci.24.2', 2, self.candidate('1.0.0-ci.24.2', 1), 'nuget-candidate-9001-1')
 
 
 if __name__ == '__main__':
