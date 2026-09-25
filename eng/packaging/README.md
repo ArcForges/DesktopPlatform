@@ -77,7 +77,12 @@ The workflow allocates `1.0.0-ci.<workflow-run-number>.<run-attempt>` once befor
 `1.0.0-ci.3.1`, then `1.0.0-ci.4.1`. GitHub owns the counter; no version commit or tag is written back
 to the repository. The counter continues from earlier runs of this workflow, and failed runs can leave
 gaps. Re-running all jobs uses the new attempt suffix. Retrying only failed downstream jobs retains
-the already allocated version and producer artifact. Main remains a prerelease stream. Stable tags
+the already allocated version and producer artifact. Publication therefore authorizes that retained
+candidate instead of deriving a version from its own attempt: the version must carry this run number
+and an allocation attempt no later than the current attempt, and the downloaded manifest and artifact
+name must name this commit, this run and a producing attempt between the allocation and the current
+attempt. An artifact from another run, attempt or candidate is rejected; there is no latest-artifact
+selection. Main remains a prerelease stream. Stable tags
 select the exact stable version before building and reject prerelease dependency closures. Never create
 a tag solely for verification. See [dependency admission](../../docs/dependency-policy.md).
 
@@ -93,7 +98,9 @@ and must run through all gates. Local builds and PR candidates never upload to t
 Duplicate versions fail; there is deliberately no `--skip-duplicate`. NuGet cannot atomically publish
 ten packages. If upload partially succeeds, inspect the registry and retained manifest and re-run all
 jobs to allocate a new complete version; do not promote a partial release set or retry it blindly.
-Retrying a diagnosed failed publication uses the retained candidate. A bad published version is superseded by a new
+Retrying a diagnosed failed publication (re-run failed jobs) uses the retained candidate and its version;
+re-running all jobs deliberately builds and publishes a new candidate. A re-run always executes the
+workflow of the original commit, so a fix to publication tooling applies only to runs of later commits. A bad published version is superseded by a new
 version; consumers retain their prior exact version/lock until the upgrade is approved.
 
 ## Consume

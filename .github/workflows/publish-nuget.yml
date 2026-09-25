@@ -66,8 +66,12 @@ jobs:
       - name: Recheck source identity, allowlist, contents and hashes before authentication
         env:
           PACKAGE_VERSION: ${{ needs.candidate.outputs.version }}
+          ARTIFACT_NAME: ${{ needs.candidate.outputs.artifact_name }}
         run: |
-          python eng/packaging/release_channels.py --expected-version "$PACKAGE_VERSION"
+          # Authorize the candidate allocated for this run (retained by a failed-jobs-only retry) and bind
+          # the downloaded manifest and artifact name to it; never re-derive a version from this attempt.
+          python eng/packaging/release_channels.py --expected-version "$PACKAGE_VERSION" \
+            --manifest artifacts/packages/manifest.json --artifact-name "$ARTIFACT_NAME"
           python eng/packaging/packages.py verify --version "$PACKAGE_VERSION" --commit "$GITHUB_SHA"
       - name: Exchange GitHub OIDC identity for a short-lived NuGet API key
         id: login

@@ -19,7 +19,8 @@ Relevant runtime diagnostics remain local and conditional on existing tools;
 missing coverage is recorded honestly. No toolchain installation is implied.
 
 Main publishes exact `1.0.0-ci.RUN.ATTEMPT` candidates to nuget.org through the
-existing trusted publisher. Deliberate canonical `vX.Y.Z` tags may publish `X.Y.Z`
+existing trusted publisher; ATTEMPT is the attempt that allocated the candidate, which a
+failed-jobs-only retry keeps and publication verifies instead of re-deriving. Deliberate canonical `vX.Y.Z` tags may publish `X.Y.Z`
 only when the tagged commit belongs to main history. The `nuget` environment
 must permit main and `v*` tags; the portable guard rejects noncanonical tags,
 other repositories/events and stable closures containing prerelease packages.
