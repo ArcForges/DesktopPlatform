@@ -21,16 +21,22 @@ class SecretScanAllowlistTests(unittest.TestCase):
     POLICY_PATH = 'eng/policy/dependency-policy.json'
     RECEIPT_PATH = 'eng/policy/dependency-reviews/plt-40-r1.json'
     PLT44_RECEIPT_PATH = 'eng/policy/dependency-reviews/plt-44-r1.json'
+    PLT46_RECEIPT_PATH = 'eng/policy/dependency-reviews/plt-46-r1.json'
     RECEIPT_DIRECTORY_PATH_REGEX = '^eng/policy/dependency-reviews/[A-Za-z0-9._-]+[.]json$'
     ANY_RECEIPT_DESCRIPTION = 'Exact mirrored Security.Secrets project lines in any dependency-review receipt'
     PROJECT_PATHS = (
         'src/BuildingBlocks/ArcForges.Security.Secrets/ArcForges.Security.Secrets.csproj',
         'src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj',
     )
+    # Historical digests, allowlisted by the PLT.40 groups; committed receipts keep them forever.
     PROJECT_HASHES = (
         '8ff03fdcaf23b09386fac47dd5e3e4f9689a665a569137f726456c9e59a9ecef',
         'd6798bbbcf980fab4467c6d831871b075e55aeef6e09c7df67c4d72cd2334120',
     )
+    # Active ArcForges.Security.Secrets.csproj digest after the PLT.46 IsPackable flip (S52(2)).
+    ACTIVE_PROJECT_HASH = '7282dd206f5ca9cb59fe8d02e9423ac7080857fba03bd0ccff54410b4e2b6bff'
+    PLT46_DESCRIPTION = 'Exact PLT.46 successor Security.Secrets project input lines'
+    PLT46_PATHS = (POLICY_PATH, PLT46_RECEIPT_PATH)
 
     @classmethod
     def setUpClass(cls):
@@ -60,8 +66,9 @@ class SecretScanAllowlistTests(unittest.TestCase):
     def test_allowlist_has_only_the_exact_path_bound_task_groups(self):
         self.assertTrue(self.config['extend']['useDefault'])
         self.assertNotIn('allowlist', self.config)
-        self.assertEqual(len(self.groups), 4)
-        baseline, *task_groups = self.groups
+        self.assertEqual(len(self.groups), 5)
+        baseline, *task_groups, plt46 = self.groups
+        self.assertEqual(plt46['description'], self.PLT46_DESCRIPTION)
         self.assertEqual(baseline['description'], 'Generated outputs and public test fixtures')
         self.assertEqual(baseline['paths'], [
             '(^|/)artifacts/',
@@ -98,6 +105,114 @@ class SecretScanAllowlistTests(unittest.TestCase):
             for project_path, digest in zip(self.PROJECT_PATHS, self.PROJECT_HASHES)
         })
         self.assertEqual(len(any_receipt['regexes']), 2)
+
+    def _any_receipt_group(self):
+        (group,) = [group for group in self.groups if group.get('description') == self.ANY_RECEIPT_DESCRIPTION]
+        return group
+
+    def _plt46_group(self):
+        (group,) = [group for group in self.groups if group.get('description') == self.PLT46_DESCRIPTION]
+        return group
+
+    def _active_lines(self):
+        return [self._line(self.PROJECT_PATHS[0], self.ACTIVE_PROJECT_HASH, indent) for indent in (4, 6)]
+
+    def test_plt46_group_is_the_exact_successor_project_digest_block(self):
+        group = self._plt46_group()
+        self.assertIs(group, self.groups[-1])
+        self.assertEqual(set(group), {'description', 'paths', 'regexTarget', 'targetRules', 'condition', 'regexes'})
+        self.assertEqual(group['paths'], [
+            '^eng/policy/dependency-policy[.]json$',
+            '^eng/policy/dependency-reviews/plt-46-r1[.]json$',
+        ])
+        self.assertEqual(group['targetRules'], ['generic-api-key'])
+        self.assertEqual(group['condition'], 'AND')
+        self.assertEqual(group['regexTarget'], 'line')
+        self.assertEqual(group['regexes'], [self._exact_regex(line) for line in self._active_lines()])
+        self.assertNotEqual(self.ACTIVE_PROJECT_HASH, self.PROJECT_HASHES[0])
+        self.assertRegex(self.ACTIVE_PROJECT_HASH, '^[0-9a-f]{64}$')
+        # The earlier groups keep only the historical digests: the active digest widens none of them.
+        for earlier in self.groups[:-1]:
+            for pattern in earlier.get('regexes', ()):
+                self.assertNotIn(self.ACTIVE_PROJECT_HASH, pattern)
+
+    def test_plt46_group_allows_only_the_active_lines_in_its_two_paths(self):
+        group = self._plt46_group()
+        for path in self.PLT46_PATHS:
+            for line in self._active_lines():
+                with self.subTest(path=path, line=line):
+                    self.assertTrue(self._matches(group, path, line))
+                    self.assertTrue(self._matches(group, path, '\n' + line))
+                    self.assertTrue(self._allowed(path, line))
+                    self.assertFalse(self._matches(group, path, line, 'another-rule'))
+                    self.assertFalse(self._allowed(path, line, 'another-rule'))
+                    self.assertFalse(self._matches(group, path, '\n\n' + line))
+                    self.assertFalse(self._matches(group, path, line + '\n'))
+                    self.assertFalse(self._matches(group, path, ' ' + line))
+            # The historical project and tests lines are not part of the PLT.46 block.
+            for project_path, digest in zip(self.PROJECT_PATHS, self.PROJECT_HASHES):
+                for indent in (4, 6):
+                    with self.subTest(path=path, historical=project_path, indent=indent):
+                        self.assertFalse(self._matches(group, path, self._line(project_path, digest, indent)))
+
+    def test_plt46_positive_controls_still_fire(self):
+        project_path, tests_path = self.PROJECT_PATHS
+        active = self.ACTIVE_PROJECT_HASH
+        other_digests = (
+            'a' * 64,
+            '0123456789abcdef' * 4,
+            active[:-1] + ('0' if active[-1] != '0' else '1'),
+            active[1:] + active[0],
+        )
+        # Same key with another 64-hex digest in the same file still fires.
+        for path in self.PLT46_PATHS:
+            for digest in other_digests:
+                for indent in (4, 6):
+                    with self.subTest(path=path, digest=digest, indent=indent):
+                        self.assertFalse(self._allowed(path, self._line(project_path, digest, indent)))
+        # The same line under another path still fires.
+        for path in (
+            self.RECEIPT_PATH,
+            self.PLT44_RECEIPT_PATH,
+            'eng/policy/dependency-reviews/nat-11-r1.json',
+            'eng/policy/dependency-reviews/plt-46-r2.json',
+            'eng/policy/dependency-reviews/plt-46-r1.json.bak',
+            'eng/policy/dependency-reviews/sub/plt-46-r1.json',
+            'x/eng/policy/dependency-reviews/plt-46-r1.json',
+            'x/eng/policy/dependency-policy.json',
+            'eng/policy/dependency-policy.json.bak',
+            'eng/policy/other.json',
+            'eng/policy/reconciliation/active-projects.json',
+            'src/BuildingBlocks/ArcForges.Security.Secrets/README.md',
+            'README.md',
+        ):
+            for line in self._active_lines():
+                with self.subTest(rejected_path=path, line=line):
+                    self.assertFalse(self._allowed(path, line))
+                    self.assertFalse(self._allowed(path, '\n' + line))
+        # Swapped keys, altered keys, trailing text and other indentation still fire.
+        valid = self._line(project_path, active, 4)
+        for path in self.PLT46_PATHS:
+            for line in (
+                self._line(tests_path, active, 4),
+                self._line(tests_path, active, 6),
+                valid.replace(project_path, project_path.replace('.csproj', '.other')),
+                valid.replace('ArcForges.Security.Secrets/', 'ArcForges.Security.Audit/'),
+                valid + ' credential=example-not-a-secret',
+                valid[:-1],
+                self._line(project_path, active, 2),
+                self._line(project_path, active, 5),
+                self._line(project_path, active, 8),
+                '\n' + valid + '\n' + valid,
+                valid.replace(active, active.upper()),
+            ):
+                with self.subTest(path=path, line=line):
+                    self.assertFalse(self._allowed(path, line))
+
+    def test_actual_secrets_project_digest_is_allowlisted(self):
+        actual = hashes(ROOT)
+        self.assertIn(actual[self.PROJECT_PATHS[0]], (self.PROJECT_HASHES[0], self.ACTIVE_PROJECT_HASH))
+        self.assertEqual(actual[self.PROJECT_PATHS[1]], self.PROJECT_HASHES[1])
 
     def test_exact_six_observed_lines_match_only_the_generic_api_key_rule(self):
         policy_lines = [
@@ -143,7 +258,7 @@ class SecretScanAllowlistTests(unittest.TestCase):
             'eng/policy/dependency-reviews/plt-09-r1.json',
             'eng/policy/dependency-reviews/future-task.r2.json',
         )
-        group = self.groups[-1]
+        group = self._any_receipt_group()
         for path in receipts:
             with self.subTest(path=path):
                 for line in lines:
@@ -171,13 +286,15 @@ class SecretScanAllowlistTests(unittest.TestCase):
 
     def test_actual_receipts_carry_only_allowlisted_secrets_project_lines(self):
         directory = ROOT / 'eng/policy/dependency-reviews'
-        lines = {
+        historical = {
             self._line(path, digest, 6)
             for path, digest in zip(self.PROJECT_PATHS, self.PROJECT_HASHES)
         }
+        active = self._line(self.PROJECT_PATHS[0], self.ACTIVE_PROJECT_HASH, 6)
         found = 0
-        for receipt in sorted(directory.glob('*.json')):
+        for receipt in sorted(directory.glob('*.json'), key=lambda item: item.name.encode('utf-8')):
             relative = receipt.relative_to(ROOT).as_posix()
+            lines = historical | ({active} if relative == self.PLT46_RECEIPT_PATH else set())
             for line in receipt.read_text(encoding='utf-8').split('\n'):
                 if any(project in line for project in self.PROJECT_PATHS):
                     found += 1
