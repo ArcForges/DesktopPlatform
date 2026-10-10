@@ -124,7 +124,7 @@
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security.Secrets/ArcForges.Security.Secrets.csproj",
-      "blob": "a7ffa7b5cb74ae2e1a06e36bfe90601f3e05fa83"
+      "blob": "1722246268601a25e67166df49f50aff5097646d"
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
@@ -132,11 +132,11 @@
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security/ArcForges.Security.csproj",
-      "blob": "6fa763b2351dd3c38064e876e2a1f226da03aa69"
+      "blob": "5a699369e7f331c3b56332db52db0ed5434bbe68"
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security/CapabilityEnforcement/ArcForges.Security.CapabilityEnforcement.csproj",
-      "blob": "7d6bf7b7b5819ea151b1c423116bd829d2f0681c"
+      "blob": "f430cf4b6dc9651100548dec7505115d44d5d640"
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security/LocalRpcBoundary/ArcForges.Security.LocalRpcBoundary.csproj",
@@ -224,7 +224,7 @@
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security.Audit/ArcForges.Security.Audit.csproj",
-      "blob": "9eec88db5a70b056c6e6078fad57df82f8ea3e11"
+      "blob": "7c8e15b726481527fce20ab63cbb5912e2607122"
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security.Audit/Tests/ArcForges.Security.Audit.Tests.csproj",

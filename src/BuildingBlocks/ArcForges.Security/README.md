@@ -1,6 +1,8 @@
 # Principals and actor-chain provenance (PLT.36)
 
-This nonpackable mechanism constructs a complete, immutable actor chain at an
+Packaged as `ArcForges.Security` (package admission: PLT.46).
+
+This mechanism constructs a complete, immutable actor chain at an
 entry point and carries it explicitly. Identity evidence does not authenticate a
 caller or authorize an operation. Agent profiles are configuration, never human
 principals. Delegated execution retains the human owner and each intervening actor.
@@ -296,8 +298,8 @@ Not provided here and not claimed:
 
 ## Capability enforcement gate (PLT.57)
 
-`ArcForges.Security.CapabilityEnforcement` is a separate non-packable nested project (it references only `ArcForges.Security`
-and `ArcForges.Capabilities`, adds no package, version, native code, runtime owner or wire schema, and neither of the two
+`ArcForges.Security.CapabilityEnforcement` is a separate nested project and its own package (it references only `ArcForges.Security`
+and `ArcForges.Capabilities`, adds no package dependency, version, native code, runtime owner or wire schema, and neither of the two
 existing projects references it). It attaches the decision pipeline to the invocation pipeline and changes neither: resolve,
 availability, context freezing, the idempotency journal and tracing stay in `CapabilityInvocationPipeline`. It supplies exactly
 two things to it.

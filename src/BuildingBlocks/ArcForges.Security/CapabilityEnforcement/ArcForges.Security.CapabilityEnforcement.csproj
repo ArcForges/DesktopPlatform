@@ -4,12 +4,17 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>ArcForges.Security.CapabilityEnforcement</AssemblyName>
     <RootNamespace>ArcForges.Security.CapabilityEnforcement</RootNamespace>
-    <IsPackable>false</IsPackable>
+    <IsPackable>true</IsPackable>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Security decision gate attached to the capability invocation pipeline.</Description>
     <IsAotCompatible>true</IsAotCompatible>
     <LicenceBoundary>AGPL</LicenceBoundary>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../../../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="../../../../NOTICE.md" Pack="true" PackagePath="/" />
     <ProjectReference Include="../ArcForges.Security.csproj" />
     <ProjectReference Include="../../ArcForges.Capabilities/ArcForges.Capabilities.csproj" />
   </ItemGroup>
