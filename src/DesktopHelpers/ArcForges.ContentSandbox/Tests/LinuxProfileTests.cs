@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+using ArcForges.ContentSandbox.Broker;
 using ArcForges.ContentSandbox.Broker.Linux;
 using ArcForges.ContentSandbox.Contracts;
 using ArcForges.ContentSandbox.Host;
+using ArcForges.ContentSandbox.Native;
 using Xunit;
 
 namespace ArcForges.ContentSandbox.Tests;
@@ -211,5 +213,43 @@ public sealed class LinuxProfileTests
         Assert.Equal(4, LinuxLaunchPlan.TargetPlan(1).Count);
         var environment = LinuxLaunchPlan.Environment(new ContentSandboxLimits { MaxMemoryBytes = 512UL * 1024 * 1024 });
         Assert.Equal(["DOTNET_gcServer=0", "DOTNET_GCHeapHardLimit=20000000"], environment);
+    }
+
+    [Fact]
+    public void ARefusingStepIsNamedFromAClosedListWithItsErrorNumberAndNothingElse()
+    {
+        Assert.Equal(
+            ["seccomp-architecture", "no-new-privs", "landlock-abi", "landlock-ruleset", "landlock-rule", "landlock-tsync", "seccomp-tsync", "no-new-privs-readback"],
+            LinuxProfileSteps.Applied);
+        Assert.Equal(["socket", "ptrace", "execve", "open-outside", "open-outside-pool", "open-outside-new-thread"], LinuxProfileSteps.Probed);
+        var all = LinuxProfileSteps.Applied.Concat(LinuxProfileSteps.Probed).ToList();
+        Assert.Equal(all.Count, all.Distinct(StringComparer.Ordinal).Count());
+        Assert.All(all, step => Assert.Matches("^[a-z]+(-[a-z]+)*$", step));
+
+        // The kernel that refuses multithread Landlock answers EINVAL (22): that is the line the parent sees before exit 70.
+        Assert.Equal("isolation: landlock-tsync refused (22)", LinuxProfileSteps.Refused(LinuxProfileSteps.LandlockTsync, 22));
+        Assert.Equal("isolation: seccomp-architecture refused (0)", LinuxProfileSteps.Refused(LinuxProfileSteps.Architecture, 0));
+        Assert.Equal("isolation: socket was not denied (0)", LinuxProfileSteps.NotDenied(LinuxProfileSteps.Socket, 0));
+        Assert.Equal("isolation: open-outside-pool was not denied (2)", LinuxProfileSteps.NotDenied(LinuxProfileSteps.OpenOutsidePool, 2));
+        Assert.Equal(
+            "isolation: open-outside-new-thread was not denied (no-answer)",
+            LinuxProfileSteps.NotDenied(LinuxProfileSteps.OpenOutsideNewThread, LinuxProfileSteps.NoAnswer));
+
+        // Every line is short, one line of printable ASCII, and survives the parent's bounding of the helper output unchanged.
+        var lines = LinuxProfileSteps.Applied.Select(step => LinuxProfileSteps.Refused(step, int.MaxValue))
+            .Concat(LinuxProfileSteps.Probed.Select(step => LinuxProfileSteps.NotDenied(step, int.MaxValue)))
+            .ToList();
+        Assert.All(lines, line =>
+        {
+            Assert.True(line.Length <= 80, line);
+            Assert.Matches("^isolation: [a-z-]+ (refused|was not denied) \\(([0-9]+|no-answer)\\)$", line);
+            Assert.Equal(line, HelperText.Sanitise(line));
+        });
+
+        // A name outside the list, a probe given as an applied step (and the reverse) and a differently cased name are refused.
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => LinuxProfileSteps.Refused(LinuxProfileSteps.Socket, 1));
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => LinuxProfileSteps.NotDenied(LinuxProfileSteps.LandlockTsync, 22));
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => LinuxProfileSteps.Refused("/etc/passwd", 2));
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => LinuxProfileSteps.Refused("LANDLOCK-TSYNC", 22));
     }
 }

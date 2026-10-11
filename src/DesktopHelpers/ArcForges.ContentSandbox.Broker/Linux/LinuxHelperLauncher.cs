@@ -139,7 +139,7 @@ internal sealed class LinuxHelperLauncher : IContentSandboxProcessLauncher
                     [3] = Raise(control.Child, owned),
                     [4] = Raise(service.Child, owned),
                 };
-                var inputFd = CreateMemory(request.Input.Length, owned, out var inputStream);
+                var inputFd = LinuxSealedMemory.Create(request.Input.Length, owned, out var inputStream);
                 using (inputStream)
                 {
                     await inputStream.WriteAsync(request.Input, cancellationToken).ConfigureAwait(false);
@@ -151,7 +151,7 @@ internal sealed class LinuxHelperLauncher : IContentSandboxProcessLauncher
                 for (var index = 0; index < request.SlotCapacities.Count; index++)
                 {
                     var capacity = request.SlotCapacities[index];
-                    var slotFd = CreateMemory(capacity, owned, out var slotStream);
+                    var slotFd = LinuxSealedMemory.Create(capacity, owned, out var slotStream);
                     var file = MemoryMappedFile.CreateFromFile(slotStream, null, capacity, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, leaveOpen: false);
                     _slots.Add(new MappedSlot(file, capacity));
                     childFds[6 + index] = Raise(slotFd, owned);
@@ -273,40 +273,6 @@ internal sealed class LinuxHelperLauncher : IContentSandboxProcessLauncher
             return moved;
         }
 
-        private static int CreateMemory(long length, List<int> owned, out FileStream stream)
-        {
-            var name = Marshal.StringToCoTaskMemUTF8("arcforges-content");
-            int descriptor;
-            try
-            {
-                descriptor = LinuxNative.MemfdCreate(name, LinuxNative.MemfdCloseOnExec | LinuxNative.MemfdAllowSealing);
-            }
-            finally
-            {
-                Marshal.FreeCoTaskMem(name);
-            }
-
-            if (descriptor < 0)
-            {
-                throw new IOException("A memory-backed file could not be created.", Marshal.GetLastPInvokeError());
-            }
-
-            _ = owned;
-            stream = new FileStream(new SafeFileHandle(descriptor, ownsHandle: true), FileAccess.ReadWrite, 1, false);
-            stream.SetLength(length);
-
-            // The helper holds a read-write descriptor of every output slot: without these seals it could shrink one and the parent's copy would
-            // fault. Shrinking and growing are refused for good; writes through the mapping stay possible (and are never trusted).
-            if (LinuxNative.Fcntl(descriptor, LinuxNative.FAddSeals, LinuxNative.SealShrink | LinuxNative.SealGrow | LinuxNative.SealSeal) != 0)
-            {
-                var error = Marshal.GetLastPInvokeError();
-                stream.Dispose();
-                throw new IOException("A memory-backed file could not be sealed.", error);
-            }
-
-            return descriptor;
-        }
-
         private unsafe int Spawn(HelperStartRequest request, Dictionary<int, int> plan)
         {
             var actions = (nint)NativeMemory.AllocZeroed(512);
@@ -424,5 +390,49 @@ internal sealed class LinuxHelperLauncher : IContentSandboxProcessLauncher
                 // The other end closed with the process.
             }
         }
+    }
+}
+
+/// <summary>
+/// The memory-backed files of the Linux launch profile (the input and every slot), sealed against shrinking and growing before the child exists.
+/// It is the production code the launcher uses, kept apart so the opt-in Linux checks observe the same seals the helper is given.
+/// </summary>
+[SupportedOSPlatform("linux")]
+[SuppressMessage("Reliability", "CA2000", Justification = "The stream owns the descriptor and is handed to the caller, or disposed on the failure path.")]
+internal static class LinuxSealedMemory
+{
+    /// <summary>Creates a close-on-exec memory file of the given length sealed with SHRINK, GROW and SEAL; the stream owns the returned descriptor.</summary>
+    internal static int Create(long length, List<int> owned, out FileStream stream)
+    {
+        var name = Marshal.StringToCoTaskMemUTF8("arcforges-content");
+        int descriptor;
+        try
+        {
+            descriptor = LinuxNative.MemfdCreate(name, LinuxNative.MemfdCloseOnExec | LinuxNative.MemfdAllowSealing);
+        }
+        finally
+        {
+            Marshal.FreeCoTaskMem(name);
+        }
+
+        if (descriptor < 0)
+        {
+            throw new IOException("A memory-backed file could not be created.", Marshal.GetLastPInvokeError());
+        }
+
+        _ = owned;
+        stream = new FileStream(new SafeFileHandle(descriptor, ownsHandle: true), FileAccess.ReadWrite, 1, false);
+        stream.SetLength(length);
+
+        // The helper holds a read-write descriptor of every output slot: without these seals it could shrink one and the parent's copy would
+        // fault. Shrinking and growing are refused for good; writes through the mapping stay possible (and are never trusted).
+        if (LinuxNative.Fcntl(descriptor, LinuxNative.FAddSeals, LinuxNative.SealShrink | LinuxNative.SealGrow | LinuxNative.SealSeal) != 0)
+        {
+            var error = Marshal.GetLastPInvokeError();
+            stream.Dispose();
+            throw new IOException("A memory-backed file could not be sealed.", error);
+        }
+
+        return descriptor;
     }
 }
