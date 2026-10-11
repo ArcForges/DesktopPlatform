@@ -49,7 +49,7 @@ internal static partial class Program
             if (args.Length > 0 && args[0] == "--verify-unix-peer-pid-backends")
             {
                 VerifyUnixPeerPidBackends();
-                Console.WriteLine("PASS: Linux SO_PEERCRED and macOS SOL_LOCAL/LOCAL_PEERPID dispatch; unsupported platforms fail closed.");
+                Console.WriteLine("PASS: Linux SO_PEERCRED dispatch; unsupported platforms fail closed; the Darwin SOL_LOCAL/LOCAL_PEERPID selector branch is macOS, which is not supported and never claimed (P2-023).");
                 return 0;
             }
 
@@ -73,7 +73,7 @@ internal static partial class Program
     {
         if (!OperatingSystem.IsWindows() && !OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
         {
-            throw new PlatformNotSupportedException("The peer-process probe supports Windows named pipes and Linux/macOS Unix-domain sockets.");
+            throw new PlatformNotSupportedException("The peer-process probe supports Windows named pipes and Linux Unix-domain sockets; macOS is not supported and never claimed (P2-023).");
         }
 
         var executable = Environment.ProcessPath

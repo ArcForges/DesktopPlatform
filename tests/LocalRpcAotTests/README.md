@@ -20,11 +20,12 @@ dotnet publish tests/LocalRpcAotTests/LocalRpcAotTests.csproj -c Release -r linu
 ./artifacts/prf-04/linux-x64/LocalRpcAotTests
 ```
 
-The runtime peer-PID proof supports Windows Named Pipes, Linux Unix-domain
-sockets (`SO_PEERCRED`), and macOS Unix-domain sockets (`SOL_LOCAL` /
-`LOCAL_PEERPID`). Apple publishes those macOS socket-option values in its
-XNU `<sys/un.h>` header (`SOL_LOCAL=0`, `LOCAL_PEERPID=0x002`):
-[Apple XNU header](https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/bsd/sys/un.h#L81-L89).
+The runtime peer-PID proof supports Windows Named Pipes and Linux Unix-domain
+sockets (`SO_PEERCRED`). macOS is not supported and never claimed (P2-023).
+The source still contains a Darwin `SOL_LOCAL` / `LOCAL_PEERPID` selector
+branch (Apple XNU `<sys/un.h>`: `SOL_LOCAL=0`, `LOCAL_PEERPID=0x002`,
+[Apple XNU header](https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/bsd/sys/un.h#L81-L89));
+it is unexercised code, not a supported platform and not evidence.
 The parent starts owner A and peer B, authenticates them in both directions,
 then stops B while A's process, owner-session ID, and server remain alive. It
 restarts B at the same endpoint with the same installation ID but a fresh
@@ -54,7 +55,8 @@ The runtime checks use the published Native AOT executable itself as the
 parent, client, server, and worker. The test does not substitute an in-memory
 transport or TCP. CI's Windows/Linux matrix proves locked restore and AOT
 compilation only; local runtime evidence must identify the actual OS and RID.
-The `--verify-unix-peer-pid-backends` mode checks the Linux/macOS dispatch and
-the unsupported-platform fail-closed case without opening sockets; it is not a
-substitute for the required local process-to-process run on macOS. Record an
-actual macOS run only when one has been performed on a macOS host.
+The `--verify-unix-peer-pid-backends` mode checks the pure backend selector
+(the Linux `SO_PEERCRED` route, the retained Darwin selector branch and the
+unsupported-platform fail-closed case) without opening sockets. It is not a
+runtime proof for any platform. macOS is not supported and never claimed
+(P2-023): no macOS run is required, recorded or claimed.
