@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.IO.MemoryMappedFiles;
 using System.IO.Pipes;
 using System.Net;
 using System.Net.Sockets;
@@ -263,9 +264,17 @@ internal static class HostileAttacks
             "input-write" => InputWritable(),
             "env" => Environment(),
             "identity" => Identity(),
+            "signal" when line.Length >= 3 && TryNumber(line[2], out var pid) => LinuxAttacks.Signal(pid),
+            "proc-mem" when line.Length >= 3 && TryNumber(line[2], out var pid) => LinuxAttacks.ProcessMemory(pid),
+            "map-write" when line.Length >= 3 && TryNumber(line[2], out var descriptor) => LinuxAttacks.MapWritable(descriptor),
+            "resize" when line.Length >= 3 && TryNumber(line[2], out var descriptor) => LinuxAttacks.Resize(descriptor),
+            "open-threads" when line.Length >= 3 => LinuxAttacks.OpenFromEveryKindOfThread(string.Join(' ', line.Skip(2))),
             _ => "attack:DENIED:unknown",
         };
     }
+
+    private static bool TryNumber(string text, out int value) =>
+        int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
 
     private static string ReadFile(string path)
     {
@@ -387,4 +396,181 @@ internal static class HostileAttacks
     }
 
     private static string Identity() => OperatingSystem.IsWindows() ? WindowsIdentityReport() : "identity:INFO:NotApplicable";
+}
+
+/// <summary>
+/// The Linux variants of the attacks: each but the writable mapping makes the raw system call through the helper's own
+/// <see cref="LinuxNative.Syscall"/> binding (no new binding), so what is observed is the kernel's answer (Landlock, seccomp, the descriptor's
+/// access mode or a memory seal) and not a managed library's choice. A report is <c>name:DENIED:&lt;errno or cause&gt;</c> or
+/// <c>name:ALLOWED:&lt;detail&gt;</c>; on another operating system it is <c>name:DENIED:NotApplicable</c>. The same functions run unconfined in
+/// the opt-in Linux checks, where they must report ALLOWED, so a denial inside the helper is never a probe that cannot succeed.
+/// </summary>
+[SuppressMessage("Design", "CA1031", Justification = "TEST ONLY: every attack reports its own failure as a denial.")]
+internal static class LinuxAttacks
+{
+    private const int SeekEnd = 2;
+    private const int AtFdCwd = -100;
+    private const int OpenCloseOnExec = 0x80000;
+    private const int PoolThreads = 8;
+    private const int NoAnswer = -1;
+
+    /// <summary>Sends signal 0 to another process: the permission check of a real signal without its effect.</summary>
+    internal static string Signal(int processId)
+    {
+        if (!Applies(out var x64))
+        {
+            return "signal:DENIED:NotApplicable";
+        }
+
+        var result = LinuxNative.Syscall(x64 ? 62 : 129, processId, 0, 0, 0, 0);
+        var error = Marshal.GetLastPInvokeError();
+        return result == 0 ? "signal:ALLOWED:0" : "signal:DENIED:" + Number(error);
+    }
+
+    /// <summary>Opens the memory of another process for reading through <c>/proc/&lt;pid&gt;/mem</c>.</summary>
+    internal static string ProcessMemory(int processId)
+    {
+        if (!Applies(out var x64))
+        {
+            return "proc-mem:DENIED:NotApplicable";
+        }
+
+        var error = Open(x64, "/proc/" + processId.ToString(CultureInfo.InvariantCulture) + "/mem");
+        return error == 0 ? "proc-mem:ALLOWED:opened" : "proc-mem:DENIED:" + Number(error);
+    }
+
+    /// <summary>
+    /// Maps a descriptor shared and writable, through the same managed mapping the helper uses for its slots (the raw <c>mmap</c> takes a sixth
+    /// argument the helper's binding does not carry). The input arrives read-only, so the kernel must refuse whatever the confinement. The
+    /// descriptor stays owned by its holder.
+    /// </summary>
+    [SuppressMessage("Reliability", "CA2000", Justification = "Every wrapper is disposed by its using; the descriptor itself is not owned.")]
+    internal static string MapWritable(int descriptor)
+    {
+        if (!Applies(out _))
+        {
+            return "map-write:DENIED:NotApplicable";
+        }
+
+        try
+        {
+            using var handle = new SafeFileHandle(descriptor, ownsHandle: false);
+            using var stream = new FileStream(handle, FileAccess.ReadWrite, 1, false);
+            using var file = MemoryMappedFile.CreateFromFile(stream, null, 0, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, leaveOpen: true);
+            using var view = file.CreateViewAccessor(0, 1, MemoryMappedFileAccess.ReadWrite);
+            return "map-write:ALLOWED:mapped";
+        }
+        catch (Exception exception)
+        {
+            return "map-write:DENIED:" + exception.GetType().Name;
+        }
+    }
+
+    /// <summary>Shrinks and then grows a descriptor's file. An output slot is sealed against both, so the kernel must refuse each.</summary>
+    internal static string Resize(int descriptor)
+    {
+        if (!Applies(out var x64))
+        {
+            return "resize:DENIED:NotApplicable";
+        }
+
+        var length = LinuxNative.Syscall(x64 ? 8 : 62, descriptor, 0, SeekEnd, 0, 0);
+        if (length < 0)
+        {
+            return "resize:DENIED:length." + Number(Marshal.GetLastPInvokeError());
+        }
+
+        var shrink = Truncate(x64, descriptor, length / 2);
+        var grow = Truncate(x64, descriptor, length + 4096);
+        if (shrink == 0 || grow == 0)
+        {
+            return "resize:ALLOWED:" + (shrink == 0 ? "shrink" : string.Empty) + (shrink == 0 && grow == 0 ? "+" : string.Empty) + (grow == 0 ? "grow" : string.Empty);
+        }
+
+        return "resize:DENIED:shrink." + Number(shrink) + ".grow." + Number(grow);
+    }
+
+    /// <summary>
+    /// Opens a file from the calling thread, from several thread-pool workers at once and from a thread created now: Landlock confines a thread
+    /// unless it is synchronised to all of them, so a profile that missed a thread shows up here.
+    /// </summary>
+    internal static string OpenFromEveryKindOfThread(string path)
+    {
+        if (!Applies(out var x64))
+        {
+            return "open-threads:DENIED:NotApplicable";
+        }
+
+        var own = Open(x64, path);
+        var pool = new Task<int>[PoolThreads];
+        for (var index = 0; index < pool.Length; index++)
+        {
+            pool[index] = Task.Run(() => Open(x64, path));
+        }
+
+        var fresh = NoAnswer;
+        var thread = new Thread(() => Volatile.Write(ref fresh, Open(x64, path))) { IsBackground = true };
+        thread.Start();
+        var freshResult = thread.Join(5000) ? Volatile.Read(ref fresh) : NoAnswer;
+        var poolResults = pool.Select(task => task.Wait(5000) ? task.Result : NoAnswer).ToArray();
+        var opened = new List<string>();
+        if (own == 0)
+        {
+            opened.Add("own");
+        }
+
+        if (poolResults.Any(result => result == 0))
+        {
+            opened.Add("pool");
+        }
+
+        if (freshResult == 0)
+        {
+            opened.Add("new");
+        }
+
+        if (opened.Count > 0)
+        {
+            return "open-threads:ALLOWED:" + string.Join('+', opened);
+        }
+
+        var poolError = poolResults.FirstOrDefault(result => result != own, own);
+        return "open-threads:DENIED:own." + Number(own) + ".pool." + Number(poolError) + ".new." + Number(freshResult);
+    }
+
+    private static bool Applies(out bool x64)
+    {
+        x64 = SeccompProgram.Current == LinuxArchitecture.X64;
+        return OperatingSystem.IsLinux() && SeccompProgram.Current != LinuxArchitecture.Unsupported;
+    }
+
+    /// <summary>Opens a path read-only and closes it; the result is the error number seen, or 0 when the open succeeded.</summary>
+    private static int Open(bool x64, string path)
+    {
+        var text = Marshal.StringToCoTaskMemUTF8(path);
+        try
+        {
+            var descriptor = LinuxNative.Syscall(x64 ? 257 : 56, AtFdCwd, text, OpenCloseOnExec, 0, 0);
+            var error = Marshal.GetLastPInvokeError();
+            if (descriptor < 0)
+            {
+                return error;
+            }
+
+            _ = LinuxNative.Syscall(x64 ? 3 : 57, descriptor, 0, 0, 0, 0);
+            return 0;
+        }
+        finally
+        {
+            Marshal.FreeCoTaskMem(text);
+        }
+    }
+
+    private static int Truncate(bool x64, int descriptor, nint length)
+    {
+        var result = LinuxNative.Syscall(x64 ? 77 : 46, descriptor, length, 0, 0, 0);
+        return result == 0 ? 0 : Marshal.GetLastPInvokeError();
+    }
+
+    private static string Number(int value) => value >= 0 ? value.ToString(CultureInfo.InvariantCulture) : "no-answer";
 }

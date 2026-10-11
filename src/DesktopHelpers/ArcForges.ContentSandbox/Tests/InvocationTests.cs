@@ -395,6 +395,81 @@ public sealed class InvocationTests
     }
 
     [Fact]
+    public void OnlyTheBoundsOfALiveHelperAreABusyInvocation()
+    {
+        // Every refusal reason is classified explicitly: a reason added later fails here until it is.
+        var expected = new Dictionary<LocalRpcRefusalReason, (string Code, bool Ends)>
+        {
+            [LocalRpcRefusalReason.None] = ("resource.parser_failed", true),
+            [LocalRpcRefusalReason.DataQueueFull] = ("capacity.busy", false),
+            [LocalRpcRefusalReason.ControlBusy] = ("capacity.busy", false),
+            [LocalRpcRefusalReason.DeadlineBeforeDispatch] = ("capacity.busy", false),
+            [LocalRpcRefusalReason.CallbackNotQueued] = ("capacity.busy", false),
+            [LocalRpcRefusalReason.RecursiveCallback] = ("resource.parser_failed", true),
+            [LocalRpcRefusalReason.UnroutedService] = ("resource.parser_failed", true),
+            [LocalRpcRefusalReason.RouteNotLive] = ("resource.parser_failed", true),
+            [LocalRpcRefusalReason.CommandConflict] = ("resource.parser_failed", true),
+            [LocalRpcRefusalReason.ReceiptsFull] = ("resource.parser_failed", true),
+        };
+        Assert.Equal(Enum.GetValues<LocalRpcRefusalReason>().Order(), expected.Keys.Order());
+        foreach (var (reason, mapping) in expected)
+        {
+            Assert.Equal((reason, mapping), (reason, ContentSandboxInvocation.ClassifyRefusal(reason)));
+        }
+    }
+
+    [Fact]
+    public async Task AHelperThatDiesJustBeforeAReadAlwaysEndsTheInvocation()
+    {
+        // The helper's end reaches the parent on several paths (its registration ending, which the route guard sees first; the broker
+        // session closing; the process exit; the broken stream). Whichever wins, the read ends the invocation: never a busy answer.
+        for (var iteration = 0; iteration < 50; iteration++)
+        {
+            var (launcher, helper, invocation) = await Fixtures.LaunchAsync(Fixtures.Script("image 8 8"));
+            await using var _l = launcher;
+            await using var _i = invocation;
+            var image = (await invocation.OpenImageAsync(0, 0, 1, Ct)).Value;
+            if (iteration % 2 == 1)
+            {
+                Assert.True((await invocation.GetImageInfoAsync(image, Ct)).IsSuccess);
+            }
+
+            helper.Started[0].Terminate();
+            switch (iteration % 3)
+            {
+                case 1:
+                    await Task.Yield();
+                    break;
+                case 2:
+                    await Task.Delay(1, Ct);
+                    break;
+            }
+
+            var tile = await invocation.ReadImageTileAsync(image, 0, 0, 4, 4, Ct);
+            Assert.Equal((iteration, "resource.parser_failed"), (iteration, tile.Failure?.Code));
+            Assert.True(invocation.IsEnded, "iteration " + iteration);
+            Assert.Equal((iteration, "resource.parser_failed"), (iteration, (await invocation.GetImageInfoAsync(image, Ct)).Failure?.Code));
+        }
+    }
+
+    [Fact]
+    public async Task ATileOnASessionThatEndedEndsTheInvocationInsteadOfAnsweringBusy()
+    {
+        var (launcher, _, invocation) = await Fixtures.LaunchAsync(Fixtures.Script("image 8 8"));
+        await using var _l = launcher;
+        await using var _i = invocation;
+        var image = (await invocation.OpenImageAsync(0, 0, 1, Ct)).Value;
+        Assert.True((await invocation.GetImageInfoAsync(image, Ct)).IsSuccess);
+        invocation.BrokerSession!.Close();
+        Assert.False(invocation.IsEnded);
+
+        var tile = await invocation.ReadImageTileAsync(image, 0, 0, 4, 4, Ct);
+        Assert.Equal("resource.parser_failed", tile.Failure!.Code);
+        Assert.True(invocation.IsEnded);
+        Assert.Equal(LocalRpcBrokerSessionState.Closed, invocation.BrokerSession.State);
+    }
+
+    [Fact]
     public async Task CallerCancellationCancelsTheInvocation()
     {
         var (launcher, _, invocation) = await Fixtures.LaunchAsync(Fixtures.Script("image 64 64", "slow-on-tile 20000"));

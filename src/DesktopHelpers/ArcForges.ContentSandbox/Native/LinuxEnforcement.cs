@@ -11,7 +11,10 @@ namespace ArcForges.ContentSandbox.Native;
 /// The Linux profile of annex 24, applied by the helper to itself before it serves anything: no_new_privs, resource limits, a Landlock
 /// ruleset that handles every file-system right and allows only a short read-only list, and a seccomp filter synchronised to every thread (Landlock too, with its own TSYNC flag; a kernel that refuses it ends the profile). It is
 /// then verified by attempting what it must deny. A kernel without Landlock, a processor without a table, or any attempt that is not denied makes
-/// the helper refuse to run a parser (exit code 70). It has not been run on Linux by the task that wrote it: only its pure parts are tested offline.
+/// the helper refuse to run a parser (exit code 70). Each refusing step writes one bounded line to the diagnostic stream, named from the closed
+/// list in <see cref="LinuxProfileSteps"/> with the observed error number and nothing else (no path, no frame content), as the Windows
+/// self-check names the attempt that was not denied; the line does not change the refusal. It has not been run on Linux by the task that wrote
+/// it: only its pure parts are tested offline.
 /// </summary>
 [SupportedOSPlatform("linux")]
 internal static class LinuxEnforcement
@@ -37,25 +40,58 @@ internal static class LinuxEnforcement
             return false;
         }
 
+        // The writer is created before any restriction, so reporting a refusal never needs a call the profile denies.
+        var diagnostics = Console.Error;
         var architecture = SeccompProgram.Current;
         if (architecture == LinuxArchitecture.Unsupported)
         {
-            return false;
+            return Refuse(diagnostics, LinuxProfileSteps.Architecture, 0);
         }
 
         if (LinuxNative.Prctl(LinuxNative.PrSetNoNewPrivs, 1, 0, 0, 0) != 0)
         {
-            return false;
+            return Refuse(diagnostics, LinuxProfileSteps.NoNewPrivileges, Marshal.GetLastPInvokeError());
         }
 
         SetLimits(frame);
         var abi = (int)LinuxNative.Syscall(LandlockCreateRuleset, 0, 0, (nint)LandlockPlan.CreateRulesetVersion, 0, 0);
-        if (abi < 1 || !ApplyLandlock(architecture, abi) || !ApplySeccomp(architecture))
+        if (abi < 1)
         {
-            return false;
+            return Refuse(diagnostics, LinuxProfileSteps.LandlockAbi, abi < 0 ? Marshal.GetLastPInvokeError() : 0);
         }
 
-        return Verify(architecture);
+        var (landlockStep, landlockError) = ApplyLandlock(architecture, abi);
+        if (landlockStep is not null)
+        {
+            return Refuse(diagnostics, landlockStep, landlockError);
+        }
+
+        if (!ApplySeccomp(architecture))
+        {
+            return Refuse(diagnostics, LinuxProfileSteps.SeccompTsync, Marshal.GetLastPInvokeError());
+        }
+
+        return Verify(architecture, diagnostics);
+    }
+
+    private static bool Refuse(TextWriter diagnostics, string step, int error)
+    {
+        Report(diagnostics, LinuxProfileSteps.Refused(step, error));
+        return false;
+    }
+
+    /// <summary>Writes one diagnostic line; a stream that cannot take it changes nothing, because the helper refuses either way.</summary>
+    private static void Report(TextWriter diagnostics, string line)
+    {
+        try
+        {
+            diagnostics.WriteLine(line);
+            diagnostics.Flush();
+        }
+        catch (Exception exception) when (exception is IOException or ObjectDisposedException or UnauthorizedAccessException)
+        {
+            // The parent reads the exit code; the line is only an attribution.
+        }
     }
 
     private static void SetLimits(ContentSandboxLaunchFrame frame)
@@ -72,7 +108,8 @@ internal static class LinuxEnforcement
         _ = LinuxNative.SetRlimit(resource, ref limit);
     }
 
-    private static unsafe bool ApplyLandlock(LinuxArchitecture architecture, int abi)
+    /// <summary>Puts the Landlock ruleset in force; a null step means success, otherwise the refusing step and its error number.</summary>
+    private static unsafe (string? Step, int Error) ApplyLandlock(LinuxArchitecture architecture, int abi)
     {
         var handledFileSystem = LandlockPlan.HandledFileSystem(abi);
         var handledNetwork = LandlockPlan.HandledNetwork(abi);
@@ -83,7 +120,7 @@ internal static class LinuxEnforcement
         var ruleset = (int)LinuxNative.Syscall(LandlockCreateRuleset, (nint)attribute, size, 0, 0, 0);
         if (ruleset < 0)
         {
-            return false;
+            return (LinuxProfileSteps.LandlockRuleset, Marshal.GetLastPInvokeError());
         }
 
         try
@@ -106,7 +143,7 @@ internal static class LinuxEnforcement
                     *(int*)(rule + 8) = descriptor;
                     if (LinuxNative.Syscall(LandlockAddRule, ruleset, LandlockRulePathBeneath, (nint)rule, 0, 0) != 0)
                     {
-                        return false;
+                        return (LinuxProfileSteps.LandlockRule, Marshal.GetLastPInvokeError());
                     }
                 }
                 finally
@@ -118,7 +155,9 @@ internal static class LinuxEnforcement
             // landlock_restrict_self restricts only the calling thread (and the threads it creates later) unless the TSYNC flag is given. The runtime
             // and thread pool already own threads that serve calls, so without it a parser on such a thread would be unrestricted. A kernel that
             // refuses the flag (EINVAL: no multithread Landlock) makes this fail, and the helper then refuses to run a parser.
-            return LinuxNative.Syscall(LandlockRestrictSelf, ruleset, LandlockRestrictSelfTsync, 0, 0, 0) == 0;
+            return LinuxNative.Syscall(LandlockRestrictSelf, ruleset, LandlockRestrictSelfTsync, 0, 0, 0) == 0
+                ? (null, 0)
+                : (LinuxProfileSteps.LandlockTsync, Marshal.GetLastPInvokeError());
         }
         finally
         {
@@ -159,13 +198,16 @@ internal static class LinuxEnforcement
         }
     }
 
-    /// <summary>Attempts a socket, a program execution, a trace and a read outside the allowlist: every one must be denied.</summary>
+    /// <summary>
+    /// Attempts a socket, a program execution, a trace and a read outside the allowlist: every one must be denied. Each attempt that is not
+    /// denied as the profile requires is reported on its own line.
+    /// </summary>
     [SuppressMessage("Maintainability", "CA1508", Justification = "The results are read after native calls.")]
-    private static bool Verify(LinuxArchitecture architecture)
+    private static bool Verify(LinuxArchitecture architecture, TextWriter diagnostics)
     {
         if (LinuxNative.Prctl(LinuxNative.PrGetNoNewPrivs, 0, 0, 0, 0) != 1)
         {
-            return false;
+            return Refuse(diagnostics, LinuxProfileSteps.NoNewPrivilegesReadBack, Marshal.GetLastPInvokeError());
         }
 
         var x64 = architecture == LinuxArchitecture.X64;
@@ -186,43 +228,75 @@ internal static class LinuxEnforcement
             Marshal.FreeCoTaskMem(program);
         }
 
-        return socket == -1 && socketError == LinuxNative.Eperm
-            && ptrace == -1 && ptraceError == LinuxNative.Eperm
-            && execute == -1 && executeError == LinuxNative.Eperm
-            && OpenOutsideIsDeniedOnEveryKindOfThread(architecture);
+        var denied = true;
+        denied &= Denied(diagnostics, LinuxProfileSteps.Socket, socket, socketError, LinuxNative.Eperm);
+        denied &= Denied(diagnostics, LinuxProfileSteps.Ptrace, ptrace, ptraceError, LinuxNative.Eperm);
+        denied &= Denied(diagnostics, LinuxProfileSteps.Execute, execute, executeError, LinuxNative.Eperm);
+        return denied && OpenOutsideIsDeniedOnEveryKindOfThread(architecture, diagnostics);
+    }
+
+    /// <summary>True when the attempt failed with the expected error; otherwise reports the step with the error seen (0 when it succeeded).</summary>
+    private static bool Denied(TextWriter diagnostics, string step, nint result, int error, int expected)
+    {
+        if (result == -1 && error == expected)
+        {
+            return true;
+        }
+
+        Report(diagnostics, LinuxProfileSteps.NotDenied(step, result == -1 ? error : 0));
+        return false;
     }
 
     /// <summary>
     /// Landlock is per thread unless synchronised, so the denial is observed from the applying thread, from a thread the runtime created before
-    /// the restriction (thread-pool workers, several at once) and from a thread created afterwards.
+    /// the restriction (thread-pool workers, several at once) and from a thread created afterwards. The lines are written by the applying
+    /// thread only, after the other threads have answered.
     /// </summary>
-    private static bool OpenOutsideIsDeniedOnEveryKindOfThread(LinuxArchitecture architecture)
+    private static bool OpenOutsideIsDeniedOnEveryKindOfThread(LinuxArchitecture architecture, TextWriter diagnostics)
     {
-        if (!OpenOutsideIsDenied(architecture))
+        var own = OpenOutside(architecture);
+        if (own != LinuxNative.Eacces)
         {
+            Report(diagnostics, LinuxProfileSteps.NotDenied(LinuxProfileSteps.OpenOutside, own));
             return false;
         }
 
-        var pool = new Task<bool>[8];
+        var pool = new Task<int>[8];
         for (var i = 0; i < pool.Length; i++)
         {
-            pool[i] = Task.Run(() => OpenOutsideIsDenied(architecture));
+            pool[i] = Task.Run(() => OpenOutside(architecture));
         }
 
-        var fresh = false;
-        var thread = new Thread(() => fresh = OpenOutsideIsDenied(architecture)) { IsBackground = true };
+        var fresh = LinuxProfileSteps.NoAnswer;
+        var thread = new Thread(() => Volatile.Write(ref fresh, OpenOutside(architecture))) { IsBackground = true };
         thread.Start();
         var finished = thread.Join(5000);
-        var allPool = true;
+        var poolResult = LinuxNative.Eacces;
         foreach (var task in pool)
         {
-            allPool &= task.Wait(5000) && task.Result;
+            var answer = task.Wait(5000) ? task.Result : LinuxProfileSteps.NoAnswer;
+            if (answer != LinuxNative.Eacces && poolResult == LinuxNative.Eacces)
+            {
+                poolResult = answer;
+            }
         }
 
-        return finished && fresh && allPool;
+        var freshResult = finished ? Volatile.Read(ref fresh) : LinuxProfileSteps.NoAnswer;
+        if (poolResult != LinuxNative.Eacces)
+        {
+            Report(diagnostics, LinuxProfileSteps.NotDenied(LinuxProfileSteps.OpenOutsidePool, poolResult));
+        }
+
+        if (freshResult != LinuxNative.Eacces)
+        {
+            Report(diagnostics, LinuxProfileSteps.NotDenied(LinuxProfileSteps.OpenOutsideNewThread, freshResult));
+        }
+
+        return poolResult == LinuxNative.Eacces && freshResult == LinuxNative.Eacces;
     }
 
-    private static bool OpenOutsideIsDenied(LinuxArchitecture architecture)
+    /// <summary>Attempts to open a file outside the allowlist; the result is the error number seen, or 0 when the open succeeded.</summary>
+    private static int OpenOutside(LinuxArchitecture architecture)
     {
         var outside = Marshal.StringToCoTaskMemUTF8("/etc/passwd");
         try
@@ -232,9 +306,10 @@ internal static class LinuxEnforcement
             if (opened >= 0)
             {
                 _ = CloseDescriptor((int)opened);
+                return 0;
             }
 
-            return opened == -1 && error == LinuxNative.Eacces;
+            return error;
         }
         finally
         {
@@ -243,4 +318,53 @@ internal static class LinuxEnforcement
     }
 
     private static int OpenatNumber(LinuxArchitecture architecture) => architecture == LinuxArchitecture.X64 ? 257 : 56;
+}
+
+/// <summary>
+/// The closed list of steps of the Linux profile that can refuse, and the only two shapes of diagnostic line the helper writes for them:
+/// <c>isolation: &lt;step&gt; refused (&lt;errno&gt;)</c> when a step that puts the profile in force fails, and
+/// <c>isolation: &lt;step&gt; was not denied (&lt;errno&gt;)</c> when a self-check attempt is not denied as required (0 when it succeeded,
+/// <c>no-answer</c> when a thread did not answer in time). A line carries a step name from this list and a number, nothing else. It is pure, so
+/// it is checked offline on any host.
+/// </summary>
+internal static class LinuxProfileSteps
+{
+    internal const string Architecture = "seccomp-architecture";
+    internal const string NoNewPrivileges = "no-new-privs";
+    internal const string LandlockAbi = "landlock-abi";
+    internal const string LandlockRuleset = "landlock-ruleset";
+    internal const string LandlockRule = "landlock-rule";
+    internal const string LandlockTsync = "landlock-tsync";
+    internal const string SeccompTsync = "seccomp-tsync";
+    internal const string NoNewPrivilegesReadBack = "no-new-privs-readback";
+    internal const string Socket = "socket";
+    internal const string Ptrace = "ptrace";
+    internal const string Execute = "execve";
+    internal const string OpenOutside = "open-outside";
+    internal const string OpenOutsidePool = "open-outside-pool";
+    internal const string OpenOutsideNewThread = "open-outside-new-thread";
+
+    /// <summary>The value a self-check reports for a thread that did not answer within its wait.</summary>
+    internal const int NoAnswer = -1;
+
+    /// <summary>The steps that put the profile in force, in the order the helper applies them, ending with the read-back of no_new_privs.</summary>
+    internal static IReadOnlyList<string> Applied { get; } =
+        [Architecture, NoNewPrivileges, LandlockAbi, LandlockRuleset, LandlockRule, LandlockTsync, SeccompTsync, NoNewPrivilegesReadBack];
+
+    /// <summary>The self-check attempts that must be denied, in the order the helper makes them.</summary>
+    internal static IReadOnlyList<string> Probed { get; } = [Socket, Ptrace, Execute, OpenOutside, OpenOutsidePool, OpenOutsideNewThread];
+
+    /// <summary>The line for a step that puts the profile in force and failed.</summary>
+    internal static string Refused(string step, int error) =>
+        "isolation: " + Known(Applied, step) + " refused (" + Number(error) + ")";
+
+    /// <summary>The line for a self-check attempt that was not denied as required.</summary>
+    internal static string NotDenied(string step, int error) =>
+        "isolation: " + Known(Probed, step) + " was not denied (" + Number(error) + ")";
+
+    private static string Known(IReadOnlyList<string> steps, string step) =>
+        steps.Contains(step, StringComparer.Ordinal) ? step : throw new ArgumentOutOfRangeException(nameof(step), step, "The step is not in the closed list.");
+
+    private static string Number(int error) =>
+        error >= 0 ? error.ToString(System.Globalization.CultureInfo.InvariantCulture) : "no-answer";
 }
