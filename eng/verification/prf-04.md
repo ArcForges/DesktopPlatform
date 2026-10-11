@@ -87,6 +87,78 @@ directories, 7 native records), and `git diff --check`. No package or lock
 file changed. These checks validate the supported native backend selection and
 Windows transport. macOS is not supported and never claimed (P2-023).
 
+## Completion follow-up runs (2026-10-11)
+
+Claimant-reported, each run once through the build slot, at branch head
+`832ab2ed8ec6687e5b4f79ff11da56c740ab0f34` (DesktopPlatform `main` `fb8577c3`
+plus the PRF.04 wording correction, the wrong-uid probe modes and the PLT.09,
+PLT.10 and PLT.11 procedure commits). Locked restore and Native AOT publish
+passed with 0 warnings on both hosts. No log is stored in the repository.
+
+### Windows re-run (win-x64)
+
+The recorded win-x64 runs above stand: the probe does not reference
+ArcForges.LocalRpc. Because the follow-up changed `Program.cs` (output strings
+and the mode dispatch), the published win-x64 executable was run once more.
+Machine: Windows 11 Pro for Workstations `10.0.26300.9550`, x64, .NET SDK
+`10.0.400`, `artifacts/prf-04/win-x64/LocalRpcAotTests.exe`.
+
+```text
+PASS: retained owner session completed bidirectional LocalBootstrap, OS-bound peer identity, concurrent/fenced/expiry renewal, cancellation, malformed-input recovery, same-user spoof refusal, PID-reuse-tolerant reconnect and bounded-message checks.
+Evidence: pipe; owner process 16516 / instance 85B076A79EAC470FA19EDABB38D0F08E; peer restarted 26120 / instance BB907BC05D5148A68865F0EDAA42C35F; PID equality is allowed and B2 is rebound by a fresh instance/launch tuple; owner session 20cb3bb09b37419c86e2b75e3780f2c1.
+```
+
+`--verify-unix-peer-pid-backends` exited `0`:
+
+```text
+PASS: Linux SO_PEERCRED dispatch; unsupported platforms fail closed; the Darwin SOL_LOCAL/LOCAL_PEERPID selector branch is macOS, which is not supported and never claimed (P2-023).
+```
+
+`--verify-wrong-uid-mode` exited `0` (offline self-check; its real EACCES
+exercise is Linux-only and did not run on Windows), and `--wrong-uid-serve`
+refused with exit `2` as expected:
+
+```text
+INVALID: --wrong-uid-serve is Linux-only (a second-uid Unix-domain socket check); it refuses on this OS and the Windows probe path is unchanged.
+```
+
+### Linux (WSL2, linux-x64)
+
+Host: WSL2 Debian GNU/Linux 13 (trixie, 13.6), kernel
+`6.18.40.1-microsoft-standard-WSL2` x86_64, uid 1000, a clone of the branch on
+the distribution's own ext4 file system (not `/mnt/c`), .NET SDK `10.0.400`
+(runtime 10.0.11), Debian clang 19.1.7 and LLD 19.1.7. The linux-x64 Native AOT
+publish produced a stripped ELF 64-bit x86-64 PIE executable
+`artifacts/prf-04/linux-x64/LocalRpcAotTests` (16868432 bytes; the binary is
+not retained). The two-process probe over a Unix-domain socket exited `0`:
+
+```text
+PASS: retained owner session completed bidirectional LocalBootstrap, OS-bound peer identity, concurrent/fenced/expiry renewal, cancellation, malformed-input recovery, same-user spoof refusal, PID-reuse-tolerant reconnect and bounded-message checks.
+Evidence: uds; owner process 166770 / instance A1049CEE409D40C492397F61B55EB63D; peer restarted 166875 / instance 84815BC007DA457695FA3562E455BC71; PID equality is allowed and B2 is rebound by a fresh instance/launch tuple; owner session f4562e8ef2e24fa68d31c83984c3737b.
+```
+
+`--verify-unix-peer-pid-backends` exited `0` with the same PASS line as on
+Windows. `--verify-wrong-uid-mode` exited `0` and ran its real kernel exercise:
+
+```text
+PASS: wrong-uid mode self-check: connect classification (EACCES is a refusal, a connection is a failure, every other error is inconclusive), exit codes 0/1/2/3, in-band outcome descriptions, argument and uid validation, /proc/self/status effective-uid parsing, the root and same-uid guards and the Linux-only refusal; real kernel EACCES from a chmod-000 directory classified as a refusal, a missing socket as inconclusive, and the owner connection (uid 1000, own pid) observed through SO_PEERCRED.
+```
+
+The single-uid steps of [prf-04-second-linux-uid.md](prf-04-second-linux-uid.md)
+ran under uid 1000: `--wrong-uid-serve` printed
+`WRONG-UID-ENDPOINT|/tmp/afprf04-wu-2eea4970904a3d731df89fb80715591e/endpoint.sock|1000|166960`
+(directory mode 700, socket mode 755, both owned by uid 1000); the owner control
+before and after exited `0` with
+`PASS: owner uid 1000 connected to server pid 166960; generated Challenge refused in-band (authentication), as the endpoint has no expected peer.`;
+`--wrong-uid-connect` as the same uid exited `2` with
+`INVALID: this process runs as the owner uid 1000; a same-uid connect proves nothing about a second uid.`;
+and `STOP` ended the server with exit `0` (`STOPPED|stop|challenge-dispatches=2`),
+removing its directory. These steps show the endpoint and the guards work; they
+are not wrong-uid evidence.
+
+Second-Linux-uid peer: blocked on a second Linux uid, not proven. macOS is not
+supported and never claimed (P2-023).
+
 ## Second-Linux-uid procedure
 
 The wrong-uid probe modes and the runnable procedure for a second, non-root
