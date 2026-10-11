@@ -566,6 +566,7 @@
     "src/BuildingBlocks/ArcForges.LocalRpc/Tests/TransportFixtures.cs",
     "src/BuildingBlocks/ArcForges.LocalRpc/Tests/WrongUserHelperProcess.cs",
     "src/BuildingBlocks/ArcForges.LocalRpc/Tests/packages.lock.json",
+    "src/BuildingBlocks/ArcForges.LocalRpc/Tests/wrong-user-procedure.md",
     "src/BuildingBlocks/ArcForges.LocalRpc/packages.lock.json",
     "src/BuildingBlocks/ArcForges.NativeInterop/ArcForges.NativeInterop.csproj",
     "src/BuildingBlocks/ArcForges.NativeInterop/AssemblyPlaceholder.cs",

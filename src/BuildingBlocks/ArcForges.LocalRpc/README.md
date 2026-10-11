@@ -443,3 +443,13 @@ The routing tests (`LocalRpcRoutingTests`, `LocalRpcRoutingWireTests`) run offli
 registration fixtures' fake clock and process table, the guard on every kind of call over a counting invoker, and the guard and a
 server's declared service set over real Kestrel HTTP/2 with the generated `LocalBootstrapService` and `ConnectorBrokerService` on
 in-memory streams (no Sandbox contract is admitted, so the sandbox service name in them is data only).
+
+Refusal of a second operating-system account cannot be shown under one account. [`Tests/wrong-user-procedure.md`](Tests/wrong-user-procedure.md)
+is the runnable procedure for it: a second, standard Windows account against the Named Pipe endpoint, the library client against a pipe
+that account owns, the launch root, and the launch and registration endpoints over a Named Pipe and a Unix socket; and a second, non-root
+Linux uid against the plain, launch and registration Unix sockets. Each step names its expected line and exit code and the controls
+before and after it that show the endpoint was live. The procedure drives `wrong-user-*` helper modes of the test assembly, reached only
+through `DOTNET_STARTUP_HOOKS` and `ARCFORGES_LOCALRPC_HELPER`. Their parsing, outcome classification, guards and exit codes are tested
+offline in CI (`LocalRpcWrongUserProcedureTests`), and `LocalRpcWrongUserProcedureChecks` (same opt-in variable) runs them under one
+account as controls only. The procedure has not been run: wrong-user denial is blocked on a second Windows account, not proven, and
+blocked on a second Linux uid, not proven.
