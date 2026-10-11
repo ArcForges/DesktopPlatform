@@ -86,3 +86,9 @@ reconciliation (7 owners, 67 projects, 166 historical projects, 326
 directories, 7 native records), and `git diff --check`. No package or lock
 file changed. These checks validate the supported native backend selection and
 Windows transport. macOS is not supported and never claimed (P2-023).
+
+## Second-Linux-uid procedure
+
+The wrong-uid probe modes and the runnable procedure for a second, non-root
+Linux uid are in [prf-04-second-linux-uid.md](prf-04-second-linux-uid.md).
+Second-Linux-uid peer: blocked on a second Linux uid, not proven.
