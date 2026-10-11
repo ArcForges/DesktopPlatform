@@ -47,6 +47,8 @@ internal static class LaunchHelperProcess
                 return await RegistrationHelperProcess.RunAsync().ConfigureAwait(false);
             case "command":
                 return await CommandHelperProcess.RunAsync(arguments).ConfigureAwait(false);
+            case var mode when mode.StartsWith(WrongUserHelperProcess.Prefix, StringComparison.Ordinal):
+                return await WrongUserHelperProcess.RunAsync(arguments, WrongUserConsole.Standard).ConfigureAwait(false);
             case "sleep":
                 await Say("READY").ConfigureAwait(false);
                 await Task.Delay(Timeout.InfiniteTimeSpan).ConfigureAwait(false);

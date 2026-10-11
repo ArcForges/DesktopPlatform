@@ -20,11 +20,12 @@ dotnet publish tests/LocalRpcAotTests/LocalRpcAotTests.csproj -c Release -r linu
 ./artifacts/prf-04/linux-x64/LocalRpcAotTests
 ```
 
-The runtime peer-PID proof supports Windows Named Pipes, Linux Unix-domain
-sockets (`SO_PEERCRED`), and macOS Unix-domain sockets (`SOL_LOCAL` /
-`LOCAL_PEERPID`). Apple publishes those macOS socket-option values in its
-XNU `<sys/un.h>` header (`SOL_LOCAL=0`, `LOCAL_PEERPID=0x002`):
-[Apple XNU header](https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/bsd/sys/un.h#L81-L89).
+The runtime peer-PID proof supports Windows Named Pipes and Linux Unix-domain
+sockets (`SO_PEERCRED`). macOS is not supported and never claimed (P2-023).
+The source still contains a Darwin `SOL_LOCAL` / `LOCAL_PEERPID` selector
+branch (Apple XNU `<sys/un.h>`: `SOL_LOCAL=0`, `LOCAL_PEERPID=0x002`,
+[Apple XNU header](https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/bsd/sys/un.h#L81-L89));
+it is unexercised code, not a supported platform and not evidence.
 The parent starts owner A and peer B, authenticates them in both directions,
 then stops B while A's process, owner-session ID, and server remain alive. It
 restarts B at the same endpoint with the same installation ID but a fresh
@@ -54,7 +55,30 @@ The runtime checks use the published Native AOT executable itself as the
 parent, client, server, and worker. The test does not substitute an in-memory
 transport or TCP. CI's Windows/Linux matrix proves locked restore and AOT
 compilation only; local runtime evidence must identify the actual OS and RID.
-The `--verify-unix-peer-pid-backends` mode checks the Linux/macOS dispatch and
-the unsupported-platform fail-closed case without opening sockets; it is not a
-substitute for the required local process-to-process run on macOS. Record an
-actual macOS run only when one has been performed on a macOS host.
+The `--verify-unix-peer-pid-backends` mode checks the pure backend selector
+(the Linux `SO_PEERCRED` route, the retained Darwin selector branch and the
+unsupported-platform fail-closed case) without opening sockets. It is not a
+runtime proof for any platform. macOS is not supported and never claimed
+(P2-023): no macOS run is required, recorded or claimed.
+
+## Second-Linux-uid modes
+
+These Linux-only modes let a second, non-root uid attempt the probe's own
+Unix-domain endpoint. On any other OS they print `INVALID: ... is Linux-only`
+and exit `2`; the two-process probe and its Windows named-pipe path are
+unchanged. The current uid is read from `/proc/self/status` (the effective uid);
+no native binding is added. The runnable procedure is
+[eng/verification/prf-04-second-linux-uid.md](../../eng/verification/prf-04-second-linux-uid.md).
+
+| Mode | Run as | Result |
+|---|---|---|
+| `--wrong-uid-serve` | the owning uid (not root) | Creates a new owner-only `0700` directory `/tmp/afprf04-wu-<32 hex>` and serves the probe's own Kestrel endpoint `endpoint.sock` in it, with the real generated LocalBootstrap service and no expected peer, so every Challenge is refused in-band. Prints `WRONG-UID-ENDPOINT\|<socket>\|<uid>\|<pid>`. Reads `COUNT` (prints `CHALLENGE-DISPATCHES\|<n>`) and `STOP` from standard input; ends on `STOP`, end of input or after 30 minutes, printing `STOPPED\|<stop\|eof\|bound>\|challenge-dispatches=<n>`, and removes the directory. |
+| `--wrong-uid-control <socket>` | the owning uid | The owner's connect must succeed, `SO_PEERCRED` must name the same uid, and the generated Challenge must be refused in-band (authentication). `PASS` exit `0`; otherwise `FAIL` exit `1` (`INVALID` exit `2` for root or a server of another uid). |
+| `--wrong-uid-connect <socket> <owner-uid>` | a second, non-root uid | A raw connect. `EACCES` prints `PASS: wrong-uid peer refused at connect (EACCES)`, exit `0`. A connection prints `FAIL: wrong-uid peer connected (...)`, exit `1`, with the in-band result of one generated Challenge. Any other error (a missing socket, a dead listener, a timeout) is `INCONCLUSIVE`, exit `3`. Running as root or as the owner uid is `INVALID`, exit `2`, before any connect. |
+| `--verify-wrong-uid-mode` | any non-root uid | An offline self-check, like `--verify-unix-peer-pid-backends`: the connect classification, the exit codes, the in-band descriptions, argument and uid validation, `/proc/self/status` parsing, the root and same-uid guards and the Linux-only refusal. On Linux it adds one real kernel `EACCES` exercise: a raw listener in a `chmod 000` directory is refused and classified as the refusal, a missing socket is inconclusive, and the owner's connection is observed through `SO_PEERCRED`. |
+
+The control and connect modes print a `WRONG-UID-IDENTITY|<uid>` line first.
+The barrier under test is the endpoint's owner-only `0700` directory, the same
+protection as the two-process probe's directory. The socket file's own mode
+follows the process umask and is not a probe guarantee. A same-uid run of these
+modes is a control of the mechanics only. It is never wrong-uid evidence.

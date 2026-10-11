@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using ArcForges.Contracts.Foundation.V1;
@@ -49,8 +50,19 @@ internal static partial class Program
             if (args.Length > 0 && args[0] == "--verify-unix-peer-pid-backends")
             {
                 VerifyUnixPeerPidBackends();
-                Console.WriteLine("PASS: Linux SO_PEERCRED and macOS SOL_LOCAL/LOCAL_PEERPID dispatch; unsupported platforms fail closed.");
+                Console.WriteLine("PASS: Linux SO_PEERCRED dispatch; unsupported platforms fail closed; the Darwin SOL_LOCAL/LOCAL_PEERPID selector branch is macOS, which is not supported and never claimed (P2-023).");
                 return 0;
+            }
+
+            if (args.Length > 0 && args[0] == VerifyWrongUidModeArgument)
+            {
+                Console.WriteLine(await VerifyWrongUidModeAsync().ConfigureAwait(false));
+                return 0;
+            }
+
+            if (args.Length > 0 && args[0] is WrongUidServeArgument or WrongUidControlArgument or WrongUidConnectArgument)
+            {
+                return await RunWrongUidModeAsync(args).ConfigureAwait(false);
             }
 
             if (RuntimeFeature.IsDynamicCodeSupported)
@@ -73,7 +85,7 @@ internal static partial class Program
     {
         if (!OperatingSystem.IsWindows() && !OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
         {
-            throw new PlatformNotSupportedException("The peer-process probe supports Windows named pipes and Linux/macOS Unix-domain sockets.");
+            throw new PlatformNotSupportedException("The peer-process probe supports Windows named pipes and Linux Unix-domain sockets; macOS is not supported and never claimed (P2-023).");
         }
 
         var executable = Environment.ProcessPath
@@ -1982,4 +1994,758 @@ internal sealed class LocalBootstrapProbeService(BootstrapState state) : LocalBo
         UnixSeconds = value.ToUnixTimeSeconds(),
         Nanos = (uint)(value.UtcTicks % TimeSpan.TicksPerSecond * 100),
     };
+}
+
+/// <summary>
+/// PRF.04 second-Linux-uid modes. They exist so a second, non-root uid can attempt the probe's own Unix-domain endpoint; they are
+/// Linux-only, refuse on any other OS, and never change the two-process probe or its Windows named-pipe path. The procedure is
+/// eng/verification/prf-04-second-linux-uid.md.
+/// </summary>
+internal static partial class Program
+{
+    internal const string VerifyWrongUidModeArgument = "--verify-wrong-uid-mode";
+    internal const string WrongUidServeArgument = "--wrong-uid-serve";
+    internal const string WrongUidControlArgument = "--wrong-uid-control";
+    internal const string WrongUidConnectArgument = "--wrong-uid-connect";
+    private const string WrongUidDirectoryPrefix = "/tmp/afprf04-wu-";
+    private const string WrongUidSocketName = "endpoint.sock";
+    private const string WrongUidRefusalDetail = "wrong-uid peer refused at connect (EACCES)";
+    private const int UnixSocketPathMaximumBytes = 107;
+    private const UnixFileMode OwnerOnlyDirectoryMode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
+    private static readonly TimeSpan WrongUidServeBound = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan WrongUidConnectTimeout = TimeSpan.FromSeconds(5);
+
+    internal enum WrongUidVerdict
+    {
+        Pass = 0,
+        Fail = 1,
+        Invalid = 2,
+        Inconclusive = 3,
+    }
+
+    internal enum InBandChallengeOutcome
+    {
+        RefusedAuthentication,
+        RefusedOther,
+        Accepted,
+        NoOutcome,
+        Error,
+    }
+
+    /// <summary>A wrong-uid verdict: its printed line and process exit code (PASS 0, FAIL 1, INVALID 2, INCONCLUSIVE 3).</summary>
+    internal sealed record WrongUidResult(WrongUidVerdict Verdict, string Detail)
+    {
+        public int ExitCode => (int)Verdict;
+
+        public string Line => Verdict switch
+        {
+            WrongUidVerdict.Pass => "PASS: " + Detail,
+            WrongUidVerdict.Fail => "FAIL: " + Detail,
+            WrongUidVerdict.Invalid => "INVALID: " + Detail,
+            _ => "INCONCLUSIVE: " + Detail,
+        };
+
+        public static WrongUidResult Pass(string detail) => new(WrongUidVerdict.Pass, detail);
+
+        public static WrongUidResult Fail(string detail) => new(WrongUidVerdict.Fail, detail);
+
+        public static WrongUidResult Invalid(string detail) => new(WrongUidVerdict.Invalid, detail);
+
+        public static WrongUidResult Inconclusive(string detail) => new(WrongUidVerdict.Inconclusive, detail);
+    }
+
+    internal sealed record InBandChallenge(InBandChallengeOutcome Outcome, string Description);
+
+    internal sealed record WrongUidArguments(string Mode, string SocketPath, uint OwnerUid);
+
+    internal readonly record struct UnixPeerCredentials(int ProcessId, uint UserId);
+
+    // ---- pure rules: arguments, identity, guards and classification ----
+
+    /// <summary>Validates a wrong-uid command line. Returns the INVALID verdict to print, or null with the parsed arguments.</summary>
+    internal static WrongUidResult? ParseWrongUidArguments(IReadOnlyList<string> args, out WrongUidArguments parsed)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        parsed = new WrongUidArguments(string.Empty, string.Empty, 0);
+        if (args.Count == 0)
+        {
+            return WrongUidResult.Invalid("no wrong-uid mode was given.");
+        }
+
+        var mode = args[0];
+        switch (mode)
+        {
+            case WrongUidServeArgument:
+                if (args.Count != 1)
+                {
+                    return WrongUidResult.Invalid($"{WrongUidServeArgument} takes no arguments.");
+                }
+
+                parsed = new WrongUidArguments(mode, string.Empty, 0);
+                return null;
+            case WrongUidControlArgument:
+                if (args.Count != 2)
+                {
+                    return WrongUidResult.Invalid($"{WrongUidControlArgument} takes exactly one argument: <socket>.");
+                }
+
+                if (ValidateWrongUidSocketPath(args[1]) is { } controlPathError)
+                {
+                    return WrongUidResult.Invalid(controlPathError);
+                }
+
+                parsed = new WrongUidArguments(mode, args[1], 0);
+                return null;
+            case WrongUidConnectArgument:
+                if (args.Count != 3)
+                {
+                    return WrongUidResult.Invalid($"{WrongUidConnectArgument} takes exactly two arguments: <socket> <owner-uid>.");
+                }
+
+                if (ValidateWrongUidSocketPath(args[1]) is { } connectPathError)
+                {
+                    return WrongUidResult.Invalid(connectPathError);
+                }
+
+                if (!TryParseUid(args[2], out var ownerUid))
+                {
+                    return WrongUidResult.Invalid("the owner uid must be a canonical decimal uid (digits only, no sign or leading zero).");
+                }
+
+                if (ownerUid == 0)
+                {
+                    return WrongUidResult.Invalid("the owner uid is 0 (root); the probe endpoint is never served by root.");
+                }
+
+                parsed = new WrongUidArguments(mode, args[1], ownerUid);
+                return null;
+            default:
+                return WrongUidResult.Invalid("the argument is not a wrong-uid mode.");
+        }
+    }
+
+    /// <summary>Returns why a socket path is unusable, or null: absolute, canonical, no control characters, within sun_path.</summary>
+    internal static string? ValidateWrongUidSocketPath(string path)
+    {
+        if (string.IsNullOrEmpty(path) || path[0] != '/')
+        {
+            return "the socket must be an absolute path.";
+        }
+
+        if (path.Any(char.IsControl))
+        {
+            return "the socket path must not contain control characters.";
+        }
+
+        if (Encoding.UTF8.GetByteCount(path) > UnixSocketPathMaximumBytes)
+        {
+            return "the socket path exceeds the 107-byte sun_path limit.";
+        }
+
+        return path[1..].Split('/').Any(static segment => segment.Length == 0 || segment is "." or "..")
+            ? "the socket path must be canonical (no empty, '.' or '..' segment and no trailing '/')."
+            : null;
+    }
+
+    /// <summary>Parses a canonical decimal uid. The reserved (uid_t)-1 is not a uid.</summary>
+    internal static bool TryParseUid(string text, out uint uid)
+    {
+        uid = 0;
+        return !string.IsNullOrEmpty(text) &&
+            text.Length <= 10 &&
+            (text.Length == 1 || text[0] != '0') &&
+            text.All(char.IsAsciiDigit) &&
+            uint.TryParse(text, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out uid) &&
+            uid != uint.MaxValue;
+    }
+
+    /// <summary>Reads the effective uid from the text of /proc/self/status (Uid: real, effective, saved, filesystem).</summary>
+    internal static uint ParseEffectiveUid(string status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+        foreach (var line in status.Split('\n'))
+        {
+            if (!line.StartsWith("Uid:", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var fields = line["Uid:".Length..].Split(['\t', ' '], StringSplitOptions.RemoveEmptyEntries);
+            if (fields.Length != 4 || !fields.All(static field => TryParseUid(field, out _)))
+            {
+                throw new FormatException("The Uid line of /proc/self/status must hold four decimal uids (real, effective, saved, filesystem).");
+            }
+
+            _ = TryParseUid(fields[1], out var effective);
+            return effective;
+        }
+
+        throw new FormatException("/proc/self/status has no Uid line.");
+    }
+
+    internal static WrongUidResult? GuardWrongUidPlatform(string mode, bool isLinux) =>
+        isLinux
+            ? null
+            : WrongUidResult.Invalid($"{mode} is Linux-only (a second-uid Unix-domain socket check); it refuses on this OS and the Windows probe path is unchanged.");
+
+    /// <summary>Serve and control run as the owning uid, which is never root.</summary>
+    internal static WrongUidResult? GuardWrongUidOwner(uint currentUid) =>
+        currentUid == 0
+            ? WrongUidResult.Invalid("this process runs as root (uid 0), which bypasses discretionary access control; serve and control run as the non-root owning uid.")
+            : null;
+
+    /// <summary>A wrong-uid attempt proves something only from a second, non-root uid.</summary>
+    internal static WrongUidResult? GuardWrongUidConnect(uint currentUid, uint ownerUid) =>
+        currentUid == 0
+            ? WrongUidResult.Invalid("this process runs as root (uid 0), which bypasses discretionary access control; run the connect as a second non-root uid.")
+            : currentUid == ownerUid
+                ? WrongUidResult.Invalid($"this process runs as the owner uid {ownerUid}; a same-uid connect proves nothing about a second uid.")
+                : null;
+
+    /// <summary>
+    /// Classifies a failed raw connect. Only EACCES from the kernel is a refusal; a missing socket, a dead listener, a timeout or any
+    /// other error proves nothing about the second uid.
+    /// </summary>
+    internal static WrongUidResult ClassifyWrongUidConnectFailure(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        return exception switch
+        {
+            SocketException { SocketErrorCode: SocketError.AccessDenied } => WrongUidResult.Pass(WrongUidRefusalDetail),
+            SocketException socket => WrongUidResult.Inconclusive($"connect failed with {socket.SocketErrorCode}, not EACCES; this proves nothing about the second uid."),
+            OperationCanceledException or TimeoutException => WrongUidResult.Inconclusive("connect timed out; this proves nothing about the second uid."),
+            _ => WrongUidResult.Inconclusive($"connect failed with {exception.GetType().Name}; this proves nothing about the second uid."),
+        };
+    }
+
+    internal static string DescribeConnectError(Exception exception) => exception switch
+    {
+        SocketException socket => socket.SocketErrorCode.ToString(),
+        OperationCanceledException or TimeoutException => "timeout",
+        _ => exception.GetType().Name,
+    };
+
+    /// <summary>A second uid that reached the endpoint is a failed denial, whatever the in-band answer was.</summary>
+    internal static WrongUidResult ClassifyWrongUidConnected(string peer, InBandChallenge inBand)
+    {
+        ArgumentNullException.ThrowIfNull(inBand);
+        return WrongUidResult.Fail($"wrong-uid peer connected ({peer}); generated Challenge {inBand.Description}.");
+    }
+
+    internal static InBandChallenge DescribeInBandChallenge(LocalBootstrapServiceChallengeResponse response)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        return response.OutcomeCase switch
+        {
+            LocalBootstrapServiceChallengeResponse.OutcomeOneofCase.Error when response.Error.Category == ErrorCategory.Authentication =>
+                new InBandChallenge(InBandChallengeOutcome.RefusedAuthentication, "refused in-band (authentication)"),
+            LocalBootstrapServiceChallengeResponse.OutcomeOneofCase.Error =>
+                new InBandChallenge(InBandChallengeOutcome.RefusedOther, $"refused in-band ({response.Error.Category})"),
+            LocalBootstrapServiceChallengeResponse.OutcomeOneofCase.Value =>
+                new InBandChallenge(InBandChallengeOutcome.Accepted, "ACCEPTED in-band"),
+            _ => new InBandChallenge(InBandChallengeOutcome.NoOutcome, "returned no outcome"),
+        };
+    }
+
+    // ---- Linux runtime ----
+
+    private static async Task<int> RunWrongUidModeAsync(string[] args)
+    {
+        if (ParseWrongUidArguments(args, out var parsed) is { } invalidArguments)
+        {
+            return Report(invalidArguments);
+        }
+
+        if (!OperatingSystem.IsLinux())
+        {
+            return Report(GuardWrongUidPlatform(parsed.Mode, isLinux: false)!);
+        }
+
+        return parsed.Mode switch
+        {
+            WrongUidServeArgument => await RunWrongUidServeAsync().ConfigureAwait(false),
+            WrongUidControlArgument => Report(await RunWrongUidControlAsync(parsed.SocketPath).ConfigureAwait(false)),
+            _ => Report(await RunWrongUidConnectAsync(parsed.SocketPath, parsed.OwnerUid).ConfigureAwait(false)),
+        };
+    }
+
+    private static int Report(WrongUidResult result)
+    {
+        Console.WriteLine(result.Line);
+        return result.ExitCode;
+    }
+
+    [SupportedOSPlatform("linux")]
+    private static uint CurrentEffectiveUid() => ParseEffectiveUid(File.ReadAllText("/proc/self/status"));
+
+    /// <summary>
+    /// Serves the probe's own Kestrel endpoint (the real generated LocalBootstrap service, no expected peer, so every Challenge is
+    /// refused in-band) inside a new owner-only 0700 directory under /tmp, until STOP, end of input or the 30-minute bound.
+    /// </summary>
+    [SupportedOSPlatform("linux")]
+    private static async Task<int> RunWrongUidServeAsync()
+    {
+        var uid = CurrentEffectiveUid();
+        if (GuardWrongUidOwner(uid) is { } invalid)
+        {
+            return Report(invalid);
+        }
+
+        var directory = CreateWrongUidDirectory();
+        try
+        {
+            var socketPath = directory + "/" + WrongUidSocketName;
+            var instance = Guid.NewGuid();
+            var state = new BootstrapState(
+                RandomNumberGenerator.GetBytes(32),
+                CreateManifest("uds", socketPath, instance, Guid.NewGuid()),
+                instance,
+                RandomNumberGenerator.GetBytes(32),
+                Guid.NewGuid().ToString("N"));
+            try
+            {
+                var app = CreateServer("uds", socketPath, state);
+                await using (app.ConfigureAwait(false))
+                {
+                    await app.StartAsync().ConfigureAwait(false);
+                    Console.WriteLine($"WRONG-UID-ENDPOINT|{socketPath}|{uid}|{Environment.ProcessId}");
+                    var reason = await ServeWrongUidUntilStopAsync(state).ConfigureAwait(false);
+                    await app.StopAsync().ConfigureAwait(false);
+                    Console.WriteLine($"STOPPED|{reason}|challenge-dispatches={state.ChallengeDispatchCount}");
+                }
+            }
+            finally
+            {
+                state.ClearSecrets();
+            }
+
+            return 0;
+        }
+        finally
+        {
+            DeleteWrongUidDirectory(directory);
+        }
+    }
+
+    private static async Task<string> ServeWrongUidUntilStopAsync(BootstrapState state)
+    {
+        var bound = Task.Delay(WrongUidServeBound);
+        while (true)
+        {
+            var read = Console.In.ReadLineAsync();
+            if (await Task.WhenAny(read, bound).ConfigureAwait(false) == bound)
+            {
+                return "bound";
+            }
+
+            var command = await read.ConfigureAwait(false);
+            switch (command)
+            {
+                case null:
+                    return "eof";
+                case "STOP":
+                    return "stop";
+                case "COUNT":
+                    Console.WriteLine($"CHALLENGE-DISPATCHES|{state.ChallengeDispatchCount}");
+                    break;
+                default:
+                    Console.WriteLine("UNKNOWN-COMMAND|use STOP or COUNT");
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The owning uid connects to the endpoint. The connect must succeed, the server must run as this uid, and the generated Challenge
+    /// must be refused in-band, which shows the endpoint is live and serving the real service.
+    /// </summary>
+    [SupportedOSPlatform("linux")]
+    [SuppressMessage("Reliability", "CA2000", Justification = "The connected socket is disposed on each early return and otherwise transferred to ChallengeOverConnectedSocketAsync, which disposes it on every path.")]
+    private static async Task<WrongUidResult> RunWrongUidControlAsync(string socketPath)
+    {
+        var uid = CurrentEffectiveUid();
+        Console.WriteLine($"WRONG-UID-IDENTITY|{uid}");
+        if (GuardWrongUidOwner(uid) is { } invalid)
+        {
+            return invalid;
+        }
+
+        Socket socket;
+        try
+        {
+            socket = await ConnectUnixSocketAsync(socketPath).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is SocketException or OperationCanceledException)
+        {
+            return WrongUidResult.Fail($"the owner connect failed ({DescribeConnectError(exception)}); the endpoint is not live for its owner.");
+        }
+
+        UnixPeerCredentials peer;
+        try
+        {
+            peer = GetLinuxPeerCredentials(socket);
+        }
+        catch
+        {
+            socket.Dispose();
+            throw;
+        }
+
+        if (peer.UserId != uid)
+        {
+            socket.Dispose();
+            return WrongUidResult.Invalid($"the endpoint is served by uid {peer.UserId}, not by this uid {uid}; run the control as the owning uid.");
+        }
+
+        var inBand = await ChallengeOverConnectedSocketAsync(socket, socketPath).ConfigureAwait(false);
+        return inBand.Outcome == InBandChallengeOutcome.RefusedAuthentication
+            ? WrongUidResult.Pass($"owner uid {uid} connected to server pid {peer.ProcessId}; generated Challenge {inBand.Description}, as the endpoint has no expected peer.")
+            : WrongUidResult.Fail($"owner uid {uid} connected to server pid {peer.ProcessId} but the generated Challenge {inBand.Description}.");
+    }
+
+    /// <summary>A second, non-root uid attempts a raw connect. EACCES is PASS; a connection is FAIL; anything else is INCONCLUSIVE.</summary>
+    [SupportedOSPlatform("linux")]
+    [SuppressMessage("Reliability", "CA2000", Justification = "The connected socket is transferred to ChallengeOverConnectedSocketAsync, which disposes it on every path.")]
+    [SuppressMessage("Design", "CA1031", Justification = "Every failure of a wrong-uid attempt is classified: before a connection it is INCONCLUSIVE, after one it stays FAIL; none may escape as a crash that hides the outcome.")]
+    private static async Task<WrongUidResult> RunWrongUidConnectAsync(string socketPath, uint ownerUid)
+    {
+        var connected = false;
+        try
+        {
+            var uid = CurrentEffectiveUid();
+            Console.WriteLine($"WRONG-UID-IDENTITY|{uid}");
+            if (GuardWrongUidConnect(uid, ownerUid) is { } invalid)
+            {
+                return invalid;
+            }
+
+            Socket socket;
+            try
+            {
+                socket = await ConnectUnixSocketAsync(socketPath).ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                return ClassifyWrongUidConnectFailure(exception);
+            }
+
+            connected = true;
+            string peer;
+            try
+            {
+                var credentials = GetLinuxPeerCredentials(socket);
+                peer = $"server pid {credentials.ProcessId}, uid {credentials.UserId}";
+            }
+            catch (IOException)
+            {
+                peer = "server credentials unavailable";
+            }
+
+            var inBand = await ChallengeOverConnectedSocketAsync(socket, socketPath).ConfigureAwait(false);
+            return ClassifyWrongUidConnected(peer, inBand);
+        }
+        catch (Exception exception)
+        {
+            return connected
+                ? ClassifyWrongUidConnected("details unavailable", new InBandChallenge(InBandChallengeOutcome.Error, $"was not attempted ({exception.GetType().Name})"))
+                : WrongUidResult.Inconclusive($"the attempt could not complete ({exception.GetType().Name}); this proves nothing about the second uid.");
+        }
+    }
+
+    private static async Task<Socket> ConnectUnixSocketAsync(string path)
+    {
+        var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+        try
+        {
+            using var timeout = new CancellationTokenSource(WrongUidConnectTimeout);
+            await socket.ConnectAsync(new UnixDomainSocketEndPoint(path), timeout.Token).ConfigureAwait(false);
+            return socket;
+        }
+        catch
+        {
+            socket.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>Sends one generated Challenge over an already connected socket, which it owns, and describes the in-band answer.</summary>
+    [SuppressMessage("Design", "CA1031", Justification = "The in-band answer only describes a connection whose verdict is already decided; it is reported, never thrown.")]
+    private static async Task<InBandChallenge> ChallengeOverConnectedSocketAsync(Socket connected, string socketPath)
+    {
+        var handedOut = 0;
+        try
+        {
+            using var handler = new SocketsHttpHandler
+            {
+                UseProxy = false,
+                ConnectCallback = (_, _) =>
+                {
+                    if (Interlocked.Exchange(ref handedOut, 1) != 0)
+                    {
+                        throw new InvalidOperationException("The wrong-uid check owns exactly one pre-connected socket.");
+                    }
+
+                    return ValueTask.FromResult<Stream>(new NetworkStream(connected, ownsSocket: true));
+                },
+            };
+            using var channel = GrpcChannel.ForAddress("http://arcforges.invalid", new GrpcChannelOptions
+            {
+                HttpHandler = handler,
+                MaxReceiveMessageSize = MaximumMessageBytes,
+            });
+            var client = new LocalBootstrapService.LocalBootstrapServiceClient(channel);
+            var challenge = RandomNumberGenerator.GetBytes(32);
+            challenge[0] = 0x00; // 0xEE is the probe service's private cancellation trigger.
+            var response = await client.ChallengeAsync(
+                    NewChallengeRequest(CreateManifest("uds", socketPath, Guid.NewGuid()), challenge),
+                    deadline: DateTime.UtcNow.AddSeconds(5))
+                .ResponseAsync.ConfigureAwait(false);
+            return DescribeInBandChallenge(response);
+        }
+        catch (RpcException exception)
+        {
+            return new InBandChallenge(InBandChallengeOutcome.Error, $"failed with gRPC status {exception.StatusCode}");
+        }
+        catch (Exception exception)
+        {
+            return new InBandChallenge(InBandChallengeOutcome.Error, $"failed with {exception.GetType().Name}");
+        }
+        finally
+        {
+            if (Volatile.Read(ref handedOut) == 0)
+            {
+                connected.Dispose();
+            }
+        }
+    }
+
+    private static UnixPeerCredentials GetLinuxPeerCredentials(Socket socket)
+    {
+        uint length = (uint)Marshal.SizeOf<LinuxPeerCredentials>();
+        if (NativeMethods.GetSocketOption(socket.SafeHandle, level: LinuxSolSocket, option: LinuxSoPeerCred, out var credentials, ref length) != 0 ||
+            length < Marshal.SizeOf<LinuxPeerCredentials>() || credentials.ProcessId <= 0)
+        {
+            throw new IOException("The Unix-domain socket peer credentials could not be observed.", new Win32Exception(Marshal.GetLastPInvokeError()));
+        }
+
+        return new UnixPeerCredentials(credentials.ProcessId, credentials.UserId);
+    }
+
+    /// <summary>Creates a new owner-only (0700) directory with an unguessable name under /tmp and confirms its mode.</summary>
+    [SupportedOSPlatform("linux")]
+    private static string CreateWrongUidDirectory()
+    {
+        var directory = WrongUidDirectoryPrefix + Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
+        if (Directory.Exists(directory) || File.Exists(directory))
+        {
+            throw new IOException("A fresh wrong-uid directory name already exists.");
+        }
+
+        Directory.CreateDirectory(directory, OwnerOnlyDirectoryMode);
+        if (File.GetUnixFileMode(directory) != OwnerOnlyDirectoryMode)
+        {
+            Directory.Delete(directory);
+            throw new IOException("The wrong-uid directory was not created owner-only (0700).");
+        }
+
+        return directory;
+    }
+
+    [SupportedOSPlatform("linux")]
+    private static void DeleteWrongUidDirectory(string directory)
+    {
+        if (!directory.StartsWith(WrongUidDirectoryPrefix, StringComparison.Ordinal) || !Directory.Exists(directory))
+        {
+            return;
+        }
+
+        File.SetUnixFileMode(directory, OwnerOnlyDirectoryMode);
+        Directory.Delete(directory, recursive: true);
+    }
+
+    // ---- offline self-check ----
+
+    /// <summary>
+    /// Checks the wrong-uid rules without a second uid: classification, exit codes, in-band descriptions, argument and uid validation,
+    /// /proc/self/status parsing, the guards and the Linux-only refusal. On Linux it adds one real kernel EACCES exercise.
+    /// </summary>
+    private static async Task<string> VerifyWrongUidModeAsync()
+    {
+        VerifyWrongUidClassification();
+        VerifyWrongUidArguments();
+        VerifyWrongUidIdentityAndGuards();
+        const string Offline = "PASS: wrong-uid mode self-check: connect classification (EACCES is a refusal, a connection is a failure, every other error is inconclusive), exit codes 0/1/2/3, in-band outcome descriptions, argument and uid validation, /proc/self/status effective-uid parsing, the root and same-uid guards and the Linux-only refusal";
+        if (!OperatingSystem.IsLinux())
+        {
+            return Offline + "; the real EACCES exercise is Linux-only and did not run on this OS.";
+        }
+
+        var uid = await ExerciseRealWrongUidRefusalAsync().ConfigureAwait(false);
+        return Offline + $"; real kernel EACCES from a chmod-000 directory classified as a refusal, a missing socket as inconclusive, and the owner connection (uid {uid}, own pid) observed through SO_PEERCRED.";
+    }
+
+    private static void VerifyWrongUidClassification()
+    {
+        var refused = ClassifyWrongUidConnectFailure(new SocketException((int)SocketError.AccessDenied));
+        Check(refused is { Verdict: WrongUidVerdict.Pass, ExitCode: 0 } && refused.Line == "PASS: " + WrongUidRefusalDetail, "EACCES is the refusal");
+        foreach (var error in new[]
+                 {
+                     SocketError.ConnectionRefused, SocketError.AddressNotAvailable, SocketError.TimedOut, SocketError.NetworkUnreachable,
+                     SocketError.InvalidArgument, SocketError.TooManyOpenSockets, SocketError.AddressAlreadyInUse, SocketError.Shutdown,
+                 })
+        {
+            Check(ClassifyWrongUidConnectFailure(new SocketException((int)error)) is { Verdict: WrongUidVerdict.Inconclusive, ExitCode: 3 }, $"{error} is inconclusive");
+        }
+
+        foreach (var exception in new Exception[]
+                 {
+                     new OperationCanceledException(), new TimeoutException(), new IOException(), new UnauthorizedAccessException(),
+                     new InvalidOperationException(),
+                 })
+        {
+            Check(ClassifyWrongUidConnectFailure(exception) is { Verdict: WrongUidVerdict.Inconclusive, ExitCode: 3 }, $"{exception.GetType().Name} is inconclusive (only a socket EACCES refuses)");
+        }
+
+        Check(DescribeConnectError(new SocketException((int)SocketError.AddressNotAvailable)) == "AddressNotAvailable" &&
+            DescribeConnectError(new OperationCanceledException()) == "timeout" &&
+            DescribeConnectError(new IOException()) == "IOException", "the owner-control connect error descriptions");
+
+        foreach (var outcome in Enum.GetValues<InBandChallengeOutcome>())
+        {
+            var connected = ClassifyWrongUidConnected("server pid 1, uid 1000", new InBandChallenge(outcome, "described"));
+            Check(connected is { Verdict: WrongUidVerdict.Fail, ExitCode: 1 } &&
+                connected.Line == "FAIL: wrong-uid peer connected (server pid 1, uid 1000); generated Challenge described.", $"a connection is a failure whatever the in-band {outcome}");
+        }
+
+        Check(WrongUidResult.Pass("p") is { ExitCode: 0, Line: "PASS: p" } &&
+            WrongUidResult.Fail("f") is { ExitCode: 1, Line: "FAIL: f" } &&
+            WrongUidResult.Invalid("i") is { ExitCode: 2, Line: "INVALID: i" } &&
+            WrongUidResult.Inconclusive("c") is { ExitCode: 3, Line: "INCONCLUSIVE: c" }, "the exit-code and line map");
+
+        Check(DescribeInBandChallenge(new LocalBootstrapServiceChallengeResponse { Error = new ArcError { Category = ErrorCategory.Authentication } }).Outcome == InBandChallengeOutcome.RefusedAuthentication &&
+            DescribeInBandChallenge(new LocalBootstrapServiceChallengeResponse { Error = new ArcError { Category = ErrorCategory.Authorization } }).Outcome == InBandChallengeOutcome.RefusedOther &&
+            DescribeInBandChallenge(new LocalBootstrapServiceChallengeResponse { Value = new LocalBootstrapServiceChallengeValue() }).Outcome == InBandChallengeOutcome.Accepted &&
+            DescribeInBandChallenge(new LocalBootstrapServiceChallengeResponse()).Outcome == InBandChallengeOutcome.NoOutcome, "the in-band outcome descriptions");
+    }
+
+    private static void VerifyWrongUidArguments()
+    {
+        const string Socket = "/tmp/afprf04-wu-00000000000000000000000000000000/endpoint.sock";
+        Check(ParseWrongUidArguments([], out _) is { Verdict: WrongUidVerdict.Invalid }, "an empty command line is invalid");
+        Check(ParseWrongUidArguments([WrongUidServeArgument], out var serve) is null && serve.Mode == WrongUidServeArgument, "serve takes no arguments");
+        Check(ParseWrongUidArguments([WrongUidServeArgument, Socket], out _) is { ExitCode: 2 }, "serve refuses an argument");
+        Check(ParseWrongUidArguments([WrongUidControlArgument], out _) is { ExitCode: 2 }, "control needs a socket");
+        Check(ParseWrongUidArguments([WrongUidControlArgument, Socket], out var control) is null && control.SocketPath == Socket, "control takes one socket");
+        Check(ParseWrongUidArguments([WrongUidControlArgument, Socket, "1000"], out _) is { ExitCode: 2 }, "control refuses an owner uid");
+        Check(ParseWrongUidArguments([WrongUidConnectArgument, Socket], out _) is { ExitCode: 2 }, "connect needs an owner uid");
+        Check(ParseWrongUidArguments([WrongUidConnectArgument, Socket, "1000"], out var connect) is null &&
+            connect is { Mode: WrongUidConnectArgument, SocketPath: Socket, OwnerUid: 1000 }, "connect takes a socket and an owner uid");
+        Check(ParseWrongUidArguments([WrongUidConnectArgument, Socket, "1000", "1001"], out _) is { ExitCode: 2 }, "connect refuses an extra argument");
+        Check(ParseWrongUidArguments(["--wrong-uid-other", Socket], out _) is { ExitCode: 2 }, "an unknown mode is invalid");
+        foreach (var uid in new[] { string.Empty, "0", "-1", "+1000", " 1000", "1000 ", "01000", "1e3", "0x3e8", "1000.0", "4294967295", "4294967296", "99999999999", "１０００" })
+        {
+            Check(ParseWrongUidArguments([WrongUidConnectArgument, Socket, uid], out _) is { ExitCode: 2 }, $"owner uid '{uid}' is invalid");
+        }
+
+        foreach (var path in new[]
+                 {
+                     string.Empty, "tmp/endpoint.sock", "/tmp//endpoint.sock", "/tmp/./endpoint.sock", "/tmp/../endpoint.sock", "/tmp/endpoint.sock/",
+                     "/tmp/end\0point.sock", "/tmp/end\npoint.sock", "/" + new string('a', UnixSocketPathMaximumBytes),
+                 })
+        {
+            Check(ValidateWrongUidSocketPath(path) is not null && ParseWrongUidArguments([WrongUidControlArgument, path], out _) is { ExitCode: 2 }, "an unusable socket path is invalid");
+        }
+
+        Check(ValidateWrongUidSocketPath("/" + new string('a', UnixSocketPathMaximumBytes - 1)) is null, "a 107-byte socket path fits sun_path");
+    }
+
+    private static void VerifyWrongUidIdentityAndGuards()
+    {
+        Check(ParseEffectiveUid("Name:\tprobe\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\n") == 1000, "the effective uid is parsed");
+        Check(ParseEffectiveUid("Uid:\t1000\t1001\t1000\t1000\n") == 1001, "the effective uid, not the real uid, is used");
+        Check(ParseEffectiveUid("Uid:\t0\t0\t0\t0") == 0, "root is uid 0");
+        foreach (var status in new[] { "Name:\tprobe\n", "Uid:\t1000\t1000\t1000\n", "Uid:\t1000\tx\t1000\t1000\n", "Uid:\t-1\t1000\t1000\t1000\n", "Uid:\t1000\t1000\t1000\t1000\t1000\n" })
+        {
+            var refused = false;
+            try
+            {
+                _ = ParseEffectiveUid(status);
+            }
+            catch (FormatException)
+            {
+                refused = true;
+            }
+
+            Check(refused, "a malformed /proc/self/status is refused");
+        }
+
+        Check(GuardWrongUidConnect(0, 1000) is { ExitCode: 2 } root && root.Detail.Contains("root (uid 0)", StringComparison.Ordinal), "root is refused for a connect");
+        Check(GuardWrongUidConnect(1000, 1000) is { ExitCode: 2 } same && same.Detail.Contains("same-uid", StringComparison.Ordinal), "the owner uid is refused for a connect");
+        Check(GuardWrongUidConnect(1001, 1000) is null, "a second non-root uid may connect");
+        Check(GuardWrongUidOwner(0) is { ExitCode: 2 } && GuardWrongUidOwner(1000) is null, "serve and control refuse root only");
+        foreach (var mode in new[] { WrongUidServeArgument, WrongUidControlArgument, WrongUidConnectArgument })
+        {
+            Check(GuardWrongUidPlatform(mode, isLinux: false) is { ExitCode: 2 } refusal &&
+                refusal.Detail.StartsWith(mode + " is Linux-only", StringComparison.Ordinal) &&
+                GuardWrongUidPlatform(mode, isLinux: true) is null, $"{mode} refuses outside Linux");
+        }
+    }
+
+    [SupportedOSPlatform("linux")]
+    private static async Task<uint> ExerciseRealWrongUidRefusalAsync()
+    {
+        var uid = CurrentEffectiveUid();
+        Check(GuardWrongUidOwner(uid) is null, "the real EACCES exercise runs as a non-root uid (root bypasses discretionary access control)");
+        var directory = CreateWrongUidDirectory();
+        try
+        {
+            var path = directory + "/selfcheck.sock";
+            using var listener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+            listener.Bind(new UnixDomainSocketEndPoint(path));
+            listener.Listen(4);
+            WrongUidResult refused;
+            File.SetUnixFileMode(directory, UnixFileMode.None);
+            try
+            {
+                refused = await ClassifyRawConnectAsync(path).ConfigureAwait(false);
+            }
+            finally
+            {
+                File.SetUnixFileMode(directory, OwnerOnlyDirectoryMode);
+            }
+
+            Check(refused.Verdict == WrongUidVerdict.Pass && refused.Line == "PASS: " + WrongUidRefusalDetail, "a real EACCES from a chmod-000 directory is the refusal (got: " + refused.Line + ")");
+            var missing = await ClassifyRawConnectAsync(directory + "/missing.sock").ConfigureAwait(false);
+            Check(missing.Verdict == WrongUidVerdict.Inconclusive, "a missing socket is inconclusive (got: " + missing.Line + ")");
+            using var connected = await ConnectUnixSocketAsync(path).ConfigureAwait(false);
+            var peer = GetLinuxPeerCredentials(connected);
+            Check(peer.UserId == uid && peer.ProcessId == Environment.ProcessId, "SO_PEERCRED names the owner uid and pid of the listener");
+            return uid;
+        }
+        finally
+        {
+            DeleteWrongUidDirectory(directory);
+        }
+    }
+
+    private static async Task<WrongUidResult> ClassifyRawConnectAsync(string path)
+    {
+        try
+        {
+            using var socket = await ConnectUnixSocketAsync(path).ConfigureAwait(false);
+            return WrongUidResult.Fail("the raw connect opened a connection.");
+        }
+        catch (Exception exception) when (exception is SocketException or OperationCanceledException)
+        {
+            return ClassifyWrongUidConnectFailure(exception);
+        }
+    }
+
+    private static void Check(bool condition, string what)
+    {
+        if (!condition)
+        {
+            throw new InvalidOperationException("Wrong-uid self-check failed: " + what + ".");
+        }
+    }
 }

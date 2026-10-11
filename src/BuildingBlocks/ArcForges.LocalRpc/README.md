@@ -443,3 +443,42 @@ The routing tests (`LocalRpcRoutingTests`, `LocalRpcRoutingWireTests`) run offli
 registration fixtures' fake clock and process table, the guard on every kind of call over a counting invoker, and the guard and a
 server's declared service set over real Kestrel HTTP/2 with the generated `LocalBootstrapService` and `ConnectorBrokerService` on
 in-memory streams (no Sandbox contract is admitted, so the sandbox service name in them is data only).
+
+Refusal of a second operating-system account cannot be shown under one account. [`Tests/wrong-user-procedure.md`](Tests/wrong-user-procedure.md)
+is the runnable procedure for it: a second, standard Windows account against the Named Pipe endpoint, the library client against a pipe
+that account owns, the launch root, and the launch and registration endpoints over a Named Pipe and a Unix socket; and a second, non-root
+Linux uid against the plain, launch and registration Unix sockets. Each step names its expected line and exit code and the controls
+before and after it that show the endpoint was live. The procedure drives `wrong-user-*` helper modes of the test assembly, reached only
+through `DOTNET_STARTUP_HOOKS` and `ARCFORGES_LOCALRPC_HELPER`. Their parsing, outcome classification, guards and exit codes are tested
+offline in CI (`LocalRpcWrongUserProcedureTests`), and `LocalRpcWrongUserProcedureChecks` (same opt-in variable) runs them under one
+account as controls only. The procedure has not been run: wrong-user denial is blocked on a second Windows account, not proven, and
+blocked on a second Linux uid, not proven.
+
+Completion follow-up runs (2026-10-11; claimant-reported, each run once through the build slot, at branch head
+`832ab2ed8ec6687e5b4f79ff11da56c740ab0f34`, whose library sources outside `Tests/` and Markdown are byte-identical to DesktopPlatform
+`main` `fb8577c3`; no log is stored in the repository):
+
+- Windows 11 Pro for Workstations 10.0.26300.9550, x64, .NET SDK 10.0.400, `ARCFORGES_LOCALRPC_OS_STREAMS=1` with `GITHUB_ACTIONS`
+  unset: 952 tests, 943 passed, 9 skipped, 0 failed. The skipped are the seven Unix mode checks of `LocalRpcLaunchDirectoryTests`, the
+  Unix permission check of `LocalRpcEndpointTests` and the Linux-only kernel-refusal control of `LocalRpcWrongUserProcedureChecks`.
+  `LocalRpcOsStreamChecks` (9, Named Pipe and AF_UNIX), `LocalRpcLaunchProcessChecks` (3), `LocalRpcRegistrationOsChecks` (5, Named
+  Pipe and AF_UNIX), `LocalRpcCommandProcessChecks` (3) and 9 of the 10 `LocalRpcWrongUserProcedureChecks` same-account controls passed.
+- Linux: WSL2 Debian GNU/Linux 13 (trixie, 13.6), kernel 6.18.40.1-microsoft-standard-WSL2 x86_64, uid 1000, umask 0022, a clone of the
+  branch on the distribution's own ext4 file system (not `/mnt/c`), .NET SDK 10.0.400 with Microsoft.NETCore.App and
+  Microsoft.AspNetCore.App 10.0.11, clang and LLD 19.1.7 present (these managed tests do not use them). Locked restore and Release build
+  passed. Offline (`GITHUB_ACTIONS=true`): 947 tests, 914 passed, 33 skipped, 0 failed. Opt-in (`ARCFORGES_LOCALRPC_OS_STREAMS=1`):
+  947 tests, 932 passed, 15 skipped (the Windows-only Named Pipe and access-control checks), 0 failed. These are the first Linux runs of
+  the real-process checks: `LocalRpcOsStreamChecks` (5: generated calls and malformed frames over a real Unix socket, a socket never
+  bound over an existing file and set to 0600, the call bounds and control slots, quick reconnects, and no TCP listener in
+  `/proc/net/tcp` and `/proc/net/tcp6`), `LocalRpcEndpointTests.ASocketDirectoryThatAnotherUserCouldReachIsRefused`, the seven Unix
+  mode checks of `LocalRpcLaunchDirectoryTests`, `LocalRpcLaunchProcessChecks` (3), `LocalRpcRegistrationOsChecks` (3, Unix socket),
+  `LocalRpcCommandProcessChecks` (3) and `LocalRpcWrongUserProcedureChecks` (4: the plain, launch and registration routes admitted for
+  the owning uid with a refusal expected by that uid reported invalid, and a socket in a mode-000 directory refused by the kernel with
+  EACCES). A first invocation of the opt-in command was rejected by the `dotnet test` argument parser before any test ran; the corrected
+  command is the one run counted.
+
+Wrong-user denial: blocked on a second Windows account, not proven; blocked on a second Linux uid, not proven. The same-account controls
+above show only that the procedure's helpers work. The residual AF_UNIX-on-Windows non-close flake (reported in PLT.09's review: 2
+failures in 250 full opt-in runs, cause not found) is a disclosed residual of a route the product does not ship. It was not
+investigated; the AF_UNIX checks ran once in the Windows run above and passed, and no repeat count is claimed. macOS is not supported
+and never claimed (P2-023).
