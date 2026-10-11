@@ -3,9 +3,10 @@ namespace ArcForges.ContentSandbox.Host;
 
 /// <summary>
 /// The production parser composition of the helper. The local PDF parser path is retired (P2-022): no PDF parser is composed and no native
-/// PDF library is loaded or linked. The still-image composition is delivered by NAT.31 and is not yet present, so no image parser is composed
-/// either and a launch that opens an image against this composition is refused as unavailable. The hostile test parser is never part of this
-/// composition.
+/// PDF library is loaded or linked. The production parser tasks are out of scope, not completed, under P2-026: NAT.14 (PDF and image parsers),
+/// NAT.31 (the still-image parser composition) and PLT.54 (the production parsers and their containment evidence). So no image parser is
+/// composed either, and a launch that opens an image against this composition is refused as unavailable. No containment against a production
+/// parser is claimed. The hostile test parser is never part of this composition.
 /// </summary>
 internal sealed class ProductionParserProfile : IContentParserProfile
 {
