@@ -179,6 +179,76 @@ public sealed class ShellAccessibilityAuditTests
             children: Enumerable.Range(0, 65).Select(static index => new AccessibleNode($"child.{index}", AccessibleRole.Group))));
     }
 
+    [Fact]
+    public void TheAssistiveTechnologySessionProcedureMatchesTheCatalogueElementByElement()
+    {
+        // The manual procedure is the only runnable path to the WP-10.07 human verification, so a catalogue change that
+        // is not reflected in it would send a tester to verify a stale contract.
+        string procedure = File.ReadAllText(Path.Combine(
+            RepositoryRoot(), "src", "DesignSystem", "ArcForges.Desktop.Shell", "Accessibility", "AssistiveTechnologySession.md"));
+        string[] lines = procedure.Split('\n').Select(static line => line.TrimEnd('\r')).ToArray();
+
+        Assert.Contains("**Status: blocked on a human assistive-technology session (deferred, section 0e), not proven.**", lines);
+        foreach (string rid in new[] { "`win-x64`", "`win-arm64`", "`linux-x64`" })
+        {
+            Assert.Contains(rid, procedure, StringComparison.Ordinal);
+        }
+
+        var nodes = new List<AccessibleNode>();
+        foreach (ShellSurface surface in ShellSurfaceCatalog.All)
+        {
+            Assert.Single(lines, line => line.StartsWith("### ", StringComparison.Ordinal) && line.EndsWith($"(`{surface.Id}`)", StringComparison.Ordinal));
+            nodes.AddRange(PseudoLocalisationTests.Flatten(surface.Root));
+        }
+
+        foreach (AccessibleNode node in nodes)
+        {
+            string[] rows = lines.Where(line => line.StartsWith($"| `{node.Id}` |", StringComparison.Ordinal)).ToArray();
+            string[] cells = Assert.Single(rows).Split('|').Select(static cell => cell.Trim()).ToArray();
+            Assert.Equal(9, cells.Length);
+            Assert.Equal(node.Role.ToString(), cells[2]);
+            Assert.Equal(node.Name is null ? "-" : ShellText.Resolve(node.Name, CultureInfo.InvariantCulture), cells[3]);
+            Assert.Equal(node.Keyboard.ToString(), cells[4]);
+            Assert.Equal(node.FocusOrder?.ToString(CultureInfo.InvariantCulture) ?? "-", cells[5]);
+            Assert.Equal(node.Live.ToString(), cells[6]);
+            foreach (string? command in new[] { node.CommandId, node.DismissCommandId })
+            {
+                if (command is not null)
+                {
+                    Assert.Contains($"`{command}`", cells[7], StringComparison.Ordinal);
+                }
+            }
+
+            Assert.Equal(node.IsIconOnly, cells[7].Contains("icon only", StringComparison.Ordinal));
+            Assert.Equal(node.IsModal, cells[7].StartsWith("modal", StringComparison.Ordinal));
+            if (node.Description is not null)
+            {
+                Assert.Contains($"\"{ShellText.Resolve(node.Description, CultureInfo.InvariantCulture)}\"", cells[7], StringComparison.Ordinal);
+            }
+        }
+
+        // No row describes an element the catalogue no longer declares.
+        Assert.Equal(nodes.Count, lines.Count(static line => line.StartsWith("| `shell.", StringComparison.Ordinal)));
+
+        // The procedure tells testers that right-to-left does not change the arrow keys because every roving group is vertical.
+        Assert.DoesNotContain(
+            nodes,
+            static node => node.Orientation == NavigationOrientation.Horizontal && node.Children.Any(static child => child.Keyboard == KeyboardAccess.Roving));
+    }
+
+    private static string RepositoryRoot()
+    {
+        for (var current = new DirectoryInfo(AppContext.BaseDirectory); current is not null; current = current.Parent)
+        {
+            if (File.Exists(Path.Combine(current.FullName, "DesktopPlatform.slnx")))
+            {
+                return current.FullName;
+            }
+        }
+
+        throw new DirectoryNotFoundException("Could not locate DesktopPlatform.slnx from the test output directory.");
+    }
+
     private static AccessibleNode Root(params AccessibleNode[] children) =>
         new("test.root", AccessibleRole.Region, Named, children: children);
 
