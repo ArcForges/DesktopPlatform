@@ -1,6 +1,8 @@
 # Per-application secrets (PLT.40)
 
-This nonpackable first-party building block stores opaque `SecretRef` values in the
+Packaged as `ArcForges.Security.Secrets` (package admission: PLT.46).
+
+This first-party building block stores opaque `SecretRef` values in the
 owning app installation's credential namespace. The namespace includes realm,
 account, product, device, installation, partition and secret identity. Composition
 maps its trusted `AppIdentity` into the closed local `SecretApplicationDimension`

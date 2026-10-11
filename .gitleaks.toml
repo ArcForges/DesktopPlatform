@@ -45,3 +45,17 @@ regexes = [
   '''^\n?      "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "8ff03fdcaf23b09386fac47dd5e3e4f9689a665a569137f726456c9e59a9ecef",$''',
   '''^\n?      "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/Tests/ArcForges[.]Security[.]Secrets[.]Tests[.]csproj": "d6798bbbcf980fab4467c6d831871b075e55aeef6e09c7df67c4d72cd2334120",$'''
 ]
+
+[[allowlists]]
+description = "Exact PLT.46 successor Security.Secrets project input lines"
+paths = [
+  '''^eng/policy/dependency-policy[.]json$''',
+  '''^eng/policy/dependency-reviews/plt-46-r1[.]json$'''
+]
+regexTarget = "line"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexes = [
+  '''^\n?    "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "7282dd206f5ca9cb59fe8d02e9423ac7080857fba03bd0ccff54410b4e2b6bff",$''',
+  '''^\n?      "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "7282dd206f5ca9cb59fe8d02e9423ac7080857fba03bd0ccff54410b4e2b6bff",$'''
+]
