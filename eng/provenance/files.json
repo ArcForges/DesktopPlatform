@@ -986,7 +986,8 @@
     "eng/policy/dependency-reviews/plt-25-r1.json",
     "src/DesktopHelpers/ArcForges.ContentSandbox/Host/ProductionParserProfile.cs",
     "eng/policy/dependency-reviews/nat-14-r1.json",
-    "eng/policy/dependency-reviews/nat-32-r1.json"
+    "eng/policy/dependency-reviews/nat-32-r1.json",
+    "src/DesktopHelpers/ArcForges.ContentSandbox/Tests/LinuxOsIsolationTests.cs"
   ],
   "reused": {
     "LICENSE": "canonical-agpl-legal-r1",
