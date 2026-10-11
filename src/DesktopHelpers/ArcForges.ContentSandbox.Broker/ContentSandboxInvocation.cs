@@ -652,15 +652,24 @@ public sealed class ContentSandboxInvocation : IAsyncDisposable
             return ContentSandboxResult<ContentSandboxTile>.Fail("validation.invalid_request");
         }
 
+        // A session that ended (the helper died, its pair or lease is gone, or it was closed) has no free slot and grants nothing: that is
+        // the end of the invocation, not a busy one the caller could retry.
         var slot = FreeSlot(session, capacity);
         if (slot is null)
         {
-            return ContentSandboxResult<ContentSandboxTile>.Fail("capacity.busy");
+            return SessionEnded(session)
+                ? await EndedBecauseAsync<ContentSandboxTile>("resource.parser_failed").ConfigureAwait(false)
+                : ContentSandboxResult<ContentSandboxTile>.Fail("capacity.busy");
         }
 
         var granted = session.Grant(slot.Value, capacity);
         if (!granted.IsSuccess)
         {
+            if (SessionEnded(session))
+            {
+                return await EndedBecauseAsync<ContentSandboxTile>("resource.parser_failed").ConfigureAwait(false);
+            }
+
             return ContentSandboxResult<ContentSandboxTile>.Fail(granted.Refusal == LocalRpcBrokerRefusal.CapacityExceeded ? "validation.invalid_request" : "state.invalid_transition");
         }
 
@@ -796,11 +805,35 @@ public sealed class ContentSandboxInvocation : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Classifies a call that was refused before dispatch. Only the bounds of a live helper are a busy invocation the caller may retry:
+    /// a full data queue, both control slots taken, a callback that found no slot, or a deadline that passed before dispatch. A route
+    /// that is no longer live means the helper is gone (its registration ended before supervision observed it), and the remaining
+    /// reasons are faults of the helper or of this parent's own state; each of those ends the invocation with
+    /// <c>resource.parser_failed</c>, exactly as a helper that died during the call does.
+    /// </summary>
+    /// <param name="reason">The refusal the bounds layer or the route guard attached to the call.</param>
+    /// <returns>The typed reason code, and whether the invocation ends.</returns>
+    internal static (string Code, bool Ends) ClassifyRefusal(LocalRpcRefusalReason reason) => reason switch
+    {
+        LocalRpcRefusalReason.DataQueueFull
+            or LocalRpcRefusalReason.ControlBusy
+            or LocalRpcRefusalReason.CallbackNotQueued
+            or LocalRpcRefusalReason.DeadlineBeforeDispatch => ("capacity.busy", false),
+        _ => ("resource.parser_failed", true),
+    };
+
     private ContentSandboxResult<T> FailedTransport<T>(RpcException exception)
     {
-        if (LocalRpcRefusal.TryRead(exception, out _))
+        // A refusal states the call was not dispatched. It is a busy invocation only while the helper still lives: a retryable refusal
+        // that races the helper's end is that end.
+        if (LocalRpcRefusal.TryRead(exception, out var refusal) && refusal is not null)
         {
-            return ContentSandboxResult<T>.Fail("capacity.busy");
+            var (code, ends) = ClassifyRefusal(refusal.Reason);
+            if (!ends && !IsEnded)
+            {
+                return ContentSandboxResult<T>.Fail(code);
+            }
         }
 
         // Anything else may have reached the helper: it crashed, hung past its deadline, lost its stream or misbehaved. The invocation
@@ -808,6 +841,8 @@ public sealed class ContentSandboxInvocation : IAsyncDisposable
         Terminate();
         return ContentSandboxResult<T>.Fail("resource.parser_failed");
     }
+
+    private bool SessionEnded(LocalRpcBrokerSession session) => IsEnded || session.State != LocalRpcBrokerSessionState.Open;
 
     private static ContentSandboxResult<T> Failed<T>(ArcError? error) =>
         error is null ? ContentSandboxResult<T>.Fail("resource.parser_failed") : ContentSandboxResult<T>.Fail(TypedFailure.FromWire(error));
