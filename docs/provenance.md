@@ -1,6 +1,6 @@
 # Source and native package provenance
 
-WP00.03 implements the [reviewed Design profile](https://github.com/ArcForges/ArcForges-Design/blob/5322d698a1b650a52a5a139d986dd85b00b48581/docs/assurance/reference-coverage-and-provenance.md).
+WP00.03 implements the [reviewed Design profile](https://github.com/ArcForges/ArcForges-Design-Parallel/blob/5322d698a1b650a52a5a139d986dd85b00b48581/docs/assurance/reference-coverage-and-provenance.md).
 The audit subject is the current DesktopPlatform repository. The retired initialization
 repository is not a producer or source input. The existing package identities, ABI and
 runtime tests remain independent release gates.

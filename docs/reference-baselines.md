@@ -1,6 +1,6 @@
 # WP00.04 reference planning inputs
 
-The [accepted registration profile](https://github.com/ArcForges/ArcForges-Design/blob/f5ef5d56dba6e7ecbe49a4ff47163bc548b94c8c/docs/assurance/reference-baseline-registration.md)
+The [accepted registration profile](https://github.com/ArcForges/ArcForges-Design-Parallel/blob/f5ef5d56dba6e7ecbe49a4ff47163bc548b94c8c/docs/assurance/reference-baseline-registration.md)
 assigns this registry, verifier and CI to DesktopPlatform. The five matrix IDs are
 assistant, notes, scope, slate and distribution. Matrix prose remains in Design;
 reference source is never copied or executed. The entry point binds the exact

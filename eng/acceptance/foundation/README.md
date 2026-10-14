@@ -30,8 +30,11 @@ TypeScript stripping. Restore only when this exact consumer closure is needed:
 ```text
 dotnet restore eng/acceptance/foundation/Foundation.Acceptance.csproj --locked-mode
 npm ci --prefix eng/acceptance/foundation --ignore-scripts --no-audit --no-fund
-python C:/MyFile/Projects/Plan/tools/delivery.py build-slot run --worker <worker> --task FND.07 -- python eng/acceptance/foundation/run.py --local
+python eng/acceptance/foundation/run.py --local
 ```
+
+FND.07 ran the last command through the workstation build slot, which is retired (serial delivery,
+ArcForges/Plan `execution-policy.md`); run it directly.
 
 The runner fails closed in CI, builds only this consumer, never restores, and
 uses a temporary directory for the exchange. Do not add it to a CI workflow or

@@ -33,9 +33,9 @@ workflow declarations. It never clones a repository and never reads source code.
 ## Limits and ownership
 
 - Currency: the snapshot records `collectedOn`; `verify` fails SI-10 once it is older than `freshness.maxAgeDays`
-  (45). The owner is the DesktopPlatform integration owner (holder of `roles/integration-desktopplatform`): run
-  `snapshot` and review the diff after any merge that changes a repository's published metadata, and at least
-  every 45 days. Between refreshes a forbidden edge merged elsewhere is caught by that repository's own host,
+  (45). The owner is the ArcForges/Plan coordinator (serial delivery, `execution-policy.md`; the integration-owner
+  role that the hash-bound `policy.json` `owner` text still names is retired): run `snapshot` and review the diff
+  after any merge that changes a repository's published metadata, and at least every 45 days. Between refreshes a forbidden edge merged elsewhere is caught by that repository's own host,
   not by this gate. The time bound makes `verify` depend on the calendar by design.
 - Integrity: `verify` checks the snapshot's internal consistency (policy hash, coverage, shapes, source digest
   shape); it does not re-read the providers, so edited facts pass offline. `drift` re-reads the pins and finds that.
