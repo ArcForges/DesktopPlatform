@@ -21,6 +21,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
 
+import historical_sources
 import licence_boundary as inventory
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -329,7 +330,7 @@ def audit(root, row):
 def checkout(parent, owner, commit):
     target = parent / owner
     subprocess.run(['git', 'init', '-q', str(target)], check=True)
-    subprocess.run(['git', '-C', str(target), 'remote', 'add', 'origin', 'https://github.com/ArcForges/' + owner + '.git'], check=True)
+    subprocess.run(['git', '-C', str(target), 'remote', 'add', 'origin', historical_sources.fetch_url('ArcForges/' + owner)], check=True)
     for attempt in range(3):
         try:
             subprocess.run(['git', '-C', str(target), '-c', 'core.autocrlf=false', 'fetch', '--quiet', '--depth=1', 'origin', commit], check=True)

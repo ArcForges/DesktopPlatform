@@ -137,5 +137,17 @@ class ReconciliationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'origin drift'):policy.check_projects(self.root,row,files,True)
 
 
+    def test_design_snapshot_uses_the_shared_historical_fetch_location(self):
+        source = policy.read('source')
+        commands = []
+
+        def run(arguments, **kwargs):
+            commands.append(arguments)
+            return subprocess.CompletedProcess(arguments, 0)
+        with patch.object(policy.runtime.subprocess, 'run', side_effect=run), \
+             patch.object(policy.runtime.inventory, 'git', return_value=source['designCommit']):
+            policy.runtime.checkout(self.root, 'ArcForges-Design', source['designCommit'])
+        self.assertIn('https://github.com/ArcForges/ArcForges-Design-Parallel.git', [command[-1] for command in commands if 'remote' in command])
+
 if __name__ == '__main__':
     unittest.main()

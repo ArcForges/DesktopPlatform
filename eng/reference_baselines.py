@@ -14,6 +14,8 @@ import subprocess
 import sys
 import tempfile
 
+import historical_sources
+
 ROOT = Path(__file__).resolve().parents[1]
 META = 'eng/provenance/reference-inputs.json'
 POLICY = 'eng/policy/reference-baselines.json'
@@ -76,8 +78,7 @@ def textgit(root, *args):
 
 def origin(root, repository):
     actual = textgit(root, 'remote', 'get-url', 'origin')
-    require(actual in {f'https://github.com/{repository}', f'https://github.com/{repository}.git',
-                      f'git@github.com:{repository}.git'}, 'wrong repository origin: ' + repository)
+    require(actual in historical_sources.origin_urls(repository), 'wrong repository origin: ' + repository)
 
 
 def commit(root, value):
@@ -101,7 +102,7 @@ def remote_snapshot(repository, revision):
     with tempfile.TemporaryDirectory(prefix='arcforges-reference-') as directory:
         root = Path(directory)
         git(root, 'init', '--bare', '--quiet')
-        git(root, 'remote', 'add', 'origin', f'https://github.com/{repository}.git')
+        git(root, 'remote', 'add', 'origin', historical_sources.fetch_url(repository))
         git(root, 'fetch', '--quiet', '--depth=1', '--filter=blob:none', 'origin', revision)
         yield root
 

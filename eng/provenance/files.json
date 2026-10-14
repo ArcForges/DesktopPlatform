@@ -80,6 +80,7 @@
     "eng/dependency_policy.py",
     "eng/design_corpus.py",
     "eng/design_policy.py",
+    "eng/historical_sources.py",
     "eng/licence_boundary.py",
     "eng/native/vcpkg/system-dependencies.v1.json",
     "eng/native/vcpkg/triplets/x64-windows-static-md.cmake",
