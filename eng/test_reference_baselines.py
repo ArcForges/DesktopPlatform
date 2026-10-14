@@ -174,5 +174,37 @@ class GitTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'row set mismatch'): r.matrix_check(self.root,metadata,registry)
 
 
+
+class HistoricalSourceTests(unittest.TestCase):
+    """Recorded identities stay unchanged; only the renamed Design repository has another fetch location."""
+
+    def test_recorded_design_identity_is_fetched_from_the_renamed_repository(self):
+        self.assertEqual(r.read(r.ROOT / r.META)['design']['repository'], 'ArcForges/ArcForges-Design')
+        calls = []
+
+        def git(root, *args):
+            calls.append(args)
+            return b''
+        with patch.object(r, 'git', side_effect=git):
+            with r.remote_snapshot('ArcForges/ArcForges-Design', 'a' * 40):
+                pass
+            with r.remote_snapshot('fixture/reference', 'b' * 40):
+                pass
+        self.assertEqual([args[-1] for args in calls if args[:2] == ('remote', 'add')],
+                         ['https://github.com/ArcForges/ArcForges-Design-Parallel.git', 'https://github.com/fixture/reference.git'])
+        self.assertEqual([args[-1] for args in calls if args[0] == 'fetch'], ['a' * 40, 'b' * 40])
+
+    def test_origin_accepts_the_fetch_location_only_for_the_mapped_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            r.git(root, 'init', '--quiet')
+            r.git(root, 'remote', 'add', 'origin', 'https://github.com/ArcForges/ArcForges-Design-Parallel.git')
+            r.origin(root, 'ArcForges/ArcForges-Design')
+            r.origin(root, 'ArcForges/ArcForges-Design-Parallel')
+            with self.assertRaises(ValueError): r.origin(root, 'fixture/reference')
+            r.git(root, 'remote', 'set-url', 'origin', 'https://github.com/ArcForges/ArcForges-Design.git')
+            r.origin(root, 'ArcForges/ArcForges-Design')
+            with self.assertRaises(ValueError): r.origin(root, 'ArcForges/ArcForges-Design-Parallel')
+
 if __name__ == '__main__':
     unittest.main()

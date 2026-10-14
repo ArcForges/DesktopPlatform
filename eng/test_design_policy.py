@@ -504,5 +504,40 @@ class SpecificationIntegrityTests(unittest.TestCase):
         self.assertTrue(any('active Phase 2 citation' in str(x) for x in result['findings']))
 
 
+
+class HistoricalSourceTests(unittest.TestCase):
+    """The pin keeps its recorded identity; the commit is fetched from the renamed repository (AD-0001)."""
+
+    def test_pinned_design_commit_is_fetched_from_the_renamed_repository(self):
+        pin = policy.validate_pin(policy.read_json(policy.POLICY / 'design-source.json'))
+        self.assertEqual(pin['repository'], 'ArcForges/ArcForges-Design')
+        commands = []
+
+        def run(arguments, **kwargs):
+            commands.append(arguments)
+            return subprocess.CompletedProcess(arguments, 0)
+        with patch.object(policy.subprocess, 'run', side_effect=run):
+            with policy.checkout(pin):
+                pass
+        self.assertIn(['git', 'remote', 'add', 'origin', 'https://github.com/ArcForges/ArcForges-Design-Parallel.git'], commands)
+        fetch = [command for command in commands if 'fetch' in command]
+        self.assertEqual(len(fetch), 1)
+        self.assertEqual(fetch[0][-1], pin['commit'])
+
+    def test_checkout_of_the_renamed_repository_has_an_accepted_origin(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            def git(*args):
+                subprocess.run(['git', '-c', 'core.hooksPath=' + str(root / 'no-hooks'), *args], cwd=root, check=True,
+                               capture_output=True)
+            git('init', '--quiet')
+            git('remote', 'add', 'origin', 'https://github.com/ArcForges/ArcForges-Design-Parallel.git')
+            git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', '-c', 'commit.gpgsign=false',
+                'commit', '--quiet', '--allow-empty', '-m', 'fixture')
+            self.assertEqual(policy.state(root)['status'], '')
+            git('remote', 'set-url', 'origin', 'https://github.com/ArcForges/Other.git')
+            with self.assertRaisesRegex(ValueError, 'repository identity'):
+                policy.state(root)
+
 if __name__ == '__main__':
     unittest.main()

@@ -19,6 +19,7 @@ import tempfile
 
 import design_corpus as corpus
 from design_graph import graph, GRAPH_REL
+import historical_sources
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICY = ROOT / 'eng/policy'
@@ -70,8 +71,7 @@ def git(root, *args):
 def state(root):
     require(Path(git(root, 'rev-parse', '--show-toplevel')).resolve() == root, 'Design root must be a Git repository root')
     remote = git(root, 'remote', 'get-url', 'origin')
-    require(remote in {f'https://github.com/{REPOSITORY}.git', f'https://github.com/{REPOSITORY}',
-                       f'git@github.com:{REPOSITORY}.git'}, 'incorrect Design repository identity')
+    require(remote in historical_sources.origin_urls(REPOSITORY), 'incorrect Design repository identity')
     return {'commit': git(root, 'rev-parse', 'HEAD'), 'status': git(root, 'status', '--porcelain=v1')}
 
 
@@ -82,7 +82,7 @@ def checkout(pin):
         root = Path(directory)
         commands = [
             ['init', '--quiet'],
-            ['remote', 'add', 'origin', f'https://github.com/{REPOSITORY}.git'],
+            ['remote', 'add', 'origin', historical_sources.fetch_url(REPOSITORY)],
             ['-c', 'core.autocrlf=false', 'fetch', '--quiet', '--depth=1', 'origin', pin['commit']],
             ['-c', 'core.autocrlf=false', '-c', 'core.hooksPath=' + str(root / 'no-hooks'),
              'checkout', '--quiet', '--detach', 'FETCH_HEAD'],
