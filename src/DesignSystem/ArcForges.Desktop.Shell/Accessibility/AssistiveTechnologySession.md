@@ -3,12 +3,12 @@
 **Status: blocked on a human assistive-technology session (deferred, section 0e), not proven.**
 
 This is the runnable procedure for the dated manual assistive-technology verification that the
-[WP-10.07](https://github.com/ArcForges/ArcForges-Design/blob/main/docs/planning/work-packages/10-design-system-and-desktop-shell.md#rule-wp-10.07)
+[WP-10.07](https://github.com/ArcForges/ArcForges-Design-Parallel/blob/64173614f2c41543bfff8f6df8d5a9e41207eb0a/docs/planning/work-packages/10-design-system-and-desktop-shell.md#rule-wp-10.07)
 completion gate requires for the shell surfaces declared in `ShellSurfaceCatalog`. The automated shell tests prove the
 declarations, the focus contract (`FocusNavigator`), pseudo-localisation and the right-to-left mappings; only a person using a
 real screen reader against a real UI adapter can prove that the platform accessibility tree speaks them. No such session has
 been run. The user decided on 2026-10-10 that the human session is not run in the current delivery run and is not asked of
-them (recorded in the fix8 planning repair note of the [PLT.33 delivery record](https://github.com/ArcForges/ArcForges-Design/blob/main/docs/planning/delivery/lanes/platform.md#task-plt-33),
+them (recorded in the fix8 planning repair note of the [PLT.33 delivery record](https://github.com/ArcForges/ArcForges-Design-Parallel/blob/64173614f2c41543bfff8f6df8d5a9e41207eb0a/docs/planning/delivery/lanes/platform.md#task-plt-33),
 which calls this decision section 0e). Until a dated result recorded with the form below has been reviewed, every check here is "not proven", and PLT.33 stays
 `delivered`, not `complete`.
 

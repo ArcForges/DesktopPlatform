@@ -1,6 +1,6 @@
 # Runtime and source ownership
 
-WP00.05 originally implemented the [historical Design profile](https://github.com/ArcForges/ArcForges-Design/blob/e2dd78058ce2d4bd1a8434a34d049bbc1158eacb/docs/architecture/30-runtime-and-source-ownership-policy.md).
+WP00.05 originally implemented the [historical Design profile](https://github.com/ArcForges/ArcForges-Design-Parallel/blob/e2dd78058ce2d4bd1a8434a34d049bbc1158eacb/docs/architecture/30-runtime-and-source-ownership-policy.md).
 The current registry is `eng/policy/runtime-ownership.json`. Seven implementation owners
 are independent; Design is documentation authority, and ArcChat is an embedded
 assistant/companion feature. Policy does not create another runtime package.

@@ -1,6 +1,6 @@
 # Independent versions and build identity
 
-WP02.04 follows the accepted [nine-owner profile](https://github.com/ArcForges/ArcForges-Design/blob/main/docs/assurance/wp02-04-version-identity-profile.md).
+WP02.04 follows the accepted [nine-owner profile](https://github.com/ArcForges/ArcForges-Design-Parallel/blob/64173614f2c41543bfff8f6df8d5a9e41207eb0a/docs/assurance/wp02-04-version-identity-profile.md).
 `eng/version-sources.json` declares all nine axes. NativeAbiVersion reads the actual C header constants;
 PackageVersion reads committed NuGet locks and the audited native SBOM dependency closure. AppVersion
 and business contracts are not applicable to these library foundations. Future capability descriptors,

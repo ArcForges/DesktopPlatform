@@ -4,6 +4,16 @@ Shared desktop mechanisms and native interoperability for ArcScope and its embed
 This repository owns the CMake/vcpkg toolchain, narrow C ABIs, C# wrappers and capability NuGet packages.
 Product applications and services build independently from published packages.
 
+**Flagship role:** DesktopPlatform is an active repository of the ArcForges flagship
+([AD-0001](https://github.com/ArcForges/ArcForges-Design/blob/main/docs/decisions/AD-0001-flagship-pivot.md)). It adapts `ArcForges.LocalRpc`
+(service-endpoint mode) and `ArcForges.Security.Secrets` (Linux backends) for the ArcForges node,
+CLI and Desktop, which also reuse its observability, design-system, shell-model and build-policy
+packages ([architecture 01 §5](https://github.com/ArcForges/ArcForges-Design/blob/main/docs/architecture/01-system-overview.md#5-repository-and-project-map),
+[reuse classification](https://github.com/ArcForges/ArcForges-Design/blob/main/docs/reuse/inventory-and-classification.md#2-desktopplatform)). The other
+application-family building blocks are retained for future products. Work is scheduled in the
+[ArcForges/Plan delivery graph](https://github.com/ArcForges/Plan/blob/main/delivery-graph.json) and
+delivered serially under its [execution policy](https://github.com/ArcForges/Plan/blob/main/execution-policy.md).
+
 ## Current implementation
 
 - The retained still-image shim, ArcImageNative, exposes ABI/version/error probes; full image preview behavior remains implementation work.
@@ -23,8 +33,10 @@ Product applications and services build independently from published packages.
 - Native.Abstractions, Native.Image and the Windows x64 Image runtime package deliver the existing version, build-information and error APIs, dependency closure, C headers, import library and source records.
 - Platform-only managed and Windows IDE solutions, native ABI CI, package verification and NuGet OIDC CI.
 
-See [extraction scope and evidence](docs/platform-bootstrap.md). The accepted product family design is
-maintained in [ArcForges-Design](https://github.com/ArcForges/ArcForges-Design).
+See [extraction scope and evidence](docs/platform-bootstrap.md). The design authority for active
+development is [ArcForges-Design](https://github.com/ArcForges/ArcForges-Design); the earlier
+product-family design is read-only history in
+[ArcForges-Design-Parallel](https://github.com/ArcForges/ArcForges-Design-Parallel/tree/64173614f2c41543bfff8f6df8d5a9e41207eb0a).
 
 ## Design policy data
 

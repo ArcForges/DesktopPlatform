@@ -1,6 +1,6 @@
 # Current repository reconciliation
 
-The [WP01.00 Design profile](https://github.com/ArcForges/ArcForges-Design/blob/33bcddd9508ec60c0a2b0d7b53901ee7f50d0a70/docs/assurance/wp01-00-inventory-policy.md) governs `eng/policy/reconciliation/`.
+The [WP01.00 Design profile](https://github.com/ArcForges/ArcForges-Design-Parallel/blob/33bcddd9508ec60c0a2b0d7b53901ee7f50d0a70/docs/assurance/wp01-00-inventory-policy.md) governs `eng/policy/reconciliation/`.
 
 - `source.json` binds the Design authority, WP00 candidate receipt and historical tree.
 - `current.json` records nine clean primary commits, their worktrees, 75 build projects and exact published candidate identities. Worktree observations are historical local state, not instructions to read adjacent sources during a build.

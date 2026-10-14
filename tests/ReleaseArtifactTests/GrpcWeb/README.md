@@ -46,8 +46,9 @@ artifacts/prf-05/win-x64/GrpcWebAotProbe.exe --live https://arcforges.com/api --
 and runtime identity, never a header other than the worker revision, a body or a credential.
 
 `https://arcforges.com/api` is the production Hello ingress of the Cloud repository (docs/development.md there). The
-`env.proof` ingress of PRF.07 does not exist, and nothing in this probe addresses it. Run `--live` only while holding the
-Plan lease `RES-cloud-deployment`.
+`env.proof` ingress of PRF.07 does not exist, and nothing in this probe addresses it. `--live` is a local opt-in run against
+production; it was historically gated by the retired Plan lease `RES-cloud-deployment`, and under serial delivery
+it runs only when the active Plan task calls for it.
 
 ## Findings that shaped the probe
 
