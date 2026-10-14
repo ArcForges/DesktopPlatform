@@ -315,5 +315,18 @@ class RuntimeOwnershipTests(unittest.TestCase):
         with self.assertRaises(ValueError): policy.audit(self.root, row)
 
 
+    def test_historical_design_snapshot_is_fetched_from_the_renamed_repository(self):
+        commands = []
+
+        def run(arguments, **kwargs):
+            commands.append(arguments)
+            return subprocess.CompletedProcess(arguments, 0)
+        with patch.object(policy.subprocess, 'run', side_effect=run), \
+             patch.object(policy.inventory, 'git', return_value='a' * 40):
+            self.assertEqual(policy.checkout(self.root, 'ArcForges-Design', 'a' * 40), self.root / 'ArcForges-Design')
+            policy.checkout(self.root, 'Contracts', 'a' * 40)
+        self.assertEqual([command[-1] for command in commands if 'remote' in command],
+                         ['https://github.com/ArcForges/ArcForges-Design-Parallel.git', 'https://github.com/ArcForges/Contracts.git'])
+
 if __name__ == '__main__':
     unittest.main()
