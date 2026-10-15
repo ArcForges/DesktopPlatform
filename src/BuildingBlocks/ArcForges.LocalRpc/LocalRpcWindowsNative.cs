@@ -65,12 +65,14 @@ internal static partial class LocalRpcWindowsNative
         nint handle;
         fixed (byte* bytes = descriptor)
         {
-            var attributes = new SecurityAttributes
-            {
-                Length = sizeof(SecurityAttributes),
-                SecurityDescriptor = (nint)bytes,
-                InheritHandle = 0,
-            };
+            // SECURITY_ATTRIBUTES { DWORD nLength; LPVOID lpSecurityDescriptor; BOOL bInheritHandle; } is three pointer-sized slots on
+            // both Windows widths (x64: 4 + 4 padding, 8, 4 + 4 padding; x86: 4, 4, 4), little-endian. It lives on this frame for this
+            // one call and points only at the managed descriptor pinned above: no type holds a native pointer and no native lifetime is
+            // owned here (the pipe handle itself is a SafePipeHandle).
+            var attributes = stackalloc nint[3];
+            attributes[0] = 3 * sizeof(nint);
+            attributes[1] = (nint)bytes;
+            attributes[2] = 0;
             handle = CreateNamedPipe(
                 @"\\.\pipe\" + name,
                 PipeAccessDuplex | FileFlagOverlapped | (first ? FileFlagFirstPipeInstance : 0),
@@ -79,7 +81,7 @@ internal static partial class LocalRpcWindowsNative
                 0,
                 0,
                 0,
-                &attributes);
+                attributes);
         }
 
         if (handle == -1 || handle == 0)
@@ -166,7 +168,7 @@ internal static partial class LocalRpcWindowsNative
         uint outBufferSize,
         uint inBufferSize,
         uint defaultTimeout,
-        SecurityAttributes* securityAttributes);
+        nint* securityAttributes);
 
     [LibraryImport("Kernel32.dll", EntryPoint = "GetNamedPipeClientProcessId", SetLastError = true)]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
@@ -196,12 +198,4 @@ internal static partial class LocalRpcWindowsNative
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool OpenProcessToken(SafeProcessHandle process, uint desiredAccess, out nint token);
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct SecurityAttributes
-    {
-        public int Length;
-        public nint SecurityDescriptor;
-        public int InheritHandle;
-    }
 }
