@@ -25,6 +25,10 @@ internal static class PolicyEngine
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(compilations);
         var graph = new ProjectGraph(repository.Projects);
+        // Keyed, order-preserving indexes of the binding lists (ordinal keys, built on first use, so they are read once
+        // rather than once per type or method). Each lookup keeps the original predicate, results and exceptions.
+        ILookup<string, WireTypeBinding>? wireTypesBySymbol = null;
+        ILookup<string, ContractTestBinding>? contractTestsByApi = null;
         var findings = new List<PolicyFinding>();
         var methods = new Dictionary<string, IMethodSymbol>(StringComparer.Ordinal);
         var types = new Dictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
@@ -238,7 +242,9 @@ internal static class PolicyEngine
             foreach (var type in types.Values.Where(type => typeProjects[type] == project
                 && type.DeclaredAccessibility == Accessibility.Public && type.TypeKind is TypeKind.Class or TypeKind.Struct or TypeKind.Enum))
             {
-                var binding = configuration.WireTypes.SingleOrDefault(binding => binding.TypeSymbol == type.ToDisplayString());
+                wireTypesBySymbol ??= configuration.WireTypes.ToLookup(binding => binding.TypeSymbol, StringComparer.Ordinal);
+                string typeSymbol = type.ToDisplayString();
+                var binding = wireTypesBySymbol[typeSymbol].SingleOrDefault(binding => binding.TypeSymbol == typeSymbol);
                 if (binding is null || !Generated(type) || !HashMatches(repository.Root, binding.SchemaPath, binding.SchemaSha256))
                 {
                     Add("AT-12", project.Classification.Path, "Wire type is not bound to generated owned schema: " + type);
@@ -255,7 +261,9 @@ internal static class PolicyEngine
                 continue;
             }
 
-            var bindings = repository.ContractTests.Where(binding => binding.ApiSymbol == MethodIdentity(pair.Value)).ToArray();
+            contractTestsByApi ??= repository.ContractTests.ToLookup(binding => binding.ApiSymbol, StringComparer.Ordinal);
+            string apiSymbol = MethodIdentity(pair.Value);
+            var bindings = contractTestsByApi[apiSymbol].Where(binding => binding.ApiSymbol == apiSymbol).ToArray();
             if (bindings.Length == 0 || bindings.Any(binding => !methods.TryGetValue(binding.TestProject + "\0" + binding.TestMethod, out var test)
                 || typeProjects[test.ContainingType].Classification.Path != binding.TestProject
                 || typeProjects[test.ContainingType].Classification.Role != ProjectRole.Test
