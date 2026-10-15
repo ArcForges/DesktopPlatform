@@ -15,7 +15,7 @@ public sealed record LocalRpcLimits
 
     /// <summary>
     /// Most connections served at once (8; in service mode see <see cref="ServiceDefaults"/>, 64). Further peers wait in the OS backlog and are
-    /// accepted as slots free; they are never reset. A parent-child server takes 1 through 64, a service-mode server 1 through 256.
+    /// accepted as slots free; they are never reset. On Linux a connect beyond the backlog (16) fails with EAGAIN and the client retries. A parent-child server takes 1 through 64, a service-mode server 1 through 256.
     /// </summary>
     public int MaxConnections { get; init; } = 8;
 

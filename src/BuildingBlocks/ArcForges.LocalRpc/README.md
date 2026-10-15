@@ -399,7 +399,9 @@ makes a long-lived per-user service instead (ArcForges-Design `docs/reuse/deskto
   admitted peers and denials by reason. A Windows process that exited with code 259 (`STILL_ACTIVE`) reads as running: an OS limit, caught by the
   connection itself being gone. `ExecutablePath` is null when the OS will not say; it is not a security check.
 - **Connections.** `MaxConnections` is 64 by default (`LocalRpcLimits.ServiceDefaults`) and may be 1 through 256. The backlog (16) and the slot
-  behaviour are unchanged: an extra peer waits for a slot and is not reset. At 256 connections the per-connection memory figures above multiply by
+  behaviour are unchanged: on Windows an extra pipe client waits for a slot and is not reset. On Linux, connects beyond the backlog that
+  arrive faster than the server accepts them fail at once with `EAGAIN`; clients retry with bounded backoff and never read `EAGAIN` as
+  "server not running". At 256 connections the per-connection memory figures above multiply by
   256 instead of 8.
 - **Idle rule.** A connection holding an open stream is never idle. Otherwise the idle close is 10 minutes (`ServiceDefaults`; at most 10 minutes),
   and Kestrel's own keep-alive close of a connection without active streams is raised past it so that it cannot end a connection first. The

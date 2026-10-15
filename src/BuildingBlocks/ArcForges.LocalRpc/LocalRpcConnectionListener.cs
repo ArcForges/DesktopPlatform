@@ -241,7 +241,8 @@ internal sealed class LocalRpcConnectionListener : IConnectionListener
     /// <summary>
     /// The service-mode decision for one connection: the peer is resolved from the OS stream (never read), a peer that is unresolved, gone or
     /// of another user is dropped, and the owner's decision then sees the peer. The whole decision is bounded by
-    /// <see cref="LocalRpcLimits.AuthorizationTimeout"/> and runs off the accept loop. Returns the admitted peer, or null.
+    /// <see cref="LocalRpcLimits.AuthorizationTimeout"/>; the accept loop awaits it, so accepts are serial, as on the parent-child path. Returns
+    /// the admitted peer, or null.
     /// </summary>
     [SuppressMessage("Design", "CA1031", Justification = "A failing resolution or decision must deny rather than expose an unauthenticated connection.")]
     private async ValueTask<LocalRpcPeer?> DecideServiceAsync(
