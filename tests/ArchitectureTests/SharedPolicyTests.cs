@@ -319,7 +319,7 @@ public sealed class SharedPolicyTests
         fixture.ContractTests.Add(bound with { ApiSymbol = "api.value()" });
         Xunit.Assert.Empty(fixture.Check());
         fixture.ContractTests.Add(bound with { TestMethod = "FixtureTests.Contracts.Missing()" });
-        Xunit.Assert.Equal(["Public API lacks correspondence to an actual contract-test method: subject/subject.csproj Api.Value()"],
+        Xunit.Assert.Equal(["Public API lacks correspondence to an actual contract-test method: subject/subject.csproj\0Api.Value()"],
             fixture.Check().Where(finding => finding.Rule == "RP-10").Select(finding => finding.Message));
         fixture.ContractTests.RemoveAll(binding => binding.ApiSymbol == "Api.Value()");
         Xunit.Assert.Single(fixture.Check(), finding => finding.Rule == "RP-10");
