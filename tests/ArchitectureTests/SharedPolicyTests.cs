@@ -284,6 +284,88 @@ public sealed class SharedPolicyTests
         }
     }
 
+    // AF-CON-01 repair: the AT-12 and RP-10 binding lookups are keyed, order-preserving indexes. These cases pin the
+    // findings and exception behaviour the linear scans had, and the last two pin that each binding list is read once.
+
+    [Xunit.Fact]
+    public void DuplicateWireTypeBindingsStillRefuseWithTheSameException()
+    {
+        using var fixture = Case.Create("AT-12", violation: false);
+        fixture.WireTypes.Add(fixture.WireTypes[0]);
+        var exception = Xunit.Assert.Throws<InvalidOperationException>(() => fixture.Check());
+        Xunit.Assert.Equal("Sequence contains more than one matching element", exception.Message);
+    }
+
+    [Xunit.Fact]
+    public void WireTypeBindingsMatchOrdinallyAndIgnoreUnrelatedOrNullSymbols()
+    {
+        using var fixture = Case.Create("AT-12", violation: false);
+        var bound = fixture.WireTypes[0];
+        fixture.WireTypes.Insert(0, bound with { TypeSymbol = null! });
+        fixture.WireTypes.Add(bound with { TypeSymbol = "Other.WireMessage" });
+        Xunit.Assert.Empty(fixture.Check());
+        fixture.WireTypes.Remove(bound);
+        fixture.WireTypes.Add(bound with { TypeSymbol = "wiremessage" });
+        Xunit.Assert.Equal(["Wire type is not bound to generated owned schema: WireMessage"],
+            fixture.Check().Where(finding => finding.Rule == "AT-12").Select(finding => finding.Message));
+    }
+
+    [Xunit.Fact]
+    public void ContractTestBindingsMatchOrdinallyAndEveryMatchingBindingMustBeValid()
+    {
+        using var fixture = Case.Create("RP-10", violation: false);
+        var bound = fixture.ContractTests.Single(binding => binding.ApiSymbol == "Api.Value()");
+        fixture.ContractTests.Insert(0, bound with { ApiSymbol = null! });
+        fixture.ContractTests.Add(bound with { ApiSymbol = "api.value()" });
+        Xunit.Assert.Empty(fixture.Check());
+        fixture.ContractTests.Add(bound with { TestMethod = "FixtureTests.Contracts.Missing()" });
+        Xunit.Assert.Equal(["Public API lacks correspondence to an actual contract-test method: subject/subject.csproj\0Api.Value()"],
+            fixture.Check().Where(finding => finding.Rule == "RP-10").Select(finding => finding.Message));
+        fixture.ContractTests.RemoveAll(binding => binding.ApiSymbol == "Api.Value()");
+        Xunit.Assert.Single(fixture.Check(), finding => finding.Rule == "RP-10");
+    }
+
+    [Xunit.Fact]
+    public void ContractTestBindingsAreReadOnceForAnyNumberOfPublicMethods()
+    {
+        using var fixture = Case.Create("RP-10", violation: false);
+        fixture.AddFoundation("many", string.Concat(Enumerable.Range(0, 200).Select(index =>
+            $"public static class Api{index} {{ public static int A() => 1; public static int B(int value) => value; }}")));
+        var counted = new CountingList<ContractTestBinding>(fixture.ContractTests);
+        Xunit.Assert.Empty(fixture.Check(contractTests: counted));
+        Xunit.Assert.Equal(1, counted.Enumerations);
+    }
+
+    [Xunit.Fact]
+    public void WireTypeBindingsAreReadOnceForAnyNumberOfWireTypes()
+    {
+        using var fixture = Case.Create("AT-12", violation: false);
+        var template = fixture.WireTypes[0];
+        fixture.AddContracts("many", string.Concat(Enumerable.Range(0, 200).Select(index =>
+            $"[System.CodeDom.Compiler.GeneratedCode(\"protoc\", \"1\")] public sealed class Wire{index} {{ }}")));
+        fixture.WireTypes.AddRange(Enumerable.Range(0, 200).Select(index => template with { TypeSymbol = "Wire" + index }));
+        var counted = new CountingList<WireTypeBinding>(fixture.WireTypes);
+        Xunit.Assert.Empty(fixture.Check(wireTypes: counted));
+        Xunit.Assert.Equal(1, counted.Enumerations);
+    }
+
+    private sealed class CountingList<T>(IReadOnlyList<T> inner) : IReadOnlyList<T>
+    {
+        public int Enumerations { get; private set; }
+
+        public T this[int index] => inner[index];
+
+        public int Count => inner.Count;
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            Enumerations++;
+            return inner.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
     private sealed class Case : IDisposable
     {
         private const string SourceCommit = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -418,10 +500,21 @@ public sealed class SharedPolicyTests
             return fixture;
         }
 
-        public IReadOnlyList<PolicyFinding> Check() => PolicyEngine.Check(
-            new RepositoryFacts(_root, "DesktopPlatform", Projects, Exceptions, _contractTests),
+        public List<ContractTestBinding> ContractTests => _contractTests;
+
+        public List<WireTypeBinding> WireTypes => _wireTypes;
+
+        public IReadOnlyList<PolicyFinding> Check() => Check(null, null);
+
+        public IReadOnlyList<PolicyFinding> Check(IReadOnlyList<ContractTestBinding>? contractTests = null,
+            IReadOnlyList<WireTypeBinding>? wireTypes = null) => PolicyEngine.Check(
+            new RepositoryFacts(_root, "DesktopPlatform", Projects, Exceptions, contractTests ?? _contractTests),
             new RepositoryPolicyConfiguration(SourceCommit, _toolchains, _licenses, new HashSet<string>(StringComparer.Ordinal) { "MIT", "Apache-2.0" },
-                _services, _wireTypes, Evidence, MobileDistributable: _mobile, DependencyRoles: DependencyRoles), _compilations, new DateOnly(2026, 9, 27));
+                _services, wireTypes ?? _wireTypes, Evidence, MobileDistributable: _mobile, DependencyRoles: DependencyRoles), _compilations, new DateOnly(2026, 9, 27));
+
+        public void AddFoundation(string name, string source) => Add(name, ProjectRole.Foundation, source);
+
+        public void AddContracts(string name, string source) => Add(name, ProjectRole.Contracts, source);
 
         public void AddCallback(string declaration) => Add("callback", ProjectRole.Foundation,
             declaration + " public class Api { public Callback? Value { get; } }");
