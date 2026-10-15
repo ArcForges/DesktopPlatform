@@ -22,6 +22,8 @@ class SecretScanAllowlistTests(unittest.TestCase):
     RECEIPT_PATH = 'eng/policy/dependency-reviews/plt-40-r1.json'
     PLT44_RECEIPT_PATH = 'eng/policy/dependency-reviews/plt-44-r1.json'
     PLT46_RECEIPT_PATH = 'eng/policy/dependency-reviews/plt-46-r1.json'
+    # AF-DP-01's receipt mirrors the same active Security.Secrets digest (the project is unchanged since PLT.46).
+    AFDP01_RECEIPT_PATH = 'eng/policy/dependency-reviews/af-dp-01-r1.json'
     RECEIPT_DIRECTORY_PATH_REGEX = '^eng/policy/dependency-reviews/[A-Za-z0-9._-]+[.]json$'
     ANY_RECEIPT_DESCRIPTION = 'Exact mirrored Security.Secrets project lines in any dependency-review receipt'
     PROJECT_PATHS = (
@@ -36,7 +38,7 @@ class SecretScanAllowlistTests(unittest.TestCase):
     # Active ArcForges.Security.Secrets.csproj digest after the PLT.46 IsPackable flip (S52(2)).
     ACTIVE_PROJECT_HASH = '7282dd206f5ca9cb59fe8d02e9423ac7080857fba03bd0ccff54410b4e2b6bff'
     PLT46_DESCRIPTION = 'Exact PLT.46 successor Security.Secrets project input lines'
-    PLT46_PATHS = (POLICY_PATH, PLT46_RECEIPT_PATH)
+    PLT46_PATHS = (POLICY_PATH, PLT46_RECEIPT_PATH, AFDP01_RECEIPT_PATH)
 
     @classmethod
     def setUpClass(cls):
@@ -124,6 +126,7 @@ class SecretScanAllowlistTests(unittest.TestCase):
         self.assertEqual(group['paths'], [
             '^eng/policy/dependency-policy[.]json$',
             '^eng/policy/dependency-reviews/plt-46-r1[.]json$',
+            '^eng/policy/dependency-reviews/af-dp-01-r1[.]json$',
         ])
         self.assertEqual(group['targetRules'], ['generic-api-key'])
         self.assertEqual(group['condition'], 'AND')
@@ -294,7 +297,7 @@ class SecretScanAllowlistTests(unittest.TestCase):
         found = 0
         for receipt in sorted(directory.glob('*.json'), key=lambda item: item.name.encode('utf-8')):
             relative = receipt.relative_to(ROOT).as_posix()
-            lines = historical | ({active} if relative == self.PLT46_RECEIPT_PATH else set())
+            lines = historical | ({active} if relative in (self.PLT46_RECEIPT_PATH, self.AFDP01_RECEIPT_PATH) else set())
             for line in receipt.read_text(encoding='utf-8').split('\n'):
                 if any(project in line for project in self.PROJECT_PATHS):
                     found += 1
