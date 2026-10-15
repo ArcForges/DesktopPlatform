@@ -1750,6 +1750,21 @@
     "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.PlatformStoreSelectionIsFailClosedAndNeverOverstatesIsolation()"
   },
   {
+    "apiSymbol": "ArcForges.Security.Secrets.OsSecretStore.SelectForCurrentPlatform(string, ArcForges.Security.Secrets.SecretServiceOptions?)",
+    "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
+    "testMethod": "ArcForges.Security.Secrets.Tests.LinuxSecretStoreSelectionTests.AnUnreachableSessionBusMakesTheSecretServiceUnavailable()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.OsSecretStore.SelectForCurrentPlatform(string, ArcForges.Security.Secrets.SecretServiceOptions?)",
+    "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
+    "testMethod": "ArcForges.Security.Secrets.Tests.LinuxSecretStoreSelectionTests.ThePrivateKeyringIsSelectedReportedAsOsStoreAndRoundTripsThroughTheDefaultCollection()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.OsSecretStore.SelectForCurrentPlatform(string, ArcForges.Security.Secrets.SecretServiceOptions?)",
+    "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
+    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.PlatformStoreSelectionIsFailClosedAndNeverOverstatesIsolation()"
+  },
+  {
     "apiSymbol": "ArcForges.Security.Audit.AuditPartition.For(ArcForges.Security.HumanPrincipal, System.DateTimeOffset)",
     "testProject": "src/BuildingBlocks/ArcForges.Security.Audit/Tests/ArcForges.Security.Audit.Tests.csproj",
     "testMethod": "ArcForges.Security.Audit.Tests.AuditStoreTests.AuditPartitionForUsesUtcMonthBoundaries()"

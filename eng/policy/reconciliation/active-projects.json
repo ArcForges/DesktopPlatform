@@ -124,7 +124,7 @@
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security.Secrets/ArcForges.Security.Secrets.csproj",
-      "blob": "1722246268601a25e67166df49f50aff5097646d"
+      "blob": "fd53794d0654df1c47214754b278c24838059f99"
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
@@ -189,6 +189,10 @@
     {
       "path": "tests/LocalRpcServiceAotTests/LocalRpcServiceAotTests.csproj",
       "blob": "d79c273739a1b66d3e3195d2244efb8654cdc743"
+    },
+    {
+      "path": "tests/SecretStoreSelectionAotTests/SecretStoreSelectionAotTests.csproj",
+      "blob": "8717f231edcdcf1c9a0a90aa20f27921102d7345"
     },
     {
       "path": "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj",

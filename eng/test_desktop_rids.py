@@ -69,8 +69,10 @@ class DesktopRidResidueTests(unittest.TestCase):
     def test_dependency_policy_has_no_osx_admission_and_names_the_successor(self):
         policy = json.loads(self.read('eng/policy/dependency-policy.json'))
         self.assertEqual([key for key in policy['nugetClosure'] if OSX.search(key)], [])
-        self.assertEqual(policy['reviewReceipt'], 'eng/policy/dependency-reviews/af-dp-01-r1.json')
-        latest = json.loads(self.read(policy['reviewReceipt']))
+        self.assertEqual(policy['reviewReceipt'], 'eng/policy/dependency-reviews/af-dp-02-r1.json')
+        newest = json.loads(self.read(policy['reviewReceipt']))
+        self.assertEqual(newest['review']['previousReceipt'], 'eng/policy/dependency-reviews/af-dp-01-r1.json')
+        latest = json.loads(self.read(newest['review']['previousReceipt']))
         self.assertEqual(latest['review']['previousReceipt'], 'eng/policy/dependency-reviews/plt-46-r1.json')
         successor = json.loads(self.read(latest['review']['previousReceipt']))
         self.assertEqual(successor['review']['previousReceipt'], 'eng/policy/dependency-reviews/nat-11-r1.json')

@@ -1008,7 +1008,20 @@
     "tests/LocalRpcServiceAotTests/README.md",
     "tests/LocalRpcServiceAotTests/packages.lock.json",
     "eng/policy/dependency-reviews/af-dp-01-r1.json",
-    "tests/LocalRpcServiceAotTests/WrongUser.cs"
+    "tests/LocalRpcServiceAotTests/WrongUser.cs",
+    "src/BuildingBlocks/ArcForges.Security.Secrets/LinuxFileSystemNative.cs",
+    "src/BuildingBlocks/ArcForges.Security.Secrets/OwnerOnlyFileSecretStore.cs",
+    "src/BuildingBlocks/ArcForges.Security.Secrets/SecretServiceKeyExchange.cs",
+    "src/BuildingBlocks/ArcForges.Security.Secrets/SecretServiceSecretStore.cs",
+    "src/BuildingBlocks/ArcForges.Security.Secrets/SecretStoreSelection.cs",
+    "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/LinuxSecretStoreSelectionTests.cs",
+    "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/OwnerOnlyFileSecretStoreTests.cs",
+    "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/PrivateSecretServiceKeyring.cs",
+    "tests/SecretStoreSelectionAotTests/SecretStoreSelectionAotTests.csproj",
+    "tests/SecretStoreSelectionAotTests/Program.cs",
+    "tests/SecretStoreSelectionAotTests/README.md",
+    "tests/SecretStoreSelectionAotTests/packages.lock.json",
+    "eng/policy/dependency-reviews/af-dp-02-r1.json"
   ],
   "reused": {
     "LICENSE": "canonical-agpl-legal-r1",

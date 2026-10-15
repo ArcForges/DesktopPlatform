@@ -172,20 +172,3 @@ public sealed partial class WindowsCredentialManagerSecretStore : ISecretBacking
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     private static partial void CredFree(IntPtr buffer);
 }
-
-/// <summary>Fail-closed selection of the platform secret store (secure storage is the one fatal slot, DG-04).</summary>
-public static class OsSecretStore
-{
-    /// <summary>
-    /// Returns the OS secret-store adapter of the current platform, or throws <see cref="PlatformNotSupportedException"/>.
-    /// It never falls back to files, preferences, environment variables or memory.
-    /// </summary>
-    public static ISecretBackingStore CreateForCurrentPlatform() => Create(OperatingSystem.IsWindows());
-
-    internal static ISecretBackingStore Create(bool isWindows)
-    {
-        if (isWindows && OperatingSystem.IsWindows()) return new WindowsCredentialManagerSecretStore();
-        throw new PlatformNotSupportedException(
-            "No validated OS secret-store adapter exists for this platform; the application must not start without protected storage.");
-    }
-}
