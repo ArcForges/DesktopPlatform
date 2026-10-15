@@ -352,6 +352,14 @@
     "aot": false
   },
   {
+    "path": "tests/LocalRpcServiceAotTests/LocalRpcServiceAotTests.csproj",
+    "role": "Test",
+    "owner": "DesktopPlatform",
+    "module": "",
+    "production": false,
+    "aot": false
+  },
+  {
     "path": "tests/ReleaseArtifactTests/Realtime/RealtimeAotProbe.csproj",
     "role": "Test",
     "owner": "DesktopPlatform",

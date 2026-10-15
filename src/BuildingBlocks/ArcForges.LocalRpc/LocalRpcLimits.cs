@@ -13,8 +13,36 @@ public sealed record LocalRpcLimits
     /// <summary>Largest accepted gRPC message in either direction, 1 KiB through 4 MiB.</summary>
     public int MaxMessageBytes { get; init; } = DefaultMaxMessageBytes;
 
-    /// <summary>Most connections served at once. Further peers wait in the OS backlog and are accepted as slots free; they are never reset.</summary>
+    /// <summary>
+    /// Most connections served at once (8; in service mode see <see cref="ServiceDefaults"/>, 64). Further peers wait in the OS backlog and are
+    /// accepted as slots free; they are never reset. A parent-child server takes 1 through 64, a service-mode server 1 through 256.
+    /// </summary>
     public int MaxConnections { get; init; } = 8;
+
+    /// <summary>The ordinary stream-lane bound of one service-mode connection: stream calls open at once (8).</summary>
+    public const int DefaultMaxStreamCallsPerConnection = 8;
+
+    /// <summary>The ordinary stream-lane bound of one client process on one service-mode server, over all its connections (32).</summary>
+    public const int DefaultMaxStreamCallsPerProcess = 32;
+
+    /// <summary>The largest service-mode connection bound (256).</summary>
+    public const int MaxServiceConnections = 256;
+
+    /// <summary>The service-mode idle close of a connection with no call or stream in flight (10 minutes).</summary>
+    public static readonly TimeSpan ServiceIdleTimeout = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// The bounds a service-mode server uses when the owner sets none: 64 connections and a 10-minute idle close; every other bound is the
+    /// ordinary one (16 active and 64 queued data calls, 2 control slots, 10 s / 30 s data deadlines, 10 s handshake, 8 streams per
+    /// connection, 32 per client process). An owner adjusts it with <c>with</c>.
+    /// </summary>
+    public static LocalRpcLimits ServiceDefaults => new() { MaxConnections = 64, IdleTimeout = ServiceIdleTimeout };
+
+    /// <summary>Stream-lane calls one service-mode connection may hold open at once, 1 through 8. A stream over the bound is refused at once.</summary>
+    public int MaxStreamCallsPerConnection { get; init; } = DefaultMaxStreamCallsPerConnection;
+
+    /// <summary>Stream-lane calls one client process may hold open on one service-mode server over all its connections, 1 through 256.</summary>
+    public int MaxStreamCallsPerProcess { get; init; } = DefaultMaxStreamCallsPerProcess;
 
     /// <summary>The ordinary data-call bound of one peer: calls running at once (16).</summary>
     public const int DefaultMaxActiveCalls = 16;
@@ -28,7 +56,10 @@ public sealed record LocalRpcLimits
     /// </summary>
     public const int ControlSlots = 2;
 
-    /// <summary>Most HTTP/2 streams one connection may hold open: room for 16 active, 64 queued and 2 control calls plus refusals still draining.</summary>
+    /// <summary>
+    /// Most HTTP/2 streams one connection may hold open: room for 16 active, 64 queued and 2 control calls and, in service mode, 8 stream-lane
+    /// calls, plus refusals still draining.
+    /// </summary>
     internal const int MaxStreamsPerConnection = 100;
 
     /// <summary>Request body one waiting call may buffer ahead of dispatch (HTTP/2 stream window; 64 KiB is Kestrel's minimum).</summary>
@@ -82,6 +113,22 @@ public sealed record LocalRpcLimits
     /// <summary>Longest wait for in-flight calls to finish when a server stops.</summary>
     public TimeSpan ShutdownTimeout { get; init; } = TimeSpan.FromSeconds(5);
 
+    internal LocalRpcLimits Validated(LocalRpcServerMode mode) =>
+        mode == LocalRpcServerMode.Service ? ValidatedForService() : Validated();
+
+    /// <summary>The service-mode bounds: up to 256 connections; every other bound as for a parent-child server.</summary>
+    private LocalRpcLimits ValidatedForService()
+    {
+        if (MaxConnections is < 1 or > MaxServiceConnections)
+        {
+            throw new ArgumentOutOfRangeException(nameof(MaxConnections), MaxConnections, "The service-mode connection bound is 1 through 256.");
+        }
+
+        // Every other bound follows the parent-child rules.
+        _ = (this with { MaxConnections = 1 }).Validated();
+        return this;
+    }
+
     internal LocalRpcLimits Validated()
     {
         if (MaxMessageBytes is < 1024 or > DefaultMaxMessageBytes)
@@ -92,6 +139,16 @@ public sealed record LocalRpcLimits
         if (MaxConnections is < 1 or > 64)
         {
             throw new ArgumentOutOfRangeException(nameof(MaxConnections), MaxConnections, "The connection bound is 1 through 64.");
+        }
+
+        if (MaxStreamCallsPerConnection is < 1 or > DefaultMaxStreamCallsPerConnection)
+        {
+            throw new ArgumentOutOfRangeException(nameof(MaxStreamCallsPerConnection), MaxStreamCallsPerConnection, "The per-connection stream bound is 1 through 8.");
+        }
+
+        if (MaxStreamCallsPerProcess is < 1 or > MaxServiceConnections)
+        {
+            throw new ArgumentOutOfRangeException(nameof(MaxStreamCallsPerProcess), MaxStreamCallsPerProcess, "The per-process stream bound is 1 through 256.");
         }
 
         if (ConnectTimeout <= TimeSpan.Zero || ConnectTimeout > TimeSpan.FromMinutes(1))

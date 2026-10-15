@@ -19,12 +19,17 @@ internal interface IStreamAcceptSource : IAsyncDisposable
 internal sealed class NamedPipeAcceptSource : IStreamAcceptSource
 {
     private readonly string _name;
+    private readonly bool _service;
     private readonly CancellationTokenSource _stop = new();
     private readonly object _gate = new();
     private NamedPipeServerStream? _pending;
     private bool _unbound;
 
-    private NamedPipeAcceptSource(string name) => _name = name;
+    private NamedPipeAcceptSource(string name, bool service)
+    {
+        _name = name;
+        _service = service;
+    }
 
     /// <summary>
     /// Creates the first instance with FirstPipeInstance, so binding fails if any instance of the name already exists
@@ -33,7 +38,19 @@ internal sealed class NamedPipeAcceptSource : IStreamAcceptSource
     /// </summary>
     internal static NamedPipeAcceptSource Bind(string name)
     {
-        var source = new NamedPipeAcceptSource(name);
+        var source = new NamedPipeAcceptSource(name, service: false);
+        source._pending = source.CreateInstance(first: true);
+        return source;
+    }
+
+    /// <summary>
+    /// Binds a service-mode pipe: every instance carries the explicit same-user access list (owner the current user, the current user
+    /// and SYSTEM allowed, NETWORK denied) and <c>PIPE_REJECT_REMOTE_CLIENTS</c>; the first instance uses <c>FILE_FLAG_FIRST_PIPE_INSTANCE</c>.
+    /// </summary>
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    internal static NamedPipeAcceptSource BindService(string name)
+    {
+        var source = new NamedPipeAcceptSource(name, service: true);
         source._pending = source.CreateInstance(first: true);
         return source;
     }
@@ -95,6 +112,7 @@ internal sealed class NamedPipeAcceptSource : IStreamAcceptSource
         _stop.Dispose();
     }
 
+    [SuppressMessage("Reliability", "CA2000", Justification = "Ownership of the taken instance passes to the caller and the spare instance is owned by this source until it is taken or unbound.")]
     private NamedPipeServerStream? TakePending()
     {
         lock (_gate)
@@ -119,7 +137,11 @@ internal sealed class NamedPipeAcceptSource : IStreamAcceptSource
         }
     }
 
-    private NamedPipeServerStream CreateInstance(bool first) => new(
+    private NamedPipeServerStream CreateInstance(bool first) => _service && OperatingSystem.IsWindows()
+        ? LocalRpcWindowsNative.CreateServicePipe(_name, first)
+        : CreatePlainInstance(first);
+
+    private NamedPipeServerStream CreatePlainInstance(bool first) => new(
         _name,
         PipeDirection.InOut,
         NamedPipeServerStream.MaxAllowedServerInstances,
@@ -179,6 +201,78 @@ internal sealed class UnixSocketAcceptSource : IStreamAcceptSource
 
             throw;
         }
+    }
+
+    /// <summary>
+    /// Binds a service-mode socket at a well-known path (Design 02 §2.7): the directory is created owner-only (0700) when it is missing and
+    /// must be an owner-only directory, not a link, when it exists. An entry left at the path that accepts no connection (the socket of a
+    /// server that is gone) is removed first: the directory is owner-only, so only this user can have put it there. A live server's socket,
+    /// a link or a directory at the path is never touched and binding fails.
+    /// </summary>
+    internal static UnixSocketAcceptSource BindService(string path, int backlog)
+    {
+        var directory = Path.GetDirectoryName(path);
+        if (string.IsNullOrEmpty(directory))
+        {
+            throw new DirectoryNotFoundException("The Unix socket directory must be named.");
+        }
+
+        if (!Directory.Exists(directory))
+        {
+            var parent = Path.GetDirectoryName(directory);
+            if (string.IsNullOrEmpty(parent) || !Directory.Exists(parent))
+            {
+                throw new DirectoryNotFoundException("The parent of the service socket directory must already exist.");
+            }
+
+            if (OperatingSystem.IsWindows())
+            {
+                _ = Directory.CreateDirectory(directory);
+            }
+            else
+            {
+                _ = Directory.CreateDirectory(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            }
+        }
+
+        if (new DirectoryInfo(directory).LinkTarget is not null)
+        {
+            throw new UnauthorizedAccessException("The service socket directory is never a link.");
+        }
+
+        RequireOwnerOnlyDirectory(path);
+        RemoveStaleServiceSocket(path);
+        return Bind(path, backlog);
+    }
+
+    /// <summary>Removes a socket that no server accepts on; refuses anything else at a service socket path.</summary>
+    private static void RemoveStaleServiceSocket(string path)
+    {
+        var entry = new FileInfo(path);
+        if (Directory.Exists(path) || (entry.Exists && entry.LinkTarget is not null))
+        {
+            throw new IOException("The service socket path names a directory or a link; it is never replaced.");
+        }
+
+        if (!entry.Exists)
+        {
+            return;
+        }
+
+        using (var probe = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified))
+        {
+            try
+            {
+                probe.Connect(new UnixDomainSocketEndPoint(path));
+                throw new IOException("A server already listens on the service socket; a service endpoint is never shared or replaced.");
+            }
+            catch (SocketException exception) when (exception.SocketErrorCode is SocketError.ConnectionRefused or SocketError.AddressNotAvailable)
+            {
+                // Nothing accepts on it: the socket of a server that is gone.
+            }
+        }
+
+        File.Delete(path);
     }
 
     /// <summary>Refuses a socket directory that any other user could list, write or traverse (mode must be 0700-or-stricter).</summary>

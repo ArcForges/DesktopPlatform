@@ -7,7 +7,14 @@ using Microsoft.AspNetCore.Connections;
 namespace ArcForges.LocalRpc;
 
 /// <summary>Describes one accepted connection to the authorization decision, before any byte is read from it.</summary>
-public sealed record LocalRpcConnectionInfo(LocalRpcTransport Transport, long Sequence, LocalRpcEndpoint? Endpoint = null);
+public sealed record LocalRpcConnectionInfo(LocalRpcTransport Transport, long Sequence, LocalRpcEndpoint? Endpoint = null)
+{
+    /// <summary>
+    /// The operating-system identity of the peer process: always set by a service-mode server (a peer that could not be resolved, that
+    /// exited or that runs as another user never reaches the decision), and always null for a parent-child server, which reads no peer.
+    /// </summary>
+    public LocalRpcPeer? Peer { get; init; }
+}
 
 /// <summary>The Kestrel endpoint that selects this transport. It carries the owner's listener recipe.</summary>
 internal sealed class LocalRpcListenEndPoint : EndPoint
@@ -17,14 +24,19 @@ internal sealed class LocalRpcListenEndPoint : EndPoint
         LocalRpcStreamSupplier? supplier,
         LocalRpcLimits limits,
         Func<LocalRpcConnectionInfo, CancellationToken, ValueTask<bool>>? authorizer,
-        LocalRpcBoundsRegistry bounds)
+        LocalRpcBoundsRegistry bounds,
+        LocalRpcPeerResolver? peerResolver = null)
     {
         Endpoint = endpoint;
         Supplier = supplier;
         Limits = limits;
         Authorizer = authorizer;
         Bounds = bounds;
+        PeerResolver = peerResolver;
     }
+
+    /// <summary>Set exactly for a service-mode server: every accepted stream's peer is resolved before HTTP/2 reads a byte.</summary>
+    internal LocalRpcPeerResolver? PeerResolver { get; }
 
     internal LocalRpcEndpoint? Endpoint { get; }
 
@@ -69,11 +81,15 @@ internal sealed class LocalRpcConnectionListenerFactory : IConnectionListenerFac
         }
         else if (local.Endpoint is { Transport: LocalRpcTransport.NamedPipe } pipe)
         {
-            source = NamedPipeAcceptSource.Bind(pipe.Address);
+            source = local.PeerResolver is not null && OperatingSystem.IsWindows()
+                ? NamedPipeAcceptSource.BindService(pipe.Address)
+                : NamedPipeAcceptSource.Bind(pipe.Address);
         }
         else if (local.Endpoint is { Transport: LocalRpcTransport.UnixDomainSocket } socket)
         {
-            source = UnixSocketAcceptSource.Bind(socket.Address, LocalRpcConnectionListener.Backlog);
+            source = local.PeerResolver is not null
+                ? UnixSocketAcceptSource.BindService(socket.Address, LocalRpcConnectionListener.Backlog)
+                : UnixSocketAcceptSource.Bind(socket.Address, LocalRpcConnectionListener.Backlog);
         }
         else
         {
@@ -128,11 +144,22 @@ internal sealed class LocalRpcConnectionListener : IConnectionListener
                         return null;
                     }
 
+                    var accepted = _endPoint.PeerResolver is null ? default : LocalRpcAcceptMoment.Now();
                     var sequence = Interlocked.Increment(ref _sequence);
+                    var info = new LocalRpcConnectionInfo(_endPoint.Transport, sequence, _endPoint.Endpoint);
                     bool allowed;
+                    LocalRpcPeer? peerIdentity = null;
                     try
                     {
-                        allowed = await AuthorizeAsync(new LocalRpcConnectionInfo(_endPoint.Transport, sequence, _endPoint.Endpoint), linked.Token).ConfigureAwait(false);
+                        if (_endPoint.PeerResolver is { } resolver)
+                        {
+                            peerIdentity = await DecideServiceAsync(resolver, info, stream, accepted, linked.Token).ConfigureAwait(false);
+                            allowed = peerIdentity is not null;
+                        }
+                        else
+                        {
+                            allowed = await AuthorizeAsync(info, linked.Token).ConfigureAwait(false);
+                        }
                     }
                     catch
                     {
@@ -151,12 +178,17 @@ internal sealed class LocalRpcConnectionListener : IConnectionListener
                     // The peer's call bounds and watchdog live exactly as long as its connection: the slot is released
                     // and the bounds dropped only when the connection has been fully torn down.
                     var connectionId = $"localrpc-{sequence}";
-                    var peer = _endPoint.Bounds.Add(connectionId);
+                    var peer = _endPoint.Bounds.Add(connectionId, peerIdentity);
                     var context = new StreamConnectionContext(connectionId, stream, _endPoint, () =>
                     {
                         _endPoint.Bounds.Remove(peer);
                         ReleaseSlot();
                     });
+                    if (peer.Identity is { } identityFeature)
+                    {
+                        context.Features.Set(identityFeature);
+                    }
+
                     handedOver = true;
                     peer.Start(context.Abort);
                     return context;
@@ -205,6 +237,75 @@ internal sealed class LocalRpcConnectionListener : IConnectionListener
             // Never raised by a once-only release; kept so a teardown race cannot fault Kestrel.
         }
     }
+
+    /// <summary>
+    /// The service-mode decision for one connection: the peer is resolved from the OS stream (never read), a peer that is unresolved, gone or
+    /// of another user is dropped, and the owner's decision then sees the peer. The whole decision is bounded by
+    /// <see cref="LocalRpcLimits.AuthorizationTimeout"/> and runs off the accept loop. Returns the admitted peer, or null.
+    /// </summary>
+    [SuppressMessage("Design", "CA1031", Justification = "A failing resolution or decision must deny rather than expose an unauthenticated connection.")]
+    private async ValueTask<LocalRpcPeer?> DecideServiceAsync(
+        LocalRpcPeerResolver resolver,
+        LocalRpcConnectionInfo connection,
+        Stream stream,
+        LocalRpcAcceptMoment accepted,
+        CancellationToken cancellationToken)
+    {
+        var authorizer = _endPoint.Authorizer;
+        using var decision = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        decision.CancelAfter(_endPoint.Limits.AuthorizationTimeout);
+
+        // What a failure or a timeout is counted as: an unresolved peer until the OS has named it, the owner's refusal after that.
+        var stage = (int)LocalRpcPeerDenial.Unresolved;
+        LocalRpcPeerDenial? denial = null;
+        try
+        {
+            var pending = Task.Run(
+                async () =>
+                {
+                    var resolution = resolver.Resolve(stream, accepted);
+                    if (resolution.Peer is not { } peer)
+                    {
+                        return new ServiceDecision(resolution.Denial == LocalRpcPeerDenial.None ? LocalRpcPeerDenial.Unresolved : resolution.Denial, null);
+                    }
+
+                    Volatile.Write(ref stage, (int)LocalRpcPeerDenial.Refused);
+                    return authorizer is null || await authorizer(connection with { Peer = peer }, decision.Token).ConfigureAwait(false)
+                        ? new ServiceDecision(LocalRpcPeerDenial.None, peer)
+                        : new ServiceDecision(LocalRpcPeerDenial.Refused, null);
+                },
+                CancellationToken.None);
+            _ = pending.ContinueWith(
+                static task => _ = task.Exception,
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+            var outcome = await pending.WaitAsync(_endPoint.Limits.AuthorizationTimeout, cancellationToken).ConfigureAwait(false);
+            denial = outcome.Denial;
+            return outcome.Peer;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The server is stopping: nothing is decided or counted.
+            throw;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            denial = (LocalRpcPeerDenial)Volatile.Read(ref stage);
+            return null;
+        }
+        finally
+        {
+            if (denial is { } counted)
+            {
+                _endPoint.Bounds.CountPeerDecision(counted);
+            }
+
+            await decision.CancelAsync().ConfigureAwait(false);
+        }
+    }
+
+    private readonly record struct ServiceDecision(LocalRpcPeerDenial Denial, LocalRpcPeer? Peer);
 
     /// <summary>
     /// Asks the decision for one connection. A decision that throws, ignores its token past

@@ -3233,5 +3233,65 @@
     "apiSymbol": "ArcForges.Assistant.Abstractions.AssistantLifecycle.DisposeAsync()",
     "testProject": "tests/AssistantAbstractionsTests/AssistantAbstractionsTests.csproj",
     "testMethod": "AssistantAbstractionsTests.LifecycleShutdownTests.DisposalClosesEveryViewIndependentlyThenReleasesTheSessionOnce()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcServerBuilder.RegisterMethod(string, string, ArcForges.LocalRpc.LocalRpcCallProfile)",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.StartFailsWhenALaneMethodIsNotServedOrAStreamMethodIsNotServerStreaming()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcServerBuilder.RegisterMethod(Grpc.Core.IMethod, ArcForges.LocalRpc.LocalRpcCallProfile)",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.AProfiledMethodGetsItsDeadlinesAndUnprofiledMethodsKeepTheDataDeadlines()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcServerBuilder.RegisterStream(string, string, ArcForges.LocalRpc.LocalRpcStreamProfile)",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.StartFailsWhenALaneMethodIsNotServedOrAStreamMethodIsNotServerStreaming()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcServerBuilder.RegisterStream(Grpc.Core.IMethod, ArcForges.LocalRpc.LocalRpcStreamProfile)",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.TheStreamLaneHoldsEightStreamsPerConnectionBesideSixteenDataCallsAndRefusesTheNinthAtOnce()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcServer.GetServiceSnapshot()",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.TheConnectionDecisionAndEveryHandlerOfTheConnectionSeeTheResolvedPeer()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcEndpoint.ForCurrentUserService(string, string?)",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.TheWellKnownServiceEndpointIsPerUserAndValidated()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcStreamEnd.TryRead(Grpc.Core.RpcException, out ArcForges.LocalRpc.LocalRpcStreamEndReason)",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.AStreamEndIsReadOnlyFromItsTrailer()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcServiceCallContextExtensions.GetLocalRpcPeer(Grpc.Core.ServerCallContext)",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.TheConnectionDecisionAndEveryHandlerOfTheConnectionSeeTheResolvedPeer()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcServiceCallContextExtensions.OpenLocalRpcStream<T>(Grpc.Core.ServerCallContext, Grpc.Core.IServerStreamWriter<T>)",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.TheLibraryMeasuresInactivityAndSendsNoHeartbeatOfItsOwn()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcStreamWriter<T>.TryWrite(T)",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.TheLibraryMeasuresInactivityAndSendsNoHeartbeatOfItsOwn()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcStreamWriter<T>.CompleteAsync()",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.AClientThatReadsTooSlowlyOverflowsTheBufferAndGetsResourceExhaustedThenSubscribesAfresh()"
+  },
+  {
+    "apiSymbol": "ArcForges.LocalRpc.LocalRpcStreamWriter<T>.DisposeAsync()",
+    "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
+    "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.TheStreamLaneHoldsEightStreamsPerConnectionBesideSixteenDataCallsAndRefusesTheNinthAtOnce()"
   }
 ]

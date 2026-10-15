@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- SPDX-License-Identifier: AGPL-3.0-only -->
+  <Import Project="../../eng/build/desktop-aot.props" />
+  <Import Project="../../eng/build/desktop-rids.props" />
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <LicenceBoundary>AGPL</LicenceBoundary>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- A console probe has no synchronization context; ConfigureAwait on its await using declarations would be noise. -->
+    <NoWarn>$(NoWarn);CA2007</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/BuildingBlocks/ArcForges.LocalRpc/ArcForges.LocalRpc.csproj" />
+  </ItemGroup>
+</Project>

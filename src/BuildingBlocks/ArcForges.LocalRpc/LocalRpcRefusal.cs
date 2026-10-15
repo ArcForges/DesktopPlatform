@@ -55,6 +55,12 @@ public enum LocalRpcRefusalReason
 
     /// <summary>The receipt table holds only commands it may not forget; the command's effect was not run (<c>RESOURCE_EXHAUSTED</c>).</summary>
     ReceiptsFull = 9,
+
+    /// <summary>
+    /// A service-mode stream call found the stream lane full: the connection's streams or the client process's streams on this server are
+    /// at their bound. Stream calls never wait (<c>RESOURCE_EXHAUSTED</c>).
+    /// </summary>
+    StreamLaneFull = 10,
 }
 
 /// <summary>The typed refusal a peer attaches to a call that was refused before dispatch.</summary>
@@ -75,6 +81,7 @@ public sealed record LocalRpcRefusal(LocalRpcRefusalReason Reason)
         [LocalRpcRefusalReason.RouteNotLive] = "route-not-live",
         [LocalRpcRefusalReason.CommandConflict] = "command-conflict",
         [LocalRpcRefusalReason.ReceiptsFull] = "receipts-full",
+        [LocalRpcRefusalReason.StreamLaneFull] = "stream-lane-full",
     }.ToFrozenDictionary();
 
     /// <summary>

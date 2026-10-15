@@ -32,6 +32,11 @@ public sealed class LocalRpcServerBuilder
     private readonly List<ServiceRegistration> _services = [];
     private readonly HashSet<Type> _registered = [];
     private readonly Dictionary<string, LocalRpcControlOperation> _control = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, LocalRpcCallProfile> _profiles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, LocalRpcStreamProfile> _streams = new(StringComparer.Ordinal);
+    private LocalRpcServerOptions _options = new();
+    private bool _limitsSet;
+    private LocalRpcPeerResolver? _peerResolver;
     private TimeProvider _time = TimeProvider.System;
     private Action<IServiceCollection>? _hostServices;
     private Func<IEnumerable<string>?, IEnumerable<string>?>? _addressView;
@@ -47,11 +52,29 @@ public sealed class LocalRpcServerBuilder
         _supplier = supplier;
     }
 
-    /// <summary>Transport bounds; validated when the server is built.</summary>
+    /// <summary>
+    /// Transport bounds; validated when the server is built. A service-mode server whose owner sets none uses
+    /// <see cref="LocalRpcLimits.ServiceDefaults"/>.
+    /// </summary>
     public LocalRpcLimits Limits
     {
         get => _limits;
-        set => _limits = value ?? throw new ArgumentNullException(nameof(value));
+        set
+        {
+            _limits = value ?? throw new ArgumentNullException(nameof(value));
+            _limitsSet = true;
+        }
+    }
+
+    /// <summary>
+    /// The server options. <see cref="LocalRpcServerMode.Service"/> makes a long-lived per-user service at the builder's well-known endpoint:
+    /// the endpoint is created same-user-only, every connection's peer is resolved and checked before HTTP/2 reads a byte, and the stream lane,
+    /// raised method deadlines and the service connection and idle limits apply. The default parent-child server is unchanged.
+    /// </summary>
+    public LocalRpcServerOptions Options
+    {
+        get => _options;
+        set => _options = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     /// <summary>Serves one generated gRPC service implementation. Each service type is registered at most once.</summary>
@@ -120,6 +143,11 @@ public sealed class LocalRpcServerBuilder
             throw new ArgumentException("A control method is a protobuf service name and a method name.");
         }
 
+        if (_profiles.ContainsKey(serviceName + "/" + methodName) || _streams.ContainsKey(serviceName + "/" + methodName))
+        {
+            throw new InvalidOperationException("A method has one lane and one profile.");
+        }
+
         if (!_control.TryAdd(serviceName + "/" + methodName, operation))
         {
             throw new InvalidOperationException("A control method is registered once.");
@@ -133,6 +161,95 @@ public sealed class LocalRpcServerBuilder
     {
         ArgumentNullException.ThrowIfNull(method);
         return RegisterControl(operation, method.ServiceName, method.Name);
+    }
+
+    /// <summary>
+    /// Sets the deadline profile of one data method (AD-0013 refactor §1.2.3): a call that declares no deadline gets
+    /// <see cref="LocalRpcCallProfile.DefaultDeadline"/>, and a declared one is shortened to <see cref="LocalRpcCallProfile.MaxDeadline"/>.
+    /// Methods without a profile keep the server's data deadlines (10 s / 30 s). A parent-child server's profile may only lower them; a
+    /// service-mode server's may raise the deadline up to <see cref="LocalRpcCallProfile.LongestServiceDeadline"/> (120 s). A method that no
+    /// registered service serves makes <see cref="LocalRpcServer.StartAsync"/> fail.
+    /// </summary>
+    /// <param name="serviceName">The full protobuf service name.</param>
+    /// <param name="methodName">The method name within the service.</param>
+    /// <param name="profile">The method's deadlines.</param>
+    public LocalRpcServerBuilder RegisterMethod(string serviceName, string methodName, LocalRpcCallProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var key = MethodKey(serviceName, methodName);
+        if (profile.DefaultDeadline <= TimeSpan.Zero || profile.MaxDeadline < profile.DefaultDeadline
+            || profile.MaxDeadline > LocalRpcCallProfile.LongestServiceDeadline)
+        {
+            throw new ArgumentOutOfRangeException(nameof(profile), profile, "A call profile's default deadline is positive and at most its maximum, which is at most 120 seconds.");
+        }
+
+        if (_control.ContainsKey(key) || _streams.ContainsKey(key) || !_profiles.TryAdd(key, profile))
+        {
+            throw new InvalidOperationException("A method has one lane and one profile.");
+        }
+
+        return this;
+    }
+
+    /// <summary>Sets the deadline profile of a generated method (see <see cref="RegisterMethod(string, string, LocalRpcCallProfile)"/>).</summary>
+    public LocalRpcServerBuilder RegisterMethod(IMethod method, LocalRpcCallProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+        return RegisterMethod(method.ServiceName, method.Name, profile);
+    }
+
+    /// <summary>
+    /// Runs one server-streaming method in the stream lane of a service-mode server (AD-0013 refactor §1.2.2): separate from the data and
+    /// control lanes, at most <see cref="LocalRpcLimits.MaxStreamCallsPerConnection"/> per connection and
+    /// <see cref="LocalRpcLimits.MaxStreamCallsPerProcess"/> per client process, never queued, exempt from the data deadline cap and held to
+    /// <paramref name="profile"/>. Its handler writes through <see cref="LocalRpcServiceCallContextExtensions.OpenLocalRpcStream"/>.
+    /// <see cref="LocalRpcServer.StartAsync"/> fails when no registered service serves the method as a server-streaming method, and
+    /// <see cref="Build"/> fails for a parent-child server, whose streams stay data calls.
+    /// </summary>
+    public LocalRpcServerBuilder RegisterStream(string serviceName, string methodName, LocalRpcStreamProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var key = MethodKey(serviceName, methodName);
+        _ = profile.Validated();
+        if (_control.ContainsKey(key) || _profiles.ContainsKey(key) || !_streams.TryAdd(key, profile))
+        {
+            throw new InvalidOperationException("A method has one lane and one profile.");
+        }
+
+        return this;
+    }
+
+    /// <summary>Runs a generated server-streaming method in the stream lane (see <see cref="RegisterStream(string, string, LocalRpcStreamProfile)"/>).</summary>
+    public LocalRpcServerBuilder RegisterStream(IMethod method, LocalRpcStreamProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+        if (method.Type != MethodType.ServerStreaming)
+        {
+            throw new ArgumentException("The stream lane runs server-streaming methods.", nameof(method));
+        }
+
+        return RegisterStream(method.ServiceName, method.Name, profile);
+    }
+
+    /// <summary>Test seam: resolves service-mode peers with <paramref name="resolver"/> instead of the OS (offline tests over supplied streams).</summary>
+    internal LocalRpcServerBuilder UsePeerResolver(LocalRpcPeerResolver resolver)
+    {
+        EnsureNotBuilt();
+        _peerResolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+        return this;
+    }
+
+    private string MethodKey(string serviceName, string methodName)
+    {
+        ArgumentNullException.ThrowIfNull(serviceName);
+        ArgumentNullException.ThrowIfNull(methodName);
+        EnsureNotBuilt();
+        if (!IsProtoName(serviceName) || !IsProtoName(methodName) || methodName.Contains('.', StringComparison.Ordinal))
+        {
+            throw new ArgumentException("A method is a protobuf service name and a method name.");
+        }
+
+        return serviceName + "/" + methodName;
     }
 
     /// <summary>Test seam: the clock that drives queue deadlines and the handshake and idle limits.</summary>
@@ -238,11 +355,20 @@ public sealed class LocalRpcServerBuilder
     public LocalRpcServer Build()
     {
         EnsureNotBuilt();
-        var limits = _limits.Validated();
+        var mode = _options.Mode;
+        if (!Enum.IsDefined(mode))
+        {
+            throw new InvalidOperationException("Unknown server mode.");
+        }
+
+        var service = mode == LocalRpcServerMode.Service;
+        var limits = (service && !_limitsSet ? LocalRpcLimits.ServiceDefaults : _limits).Validated(mode);
         if (_services.Count == 0)
         {
             throw new InvalidOperationException("A server registers at least one generated service explicitly.");
         }
+
+        ValidateServiceMode(service, limits);
 
         var required = _registration;
         if (required is not null && _declaration is { } declared && declared.ChildKind != required.Launch.Descriptor.Identity.ChildKind)
@@ -267,10 +393,13 @@ public sealed class LocalRpcServerBuilder
         required?.BindToServer();
         _built = true;
         var bounds = new LocalRpcBoundsRegistry(limits, _time);
-        var endPoint = new LocalRpcListenEndPoint(_endpoint, _supplier, limits, required is null ? _authorizer : WithRegistration(required, _authorizer), bounds);
+        var resolver = service ? _peerResolver ?? new LocalRpcOsPeerResolver() : null;
+        var endPoint = new LocalRpcListenEndPoint(_endpoint, _supplier, limits, required is null ? _authorizer : WithRegistration(required, _authorizer), bounds, resolver);
         var registrations = _services.ToArray();
         var control = _control.ToFrozenDictionary(StringComparer.Ordinal);
-        var admission = new LocalRpcCallAdmission(bounds, control);
+        var profiles = _profiles.ToFrozenDictionary(StringComparer.Ordinal);
+        var streams = _streams.ToFrozenDictionary(StringComparer.Ordinal);
+        var admission = new LocalRpcCallAdmission(bounds, control, profiles, streams);
         var hostServices = _hostServices;
         var addressView = _addressView;
         var routes = new RouteCapture();
@@ -292,6 +421,13 @@ public sealed class LocalRpcServerBuilder
                     kestrel.Limits.Http2.MaxStreamsPerConnection = LocalRpcLimits.MaxStreamsPerConnection;
                     kestrel.Limits.Http2.InitialConnectionWindowSize = LocalRpcLimits.ConnectionWindowBytes;
                     kestrel.Limits.Http2.InitialStreamWindowSize = LocalRpcLimits.StreamWindowBytes;
+                    if (service)
+                    {
+                        // The connection idle rule is the library's (10 minutes, never while a stream is open); Kestrel's own keep-alive close
+                        // of a connection without active streams (130 s by default) must not end it first.
+                        kestrel.Limits.KeepAliveTimeout = limits.IdleTimeout + TimeSpan.FromMinutes(1);
+                    }
+
                     kestrel.Listen(endPoint, listen => listen.Protocols = HttpProtocols.Http2);
                 });
                 web.ConfigureServices(services =>
@@ -341,7 +477,52 @@ public sealed class LocalRpcServerBuilder
                 });
             })
             .Build();
-        return new LocalRpcServer(host, limits, _supplier, bounds, control, routes, addressView, _declaration);
+        return new LocalRpcServer(host, limits, _supplier, bounds, control, routes, addressView, _declaration)
+        {
+            Profiled = profiles.Keys.ToArray(),
+            Streamed = streams.Keys.ToArray(),
+        };
+    }
+
+    /// <summary>
+    /// The service-mode rules: a service listens on its own well-known OS endpoint (never supplied streams) of this platform's transport and
+    /// serves no child registration; a parent-child server has no stream lane and its method profiles may only lower the data deadlines.
+    /// </summary>
+    private void ValidateServiceMode(bool service, LocalRpcLimits limits)
+    {
+        if (service)
+        {
+            if (_registration is not null)
+            {
+                throw new InvalidOperationException("A service-mode server serves no child registration.");
+            }
+
+            if (_peerResolver is null)
+            {
+                if (_endpoint is null)
+                {
+                    throw new InvalidOperationException("A service-mode server listens on its well-known endpoint, not on supplied streams.");
+                }
+
+                var native = OperatingSystem.IsWindows() ? LocalRpcTransport.NamedPipe : LocalRpcTransport.UnixDomainSocket;
+                if (_endpoint.Transport != native || !(OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
+                {
+                    throw new PlatformNotSupportedException("A service-mode endpoint is a Named Pipe on Windows and a Unix domain socket on Linux, where the peer can be read.");
+                }
+            }
+
+            return;
+        }
+
+        if (_streams.Count > 0)
+        {
+            throw new InvalidOperationException("The stream lane is a service-mode lane; a parent-child server's streams stay data calls.");
+        }
+
+        if (_profiles.Values.Any(profile => profile.MaxDeadline > limits.MaxCallDeadline))
+        {
+            throw new InvalidOperationException("A parent-child server's method profile may only lower the data deadlines.");
+        }
     }
 
     /// <summary>Declares a bootstrap method as the control operation the registration needs; the owner may have declared it already, but never as another operation.</summary>
@@ -452,6 +633,12 @@ public sealed class LocalRpcServer : IAsyncDisposable
 
     internal IServiceProvider Services => _host.Services;
 
+    /// <summary>The methods with a deadline profile (service/method).</summary>
+    internal IReadOnlyList<string> Profiled { get; init; } = [];
+
+    /// <summary>The stream-lane methods (service/method).</summary>
+    internal IReadOnlyList<string> Streamed { get; init; } = [];
+
     /// <summary>Begins registering a server that listens on one endpoint of one transport.</summary>
     public static LocalRpcServerBuilder CreateBuilder(LocalRpcEndpoint endpoint)
     {
@@ -468,6 +655,9 @@ public sealed class LocalRpcServer : IAsyncDisposable
 
     /// <summary>The call bounds of every connected peer right now, with the admitted and refused totals since start.</summary>
     public LocalRpcBoundsSnapshot GetBoundsSnapshot() => _bounds.Snapshot();
+
+    /// <summary>The stream lane and the peer decisions of a service-mode server right now, with totals since start (all zero for a parent-child server).</summary>
+    public LocalRpcServiceSnapshot GetServiceSnapshot() => _bounds.ServiceSnapshot();
 
     /// <summary>
     /// Starts listening. The server refuses to run if any IP-based address is bound, if any other connection listener
@@ -490,7 +680,7 @@ public sealed class LocalRpcServer : IAsyncDisposable
         await _host.StartAsync(cancellationToken).ConfigureAwait(false);
         var addresses = _host.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>();
         IEnumerable<string>? reported = addresses?.Addresses;
-        var failure = PrivateTransportViolation(_addressView is null ? reported : _addressView(reported)) ?? UnservedControlMethod() ?? UndeclaredServices();
+        var failure = PrivateTransportViolation(_addressView is null ? reported : _addressView(reported)) ?? UnservedControlMethod() ?? UnservedLaneMethod() ?? UndeclaredServices();
         if (failure is not null)
         {
             await _host.StopAsync(CancellationToken.None).ConfigureAwait(false);
@@ -508,21 +698,39 @@ public sealed class LocalRpcServer : IAsyncDisposable
             : null;
     }
 
-    private HashSet<string> ServedMethods()
+    private HashSet<string> ServedMethods() => ServedMethodTypes().Keys.ToHashSet(StringComparer.Ordinal);
+
+    private Dictionary<string, MethodType> ServedMethodTypes()
     {
-        var served = new HashSet<string>(StringComparer.Ordinal);
+        var served = new Dictionary<string, MethodType>(StringComparer.Ordinal);
         foreach (var source in _routes.Builder?.DataSources ?? [])
         {
             foreach (var endpoint in source.Endpoints)
             {
                 if (endpoint.Metadata.GetMetadata<GrpcMethodMetadata>() is { } method)
                 {
-                    _ = served.Add(method.Method.ServiceName + "/" + method.Method.Name);
+                    served[method.Method.ServiceName + "/" + method.Method.Name] = method.Method.Type;
                 }
             }
         }
 
         return served;
+    }
+
+    /// <summary>Why a profiled or stream-lane method would not run as registered (not served, or a stream method that is not server-streaming), or null.</summary>
+    private string? UnservedLaneMethod()
+    {
+        var served = ServedMethodTypes();
+        var missing = Profiled.Concat(Streamed).Where(key => !served.ContainsKey(key)).Order(StringComparer.Ordinal).ToArray();
+        if (missing.Length > 0)
+        {
+            return "A profiled or stream-lane method is not served by any registered service (" + string.Join(", ", missing) + ").";
+        }
+
+        var notStreaming = Streamed.Where(key => served[key] != MethodType.ServerStreaming).Order(StringComparer.Ordinal).ToArray();
+        return notStreaming.Length == 0
+            ? null
+            : "A stream-lane method is not a server-streaming method (" + string.Join(", ", notStreaming) + ").";
     }
 
     private string? UnservedControlMethod()

@@ -57,6 +57,9 @@
   <Folder Name="/tests/LocalRpcAotTests/">
     <Project Path="tests/LocalRpcAotTests/LocalRpcAotTests.csproj" />
   </Folder>
+  <Folder Name="/tests/LocalRpcServiceAotTests/">
+    <Project Path="tests/LocalRpcServiceAotTests/LocalRpcServiceAotTests.csproj" />
+  </Folder>
   <Folder Name="/tests/ReleaseArtifactTests/GrpcWeb/">
     <Project Path="tests/ReleaseArtifactTests/GrpcWeb/GrpcWebAotProbe.csproj" />
   </Folder>

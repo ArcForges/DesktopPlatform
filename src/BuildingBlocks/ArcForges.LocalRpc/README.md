@@ -1,7 +1,7 @@
 # ArcForges.LocalRpc
 
-Generated gRPC over HTTP/2 between a parent and the helper or extension children it owns, carried only by
-a Windows Named Pipe or a Unix domain socket. It is packaged as the NuGet package `ArcForges.LocalRpc` in the repository's single-version release set (PLT.16); consumers pin the exact version and keep their committed lock files. The package targets `net10.0` with the `Microsoft.AspNetCore.App` shared framework, depends only on `Grpc.AspNetCore.Server` and `Grpc.Net.Client` at the versions admitted in `eng/packaging/packages.json`, and references no ArcForges contract or other ArcForges package.
+Generated gRPC over HTTP/2 between a parent and the helper or extension children it owns, and, in the service-endpoint mode (AF-DP-01),
+between a long-lived per-user service and its same-user clients, carried only by a Windows Named Pipe or a Unix domain socket. It is packaged as the NuGet package `ArcForges.LocalRpc` in the repository's single-version release set (PLT.16); consumers pin the exact version and keep their committed lock files. The package targets `net10.0` with the `Microsoft.AspNetCore.App` shared framework, depends only on `Grpc.AspNetCore.Server` and `Grpc.Net.Client` at the versions admitted in `eng/packaging/packages.json`, and references no ArcForges contract or other ArcForges package.
 
 This is transport and framing (WP-08.00), the parent-owned launch identity (WP-08.01), the call bounds on top of
 them (WP-08.04), the child registration lifecycle (WP-08.02), static routing with version refusal (WP-08.03) and the disconnect,
@@ -26,7 +26,8 @@ references no contract package: the registration code works on bytes, ids and th
   throws, does not finish within `LocalRpcLimits.AuthorizationTimeout` (default 2 s, whether it yields or blocks its thread, in
   either overload) or is cancelled denies the connection. A decision that ignores its token and never returns keeps its
   pool thread. Stopping the server cancels a pending decision and drops the stream unread. The decision sees the transport, a sequence number and, for a listening
-  endpoint, that endpoint; it does not see the peer process or user.
+  endpoint, that endpoint; in a parent-child server it does not see the peer process or user (a service-mode server resolves the peer first;
+  see the service-endpoint mode below).
 - At most `MaxConnections` connections are served at once. The listener waits for a free slot before it accepts, so
   an extra peer waits in the OS backlog (16) and is served when a slot frees; it is not reset. A peer that holds a slot
   without calling is closed by the handshake and idle limits below.
@@ -88,7 +89,7 @@ Every connected peer (one connection) has its own lanes; a peer that saturates i
   fairness inside one connection, and the 16/64 bound is per connection, so several connections each have their own
   (the connection bound of 8 limits the total). A call to an unknown service is answered `UNIMPLEMENTED` without admission,
   so a flood of them is limited only by the stream and connection caps. No streaming method exists in the pinned contracts and
-  streaming calls are untested (they would hold a slot until they end). The library has not been published with Native AOT by
+  streaming calls are untested here (they would hold a slot until they end; the service mode's stream lane is below). The library has not been published with Native AOT by
   this task; only the static trim and AOT analyzers ran.
 
 ## Disconnect, cancel and retry (WP-08.05)
@@ -364,6 +365,83 @@ across a whole frame (no missing or overlapping tiles); the `ResourceAccess` `Op
 children (this library provides no ticket of any kind); reading the peer's OS identity; zeroing a verified buffer the owner still
 holds when a session ends; and any run with a real helper process, a real shared mapping or an OS other than Windows.
 
+## Service-endpoint mode (AF-DP-01)
+
+Everything above is the parent-child helper server, and it is unchanged: it stays the default, with its 8 connections, 10 s / 30 s data
+deadlines, 60 s idle close and no peer identity in the connection decision. `LocalRpcServerOptions.Mode = LocalRpcServerMode.Service`
+makes a long-lived per-user service instead (ArcForges-Design `docs/reuse/desktopplatform-refactor.md` §1, `docs/architecture/02-node-service.md`
+§2–3, `docs/architecture/11-security-privacy.md` §2):
+
+- **Endpoint.** The owner gives the well-known endpoint. `LocalRpcEndpoint.ForCurrentUserService(name, fallbackDirectory)` computes it the same
+  way for server and clients: on Windows the pipe `arcforges-<user hash>-<name>`, on Linux `$XDG_RUNTIME_DIR/arcforges/<name>.sock`, or
+  `<fallbackDirectory>/<name>.sock` when `XDG_RUNTIME_DIR` is unset. The user hash (`LocalRpcEndpoint.CurrentUserHash`) is the first 16 bytes
+  of SHA-256 over the UTF-8 user SID (Windows) or the decimal effective uid (Linux), in lowercase hex. A service listens only on its own endpoint
+  of the platform's transport (a Named Pipe on Windows, a Unix socket on Linux); supplied streams, a child registration and any other
+  platform are refused when it is built.
+- **Access (Windows).** Every pipe instance is created by the library (`CreateNamedPipeW`) with `PIPE_REJECT_REMOTE_CLIENTS`, byte mode,
+  `FILE_FLAG_FIRST_PIPE_INSTANCE` on the first instance (so a name that already exists is never shared or replaced), and a protected access list
+  without inherited entries: owner the current user; `GENERIC_READ | GENERIC_WRITE` (`FILE_GENERIC_READ | FILE_GENERIC_WRITE`, which includes the
+  owner's right to add instances) for the current user and for `SYSTEM`; full access denied to `NT AUTHORITY\NETWORK`. The library client
+  still checks that the pipe is owned by the current user.
+- **Access (Linux).** The socket directory is created with mode 0700 when it is missing; an existing one must be owner-only and not a link. The
+  socket is 0600 and never bound over a live server's socket, a link or a directory. An entry left at the path that accepts no connection (the
+  socket of a node that died) is removed first; the directory is owner-only, so only this user could have put it there. The directory check is
+  the mode only, as for every socket of this library: a directory owned by someone else with mode 0700 fails closed for an ordinary user.
+- **Peer identity.** Every accepted connection's peer is resolved once, before HTTP/2 reads a byte and before the owner's decision, within
+  `LocalRpcLimits.AuthorizationTimeout`. Windows: `GetNamedPipeClientProcessId`, then `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)` and,
+  through that one handle, `GetExitCodeProcess`, `GetProcessTimes`, `OpenProcessToken` (the token user SID) and `QueryFullProcessImageNameW`.
+  Linux: `SO_PEERCRED` (pid, uid, gid, read with `Socket.GetRawSocketOption`), `/proc/<pid>/stat` for the start (read twice, before and after the
+  other reads) and `/proc/<pid>/exe`. A peer is denied, its stream dropped unread, when it cannot be resolved (`Unresolved`), when it has exited
+  or its process id now names a process that started after the accept (`ProcessExited`: the id was reused), or when it runs as another user
+  (`OtherUser`: token SID or `SO_PEERCRED` uid against the server's own). Otherwise the owner's decision sees it as `LocalRpcConnectionInfo.Peer`,
+  and every handler of the connection reads it with `ServerCallContext.GetLocalRpcPeer()` (`LocalRpcPeer`: `ProcessId`, `ProcessStartTime`,
+  `UserSid` or `Uid`, `ExecutablePath`, and `Process` in the library's `LocalRpcProcessIdentity` convention). `GetServiceSnapshot()` counts
+  admitted peers and denials by reason. A Windows process that exited with code 259 (`STILL_ACTIVE`) reads as running: an OS limit, caught by the
+  connection itself being gone. `ExecutablePath` is null when the OS will not say; it is not a security check.
+- **Connections.** `MaxConnections` is 64 by default (`LocalRpcLimits.ServiceDefaults`) and may be 1 through 256. The backlog (16) and the slot
+  behaviour are unchanged: an extra peer waits for a slot and is not reset. At 256 connections the per-connection memory figures above multiply by
+  256 instead of 8.
+- **Idle rule.** A connection holding an open stream is never idle. Otherwise the idle close is 10 minutes (`ServiceDefaults`; at most 10 minutes),
+  and Kestrel's own keep-alive close of a connection without active streams is raised past it so that it cannot end a connection first. The
+  handshake limit stays 10 s.
+- **Per-method deadlines.** `RegisterMethod(method, new LocalRpcCallProfile(default, maximum))` sets one data method's deadline: a call that
+  declares none gets the default, a declared one is shortened to the maximum, and waiting for a slot still counts. Methods without a profile keep
+  10 s / 30 s. A service-mode profile may raise the deadline up to 120 s (R-API-006); a parent-child profile may only lower it.
+- **Stream lane.** `RegisterStream(method, LocalRpcStreamProfile)` runs a server-streaming method in a lane of its own, outside the data and control
+  lanes and their 16/64 and 2-slot budgets: at most 8 open streams per connection and 32 per client process over all its connections to the
+  server (`MaxStreamCallsPerConnection`, `MaxStreamCallsPerProcess`). A stream over either bound is refused at once with `RESOURCE_EXHAUSTED` and
+  `x-af-refusal: stream-lane-full` (`LocalRpcRefusalReason.StreamLaneFull`, not dispatched); streams never queue. A stream's deadline is the
+  shorter of its client's and the profile's `MaxLifetime` (unbounded when both are absent); the 30 s data cap does not apply. The handler writes
+  through `context.OpenLocalRpcStream(responseStream)` (`LocalRpcStreamWriter<T>`): `TryWrite` queues without waiting and the library moves the
+  messages to the transport in order. The library writes no frame of its own: the owner sends heartbeats every `HeartbeatInterval` (15 s by
+  default) and the library measures inactivity (`Inactivity`, `HeartbeatOverdue`, the snapshot's `LongestInactivity`). More than
+  `MaxBufferedMessages` (2,048 by default) waiting ends the stream: the waiting messages are dropped and the call completes with
+  `RESOURCE_EXHAUSTED` and `x-af-stream-end: overflow` (`LocalRpcStreamEnd.TryRead`) after the data the client has not read yet, so the owner sends
+  a reset when the client subscribes again; a client that does not take the message already on its way within `RequireReads` (or the heartbeat
+  interval) is reset instead, since a status never passes data that is not read. With `RequireReads` set, a client that does not read within it is
+  reset (`ReadsStalled`) and its connection keeps serving. The writer's `Ended` token tells the handler to stop; `CompleteAsync` returns once every
+  queued message reached the transport, or throws the status the call must answer. A server-streaming method that is not registered stays a data
+  call, as in a parent-child server.
+- **Unchanged:** the 4 MiB message bound, no compression, refusal trailers, the control lane, the command journal and receipts, launch
+  descriptors and the brokered large-data mechanism.
+
+Known limits, stated exactly: refusal of a second operating-system account is not shown under one account (acceptance register AR-02; the
+procedure is in the AF-DP-01 pull request). `PIPE_REJECT_REMOTE_CLIENTS` is set on every instance and refuses a client that comes through the
+loopback redirector (`\\127.0.0.1\pipe\...`, tested); a client on another machine was not available. Such a loopback client does not present
+the `NETWORK` SID, so the network deny entry, which guards against network logons from another machine, is not exercised on one workstation. The
+peer identity is what the OS reports for the connecting process; it says nothing about what that process is beyond its executable path (origins
+are guardrails, Design 11 §1).
+
+Validation: `LocalRpcServiceModeTests` run offline in CI over real Kestrel HTTP/2 on in-memory streams with a fixed peer answer standing in for
+the OS: the configuration rules, the peer in the decision and the handlers, the denials, the per-method deadlines, the stream lane bounds,
+lifetime, overflow, stalled readers and inactivity, and the idle and handshake rules on a manual clock. `LocalRpcServiceOsChecks` are the real
+operating-system checks (same opt-in variable as above; never in hosted CI): the Windows access list of every instance and the loopback
+redirector refusal, a pipe name never shared, the Linux directory and socket modes and the stale-socket rule, the per-user endpoint, 64
+connections at once with a 65th waiting, the peer as this process, a peer that exits between accept and query, the process query of a live,
+newer and exited child, a profiled call running past 30 s, a stream with heartbeats beside 16 data calls, overflow and stalled readers, and the
+idle rule. The 15-minute run with 15 s heartbeats beside 16 data calls, which also shows the 10-minute idle close at its real value, takes 15
+minutes and needs `ARCFORGES_LOCALRPC_LONG_STREAM=1` as well. `tests/LocalRpcServiceAotTests` is the Native AOT probe of the mode.
+
 ## OS user boundary
 
 A Named Pipe is created with `CurrentUserOnly` (a DACL granting only the current user); the first instance also
@@ -374,7 +452,7 @@ is not claimed to be network-isolated. A Unix socket is bound only in a director
 permission bits, is never created over an existing file, is set to mode 0600 and is removed when the listener is
 unbound; the client refuses a symbolic link.
 
-This package does not read the peer process or user of an accepted connection. Authentication of the child is the launch secret's
+A parent-child server does not read the peer process or user of an accepted connection (a service-mode server does; see above). Authentication of the child is the launch secret's
 proof (WP-08.02, above), the connection binding and the owner-only endpoint, not an OS identity: a same-user process that learns an
 endpoint's address can connect to it and get a challenge, and only the proof decides what it may do. What reading the peer would
 take, within the repository's rules: on Windows the process id of a pipe client needs `GetNamedPipeClientProcessId`, a native
