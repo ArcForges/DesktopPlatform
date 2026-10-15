@@ -39,7 +39,7 @@ internal static unsafe partial class LinuxFileSystemNative
     private const uint StatxBasicStats = 0x7FF;
     private const uint StatxRequired = 0x1 | 0x2 | 0x8 | 0x100; // type, mode, uid, inode
     private const int StatxSize = 256;
-    private const int OpenReadOnlyCloseOnExec = 0x80000; // O_RDONLY | O_CLOEXEC; the same value on every Linux architecture
+    private const int OpenReadOnlyCloseOnExec = 0x80000; // O_RDONLY | O_CLOEXEC; the same value on every .NET-supported Linux architecture
     private const int NoSuchEntry = 2; // ENOENT
     private const int NotADirectory = 20; // ENOTDIR
     private const int InvalidArgument = 22; // EINVAL

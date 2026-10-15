@@ -204,13 +204,48 @@ public sealed class OwnerOnlyFileSecretStoreTests : IDisposable
 
     [Fact(Skip = LinuxOnly, SkipUnless = nameof(OnLinux))]
     [SupportedOSPlatform("linux")]
+    public void ADataRootThatIsALinkOrWritableByOthersIsRefusedAndAMissingOneIsCreatedOwnerOnly()
+    {
+        // Missing: created 0700 with run/ and run/secrets/ on the first write; a read or delete creates nothing.
+        var created = new OwnerOnlyFileSecretStore(Path.Combine(_root, "fresh", "data"));
+        Assert.Null(created.Read("node-credential"));
+        Assert.False(Directory.Exists(created.DataRoot));
+        created.Write("node-credential", "value"u8);
+        Assert.Equal(Mode0700, File.GetUnixFileMode(created.DataRoot));
+
+        // A symbolic link as the data root is refused, even when it points at an owner-only directory of the user.
+        string real = Path.Combine(_root, "real-root");
+        Directory.CreateDirectory(real, Mode0700);
+        string link = Path.Combine(_root, "linked-root");
+        Directory.CreateSymbolicLink(link, real);
+        var linked = new OwnerOnlyFileSecretStore(link);
+        Assert.Contains("data root", Assert.Throws<UnauthorizedAccessException>(() => linked.Write("node-credential", "value"u8)).Message,
+            StringComparison.Ordinal);
+        Assert.Throws<UnauthorizedAccessException>(() => linked.Read("node-credential"));
+        Assert.Empty(Directory.EnumerateFileSystemEntries(real));
+
+        // A data root other users can write is refused; one they can only read and traverse is accepted.
+        var store = new OwnerOnlyFileSecretStore(DataRoot);
+        Directory.CreateDirectory(DataRoot, Mode0700);
+        File.SetUnixFileMode(DataRoot, Mode0755 | UnixFileMode.GroupWrite);
+        Assert.Throws<UnauthorizedAccessException>(() => store.Write("node-credential", "value"u8));
+        File.SetUnixFileMode(DataRoot, Mode0755 | UnixFileMode.OtherWrite);
+        Assert.Throws<UnauthorizedAccessException>(() => store.Write("node-credential", "value"u8));
+        Assert.False(Directory.Exists(store.RunDirectory));
+        File.SetUnixFileMode(DataRoot, Mode0755);
+        store.Write("node-credential", "value"u8);
+        Assert.Equal("value"u8.ToArray(), store.Read("node-credential"));
+    }
+
+    [Fact(Skip = LinuxOnly, SkipUnless = nameof(OnLinux))]
+    [SupportedOSPlatform("linux")]
     public void ARunDirectoryOfAnotherUserOrWritableByOthersIsRefused()
     {
-        // "/" makes the run directory /run, owned by root: refused before anything is created (never run as root).
+        // Data root "/" (owned by root, so /run is too): refused before anything is created (never run as root).
         Assert.SkipWhen(LinuxFileSystemNative.EffectiveUserId == 0, "Running as root: /run would belong to the current user.");
         var system = new OwnerOnlyFileSecretStore("/");
         var foreign = Assert.Throws<UnauthorizedAccessException>(() => system.Write("node-credential", "value"u8));
-        Assert.Contains("run directory", foreign.Message, StringComparison.Ordinal);
+        Assert.Contains("data root", foreign.Message, StringComparison.Ordinal);
         Assert.Throws<UnauthorizedAccessException>(() => system.Read("node-credential"));
         Assert.NotEqual(LinuxFileSystemNative.EffectiveUserId, LinuxFileSystemNative.TryGetStatus("/run/secrets")?.OwnerId);
 

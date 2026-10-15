@@ -38,8 +38,10 @@ internal sealed class SecretServiceSecretStore : ISecretBackingStore
     public static SecretStoreProtection Protection => SecretStoreProtection.OsSecretStore;
 
     /// <summary>
-    /// The backend is available when a session bus is configured, it accepts a connection and <c>org.freedesktop.secrets</c> opens a
-    /// session on it (D-Bus activation may start the desktop keyring). Locked collections are not unlocked here.
+    /// The backend is available when a session bus is configured, it accepts a connection, <c>org.freedesktop.secrets</c> opens a
+    /// session on it (D-Bus activation may start the desktop keyring) and it has a default collection. A keyring without a default
+    /// collection (for example gnome-keyring started headless in a fresh home, without a login keyring) is unavailable: the store
+    /// never creates a collection, because that prompts for a new keyring password. Locked collections are not unlocked here.
     /// </summary>
     internal static bool TryOpen(SecretServiceOptions options, [NotNullWhen(true)] out SecretServiceSecretStore? store,
         [NotNullWhen(false)] out string? unavailableReason)
@@ -76,19 +78,27 @@ internal sealed class SecretServiceSecretStore : ISecretBackingStore
             return false;
         }
 
+        bool hasDefaultCollection;
         try
         {
-            _ = Run(async cancellationToken =>
+            hasDefaultCollection = Run(async cancellationToken =>
             {
                 using var session = await SecretServiceSession.OpenAsync(address, options, plainOnly: true, cancellationToken)
                     .ConfigureAwait(false);
-                return true;
+                return await session.HasDefaultCollectionAsync(cancellationToken).ConfigureAwait(false);
             }, options);
         }
         catch (Exception exception) when (IsUnavailable(exception))
         {
             unavailableReason = "The Secret Service is not available on the session bus (" + exception.GetType().Name + ": "
                 + exception.Message + ").";
+            return false;
+        }
+
+        if (!hasDefaultCollection)
+        {
+            unavailableReason = "The Secret Service on the session bus has no default collection (ReadAlias(\"default\") is \"/\"), "
+                + "so it cannot hold credentials without creating a keyring; the store never creates one.";
             return false;
         }
 
@@ -147,9 +157,11 @@ internal sealed class SecretServiceSecretStore : ISecretBackingStore
     private Task<SecretServiceSession> OpenAsync(CancellationToken cancellationToken) =>
         SecretServiceSession.OpenAsync(_address, _options, plainOnly: false, cancellationToken);
 
+    // Only failures that mean "no usable bus or service": D-Bus connection and error replies, socket and I/O errors, and the
+    // bounded timeouts. Anything else (for example an InvalidOperationException from a defect) propagates instead of silently
+    // selecting the weaker file fallback.
     private static bool IsUnavailable(Exception exception) => exception is DBusExceptionBase or TimeoutException or IOException
-        or SocketException or OperationCanceledException or InvalidDataException or UnauthorizedAccessException
-        or InvalidOperationException;
+        or SocketException or OperationCanceledException;
 
     // The store's contract is synchronous. The bus work runs on the thread pool, so a caller's synchronization context is never
     // captured, and every step is bounded: each call by CallTimeout, a prompt by PromptTimeout, the whole operation by both.
@@ -315,11 +327,15 @@ internal sealed class SecretServiceSession : IDisposable
         _sessionPath = plainPath;
     }
 
+    internal async Task<bool> HasDefaultCollectionAsync(CancellationToken cancellationToken) =>
+        await CallAsync(ReadAliasMessage(DefaultAlias), ReadPath, cancellationToken).ConfigureAwait(false) != NoObject;
+
     private async Task<string> UnlockDefaultCollectionAsync(CancellationToken cancellationToken)
     {
         string collection = await CallAsync(ReadAliasMessage(DefaultAlias), ReadPath, cancellationToken).ConfigureAwait(false);
         if (collection == NoObject)
         {
+            // Backstop: selection already refuses a service without a default collection, but it can disappear later.
             throw new InvalidOperationException("The Secret Service has no default collection.");
         }
 

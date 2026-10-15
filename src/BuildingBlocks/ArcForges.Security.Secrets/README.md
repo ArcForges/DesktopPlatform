@@ -72,10 +72,14 @@ and shows `CredentialInOsStore` as `AccountStatus.credential_in_os_store` (R-AUT
   the bus encrypted (`dh-ietf1024-sha256-aes128-cbc-pkcs7`) unless the service supports only `plain`. Each
   operation opens and closes its own connection and session; every call is bounded by `CallTimeout`.
   The backend is available when a session bus is configured (`SecretServiceOptions.BusAddress`, or
-  `DBUS_SESSION_BUS_ADDRESS` / `$XDG_RUNTIME_DIR/bus`), accepts a connection and opens a session.
+  `DBUS_SESSION_BUS_ADDRESS` / `$XDG_RUNTIME_DIR/bus`), accepts a connection, opens a session and has a
+  default collection. A keyring without one (for example gnome-keyring started headless in a fresh home,
+  without a login keyring) is unavailable, so selection reports the file fallback; the store never creates
+  a collection, because that prompts for a new keyring password.
 - **File fallback.** One secret per file under `<data root>/run/secrets/`, mode 0600 in a 0700
-  directory, written to a temporary file in that directory, flushed and renamed over the name, and the
-  directory flushed. `run/` must be a real directory of the current user that no other user can write;
+  directory, written unbuffered to a temporary file in that directory, flushed and renamed over the name,
+  and the directory flushed. The data root and `run/` must be real directories (not symbolic links) of the
+  current user that no other user can write (missing ones are created 0700);
   `run/secrets/` must be a real directory of the current user, and a wider mode is repaired to 0700. A
   secret file that is not a regular file of the current user, or that grants any group or other access, is
   refused on read (it may have been exposed or planted); storing the key again replaces it and deleting it
@@ -84,6 +88,18 @@ and shows `CredentialInOsStore` as `AccountStatus.credential_in_os_store` (R-AUT
 - **Keys and values.** Both Linux backends take keys of 1–128 characters `[A-Za-z0-9._-]` starting with a
   letter or digit (a safe single file name; the broker's canonical opaque targets qualify) and values of
   1–2560 bytes, the Credential Manager bound. Both declare `SecretStoreIsolation.SameUserShared`.
+
+Obligations of the consumer (the node):
+
+- **Locked keyring without a prompter.** A locked default collection is unlocked only through the
+  desktop keyring's prompt. Without a desktop session the prompt is dismissed and the operation fails
+  closed; the store never redirects that value to the file fallback. Whether to retry, ask the user to
+  unlock, or select the file fallback deliberately (and report `credential_in_os_store = false`) is the
+  node's decision.
+- **Backend persistence across runs.** Selection is made at each start and can differ between runs (a
+  session bus or keyring that appears or disappears). The store does not remember where a credential was
+  written; the node records the backend that holds each credential and reads it from there, migrates it,
+  or re-enrolls when the backend changed.
 
 Tests run on a real Linux file system and, for the Secret Service, against a private `dbus-daemon` and an
 unlocked private `gnome-keyring-daemon` that the test starts in a new temporary directory and stops

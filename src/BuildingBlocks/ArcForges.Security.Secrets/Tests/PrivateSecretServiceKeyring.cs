@@ -58,8 +58,12 @@ internal sealed class PrivateSecretServiceKeyring : IDisposable
         }
     }
 
-    /// <summary>Starts a private bus, and with <paramref name="withKeyring"/> a private GNOME Keyring unlocked with a random password.</summary>
-    public static PrivateSecretServiceKeyring Start(bool withKeyring)
+    /// <summary>
+    /// Starts a private bus, and with <paramref name="withKeyring"/> a private GNOME Keyring. With <paramref name="unlock"/> the keyring
+    /// creates and unlocks its login keyring from a random password (the default collection); without it the keyring starts like a
+    /// headless session in a fresh home: no login keyring and no default collection.
+    /// </summary>
+    public static PrivateSecretServiceKeyring Start(bool withKeyring, bool unlock = true)
     {
         RequireTools(withKeyring ? ["dbus-daemon", "gnome-keyring-daemon"] : ["dbus-daemon"]);
         var root = Directory.CreateTempSubdirectory("afss-");
@@ -116,9 +120,9 @@ internal sealed class PrivateSecretServiceKeyring : IDisposable
             {
                 var keyringStart = Isolated(root.FullName, Find("gnome-keyring-daemon")!, address);
                 keyringStart.ArgumentList.Add("--foreground");
-                keyringStart.ArgumentList.Add("--unlock");
+                if (unlock) keyringStart.ArgumentList.Add("--unlock");
                 keyringStart.ArgumentList.Add("--components=secrets");
-                keyringStart.RedirectStandardInput = true;
+                keyringStart.RedirectStandardInput = unlock;
                 keyringStart.RedirectStandardOutput = true;
                 keyringStart.RedirectStandardError = true;
                 keyring = Process.Start(keyringStart) ?? throw new InvalidOperationException("gnome-keyring-daemon did not start.");
@@ -127,9 +131,13 @@ internal sealed class PrivateSecretServiceKeyring : IDisposable
                 keyring.ErrorDataReceived += (_, data) => session.Record(data.Data);
                 keyring.BeginOutputReadLine();
                 keyring.BeginErrorReadLine();
-                // --unlock reads the password of the new private login keyring from standard input until it closes.
-                keyring.StandardInput.Write(Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(24)));
-                keyring.StandardInput.Close();
+                if (unlock)
+                {
+                    // --unlock reads the password of the new private login keyring from standard input until it closes.
+                    keyring.StandardInput.Write(Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(24)));
+                    keyring.StandardInput.Close();
+                }
+
                 session.WaitForSecretService();
             }
             else
@@ -199,7 +207,13 @@ internal sealed class PrivateSecretServiceKeyring : IDisposable
         while (deadline.Elapsed < StartTimeout)
         {
             if (_keyring!.HasExited) break;
-            if (SecretServiceSecretStore.TryOpen(Address, Options, out _, out reason)) return;
+            // Ready when the service answers: with a default collection, or (a keyring started without --unlock) without one.
+            if (SecretServiceSecretStore.TryOpen(Address, Options, out _, out reason)
+                || reason.Contains("no default collection", StringComparison.Ordinal))
+            {
+                return;
+            }
+
             Thread.Sleep(100);
         }
 

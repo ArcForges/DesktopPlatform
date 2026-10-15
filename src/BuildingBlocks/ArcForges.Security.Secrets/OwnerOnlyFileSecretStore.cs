@@ -13,13 +13,14 @@ namespace ArcForges.Security.Secrets;
 /// <remarks>
 /// <para>Before each operation the store checks what it relies on and fails closed otherwise:</para>
 /// <list type="bullet">
+/// <item>the data root is a real directory (not a symbolic link) of the current user that no other user can write;</item>
 /// <item><c>run/</c> is a real directory (not a symbolic link) of the current user that no other user can write;</item>
 /// <item><c>run/secrets/</c> is a real directory of the current user; a mode other than 0700 is repaired to 0700, because
 /// tightening it is safe and the files inside are checked one by one;</item>
 /// <item>a secret file is a regular file (not a link) of the current user without any group or other permission; anything else is
 /// refused on read, because its contents may have been exposed or planted. Writing the key replaces it and deleting it removes it.</item>
 /// </list>
-/// <para>The data root itself belongs to the node (its own directory, architecture 06 §1).</para>
+/// <para>A missing data root, <c>run/</c> or <c>run/secrets/</c> is created with mode 0700 on the first write.</para>
 /// </remarks>
 [SupportedOSPlatform("linux")]
 internal sealed class OwnerOnlyFileSecretStore : ISecretBackingStore
@@ -77,6 +78,7 @@ internal sealed class OwnerOnlyFileSecretStore : ISecretBackingStore
                     Access = FileAccess.Write,
                     Share = FileShare.None,
                     UnixCreateMode = SecretFileMode,
+                    BufferSize = 0, // write straight to the file: no FileStream buffer keeps an uncleared copy of the value
                 };
                 using (var stream = new FileStream(temporary, options))
                 {
@@ -165,6 +167,22 @@ internal sealed class OwnerOnlyFileSecretStore : ISecretBackingStore
     private bool PrepareDirectories(bool create)
     {
         uint user = LinuxFileSystemNative.EffectiveUserId;
+        var root = LinuxFileSystemNative.TryGetStatus(DataRoot);
+        if (root is null)
+        {
+            if (!create) return false;
+            Directory.CreateDirectory(DataRoot, DirectoryMode);
+            root = LinuxFileSystemNative.TryGetStatus(DataRoot);
+        }
+
+        // Whoever can write the data root can rename run/ away and put their own tree in its place between two checks.
+        if (root is not { Kind: LinuxFileKind.Directory } rootStatus || rootStatus.OwnerId != user
+            || (rootStatus.Permissions & GroupOrOtherWrite) != 0)
+        {
+            throw new UnauthorizedAccessException(
+                "The node data root must be a real directory of the current user that other users cannot write; the secret fallback refuses it.");
+        }
+
         var run = LinuxFileSystemNative.TryGetStatus(RunDirectory);
         if (run is null)
         {

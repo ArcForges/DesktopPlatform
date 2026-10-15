@@ -199,6 +199,31 @@ public sealed class LinuxSecretStoreSelectionTests : IDisposable
 
     [Fact(Skip = LocalSecretServiceOptIn, SkipUnless = nameof(LocalSecretServiceEnabled))]
     [SupportedOSPlatform("linux")]
+    public void AKeyringWithoutADefaultCollectionIsUnavailableSoTheFallbackIsSelectedAndNoCollectionIsCreated()
+    {
+        PrivateSecretServiceKeyring.RequireTools("dbus-daemon", "gnome-keyring-daemon", "dbus-send");
+        // gnome-keyring started without --unlock in a fresh home: the headless state of a WSL session without a login keyring.
+        using var keyring = PrivateSecretServiceKeyring.Start(withKeyring: true, unlock: false);
+        string ReadDefaultAlias() => keyring.DBusSend("--dest=org.freedesktop.secrets", "/org/freedesktop/secrets",
+            "org.freedesktop.Secret.Service.ReadAlias", "string:default").Output.AsUtf8();
+        Assert.Contains("object path \"/\"", ReadDefaultAlias(), StringComparison.Ordinal);
+
+        var selection = OsSecretStore.SelectForCurrentPlatform(DataRoot, keyring.Options);
+
+        Assert.Equal(SecretStoreBackend.OwnerOnlyFile, selection.Backend);
+        Assert.Equal(SecretStoreProtection.FileOwnerOnly, selection.Protection);
+        Assert.False(selection.CredentialInOsStore);
+        Assert.Contains("no default collection", selection.FallbackReason, StringComparison.Ordinal);
+        TestContext.Current.TestOutputHelper?.WriteLine("Keyring without a default collection: " + selection.FallbackReason);
+        Assert.False(SecretServiceSecretStore.TryOpen(keyring.Options, out _, out _));
+        Assert.Throws<PlatformNotSupportedException>(() => OsSecretStore.Create(isWindows: false, keyring.Options));
+        selection.Store.Write("node-credential", "fallback"u8);
+        Assert.Equal("fallback"u8.ToArray(), selection.Store.Read("node-credential"));
+        Assert.Contains("object path \"/\"", ReadDefaultAlias(), StringComparison.Ordinal); // no collection was created
+    }
+
+    [Fact(Skip = LocalSecretServiceOptIn, SkipUnless = nameof(LocalSecretServiceEnabled))]
+    [SupportedOSPlatform("linux")]
     public void ALockedDefaultCollectionPromptsAndAnUnansweredPromptFailsWithoutAnyFallback()
     {
         PrivateSecretServiceKeyring.RequireTools("dbus-daemon", "gnome-keyring-daemon", "dbus-send");
