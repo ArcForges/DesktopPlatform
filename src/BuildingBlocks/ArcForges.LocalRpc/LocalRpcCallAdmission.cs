@@ -18,13 +18,29 @@ internal sealed class LocalRpcCallAdmission
     private const string TimeoutHeader = "grpc-timeout";
     private const long MaxTimeoutDigits = 99_999_999;
 
+    private static readonly IReadOnlyDictionary<string, LocalRpcCallProfile> NoProfiles = new Dictionary<string, LocalRpcCallProfile>();
+    private static readonly IReadOnlyDictionary<string, LocalRpcStreamProfile> NoStreams = new Dictionary<string, LocalRpcStreamProfile>();
+
     private readonly LocalRpcBoundsRegistry _registry;
     private readonly IReadOnlyDictionary<string, LocalRpcControlOperation> _control;
+    private readonly IReadOnlyDictionary<string, LocalRpcCallProfile> _profiles;
+    private readonly IReadOnlyDictionary<string, LocalRpcStreamProfile> _streams;
 
     internal LocalRpcCallAdmission(LocalRpcBoundsRegistry registry, IReadOnlyDictionary<string, LocalRpcControlOperation> control)
+        : this(registry, control, NoProfiles, NoStreams)
+    {
+    }
+
+    internal LocalRpcCallAdmission(
+        LocalRpcBoundsRegistry registry,
+        IReadOnlyDictionary<string, LocalRpcControlOperation> control,
+        IReadOnlyDictionary<string, LocalRpcCallProfile> profiles,
+        IReadOnlyDictionary<string, LocalRpcStreamProfile> streams)
     {
         _registry = registry;
         _control = control;
+        _profiles = profiles;
+        _streams = streams;
     }
 
     internal async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -43,10 +59,24 @@ internal sealed class LocalRpcCallAdmission
             return;
         }
 
+        if (peer.Identity is { } identity)
+        {
+            context.Features.Set<ILocalRpcPeerIdentity>(identity);
+        }
+
         var limits = _registry.Limits;
-        var isControl = _control.TryGetValue(metadata.Method.ServiceName + "/" + metadata.Method.Name, out var operation);
+        var key = metadata.Method.ServiceName + "/" + metadata.Method.Name;
         var nested = context.Request.Headers.TryGetValue(LocalRpcRefusal.NestedHeader, out var marker) && marker.Count == 1 && marker[0] == "1";
-        var window = DeadlineWindow(context, limits, isControl);
+        if (_streams.TryGetValue(key, out var stream))
+        {
+            await InvokeStreamAsync(context, next, peer, stream, nested).ConfigureAwait(false);
+            return;
+        }
+
+        var isControl = _control.TryGetValue(key, out var operation);
+        var window = !isControl && _profiles.TryGetValue(key, out var profile)
+            ? DeadlineWindow(context, profile.DefaultDeadline, profile.MaxDeadline)
+            : DeadlineWindow(context, limits, isControl);
         var gate = isControl ? peer.Control : peer.Data;
         var started = _registry.Time.GetTimestamp();
         var admitted = false;
@@ -113,10 +143,15 @@ internal sealed class LocalRpcCallAdmission
     }
 
     /// <summary>The time a call may take from now: its declared deadline or the lane default, never above the lane maximum.</summary>
-    internal static TimeSpan DeadlineWindow(HttpContext context, LocalRpcLimits limits, bool isControl)
+    internal static TimeSpan DeadlineWindow(HttpContext context, LocalRpcLimits limits, bool isControl) =>
+        DeadlineWindow(
+            context,
+            isControl ? limits.ControlCallDeadline : limits.DefaultCallDeadline,
+            isControl ? limits.ControlCallDeadline : limits.MaxCallDeadline);
+
+    /// <summary>The time a call may take from now: its declared deadline or <paramref name="fallback"/>, never above <paramref name="maximum"/>.</summary>
+    internal static TimeSpan DeadlineWindow(HttpContext context, TimeSpan fallback, TimeSpan maximum)
     {
-        var maximum = isControl ? limits.ControlCallDeadline : limits.MaxCallDeadline;
-        var fallback = isControl ? limits.ControlCallDeadline : limits.DefaultCallDeadline;
         if (context.Request.Headers.TryGetValue(TimeoutHeader, out var values) && values.Count == 1
             && TryParseTimeout(values[0], out var declared))
         {
@@ -124,6 +159,82 @@ internal sealed class LocalRpcCallAdmission
         }
 
         return fallback;
+    }
+
+    /// <summary>
+    /// The deadline of a stream-lane call: the shorter of the client's declared deadline and the profile's lifetime, or none when neither
+    /// bounds it. The data deadline cap does not apply.
+    /// </summary>
+    internal static TimeSpan? StreamWindow(HttpContext context, LocalRpcStreamProfile profile)
+    {
+        TimeSpan? declared = context.Request.Headers.TryGetValue(TimeoutHeader, out var values) && values.Count == 1
+            && TryParseTimeout(values[0], out var parsed) ? parsed : null;
+        return (declared, profile.MaxLifetime) switch
+        {
+            ({ } client, { } lifetime) => client < lifetime ? client : lifetime,
+            ({ } client, null) => client,
+            (null, { } lifetime) => lifetime,
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// A stream-lane call: it never waits and never takes a data or control slot. It is refused at once when its connection or its client
+    /// process holds the bound of open streams; otherwise its deadline is its profile's, and the connection is never idle while it is open.
+    /// </summary>
+    private async Task InvokeStreamAsync(HttpContext context, RequestDelegate next, LocalRpcPeerBounds peer, LocalRpcStreamProfile profile, bool nested)
+    {
+        var entered = false;
+        LocalRpcStreamCall? call = null;
+        var started = _registry.Time.GetTimestamp();
+        var window = StreamWindow(context, profile);
+        peer.CallStarted();
+        try
+        {
+            if (!_registry.TryEnterStream(peer))
+            {
+                Refuse(context, LocalRpcRefusalReason.StreamLaneFull);
+                return;
+            }
+
+            entered = true;
+            if (window is { } bounded)
+            {
+                context.Request.Headers[TimeoutHeader] = ToTimeoutHeader(bounded);
+            }
+            else
+            {
+                _ = context.Request.Headers.Remove(TimeoutHeader);
+            }
+
+            call = new LocalRpcStreamCall(profile, _registry.Time, context);
+            context.Features.Set(call);
+            _registry.StreamOpened(call);
+            using (LocalRpcCallbackGuard.Enter(nested ? 1 : 0))
+            {
+                await next(context).ConfigureAwait(false);
+            }
+
+            _ = call.TryEnd(
+                window is { } lifetime && _registry.Time.GetElapsedTime(started) >= lifetime - TimeSpan.FromMilliseconds(50) ? LocalRpcStreamEndReason.LifetimeEnded
+                : context.RequestAborted.IsCancellationRequested ? LocalRpcStreamEndReason.Cancelled
+                : LocalRpcStreamEndReason.Completed);
+        }
+        finally
+        {
+            if (call is not null)
+            {
+                _ = call.TryEnd(LocalRpcStreamEndReason.Cancelled);
+                _registry.StreamEnded(call, call.EndReason);
+            }
+
+            if (entered)
+            {
+                _registry.ExitStream(peer);
+            }
+
+            peer.CallFinished();
+        }
     }
 
     /// <summary>Parses a gRPC timeout (up to eight digits and one of H, M, S, m, u, n).</summary>

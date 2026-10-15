@@ -994,7 +994,21 @@
     "eng/policy/dependency-reviews/nat-14-r1.json",
     "eng/policy/dependency-reviews/nat-32-r1.json",
     "src/DesktopHelpers/ArcForges.ContentSandbox/Tests/LinuxOsIsolationTests.cs",
-    "src/DesignSystem/ArcForges.Desktop.Shell/Accessibility/AssistiveTechnologySession.md"
+    "src/DesignSystem/ArcForges.Desktop.Shell/Accessibility/AssistiveTechnologySession.md",
+    "src/BuildingBlocks/ArcForges.LocalRpc/LocalRpcPeerResolver.cs",
+    "src/BuildingBlocks/ArcForges.LocalRpc/LocalRpcServiceCallContextExtensions.cs",
+    "src/BuildingBlocks/ArcForges.LocalRpc/LocalRpcServiceTypes.cs",
+    "src/BuildingBlocks/ArcForges.LocalRpc/LocalRpcStreamWriter.cs",
+    "src/BuildingBlocks/ArcForges.LocalRpc/LocalRpcWindowsNative.cs",
+    "src/BuildingBlocks/ArcForges.LocalRpc/Tests/LocalRpcServiceModeTests.cs",
+    "src/BuildingBlocks/ArcForges.LocalRpc/Tests/LocalRpcServiceOsChecks.cs",
+    "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ServiceModeFixtures.cs",
+    "tests/LocalRpcServiceAotTests/LocalRpcServiceAotTests.csproj",
+    "tests/LocalRpcServiceAotTests/Program.cs",
+    "tests/LocalRpcServiceAotTests/README.md",
+    "tests/LocalRpcServiceAotTests/packages.lock.json",
+    "eng/policy/dependency-reviews/af-dp-01-r1.json",
+    "tests/LocalRpcServiceAotTests/WrongUser.cs"
   ],
   "reused": {
     "LICENSE": "canonical-agpl-legal-r1",

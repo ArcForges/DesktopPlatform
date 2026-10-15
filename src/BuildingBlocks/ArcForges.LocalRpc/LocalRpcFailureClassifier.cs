@@ -150,5 +150,6 @@ internal static class LocalRpcFailureClassifier
             or LocalRpcRefusalReason.ControlBusy
             or LocalRpcRefusalReason.DeadlineBeforeDispatch
             or LocalRpcRefusalReason.CallbackNotQueued
-            or LocalRpcRefusalReason.ReceiptsFull;
+            or LocalRpcRefusalReason.ReceiptsFull
+            or LocalRpcRefusalReason.StreamLaneFull;
 }

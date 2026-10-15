@@ -50,7 +50,8 @@ regexes = [
 description = "Exact PLT.46 successor Security.Secrets project input lines"
 paths = [
   '''^eng/policy/dependency-policy[.]json$''',
-  '''^eng/policy/dependency-reviews/plt-46-r1[.]json$'''
+  '''^eng/policy/dependency-reviews/plt-46-r1[.]json$''',
+  '''^eng/policy/dependency-reviews/af-dp-01-r1[.]json$'''
 ]
 regexTarget = "line"
 targetRules = ["generic-api-key"]

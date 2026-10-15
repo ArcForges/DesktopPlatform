@@ -410,6 +410,10 @@ public sealed class InvocationTests
             [LocalRpcRefusalReason.RouteNotLive] = ("resource.parser_failed", true),
             [LocalRpcRefusalReason.CommandConflict] = ("resource.parser_failed", true),
             [LocalRpcRefusalReason.ReceiptsFull] = ("resource.parser_failed", true),
+
+            // A service-mode stream-lane refusal (AF-DP-01) never comes from the parent-child helper server; seen here it is the peer's
+            // fault, not the bounds of a live helper, so it ends the invocation like the other faults.
+            [LocalRpcRefusalReason.StreamLaneFull] = ("resource.parser_failed", true),
         };
         Assert.Equal(Enum.GetValues<LocalRpcRefusalReason>().Order(), expected.Keys.Order());
         foreach (var (reason, mapping) in expected)

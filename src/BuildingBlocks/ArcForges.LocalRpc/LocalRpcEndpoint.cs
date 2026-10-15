@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace ArcForges.LocalRpc;
@@ -62,6 +64,57 @@ public sealed record LocalRpcEndpoint
         }
 
         return new LocalRpcEndpoint(LocalRpcTransport.UnixDomainSocket, ValidateSocketPath(absolutePath));
+    }
+
+    /// <summary>Longest service name accepted by <see cref="ForCurrentUserService"/>.</summary>
+    public const int MaximumServiceNameLength = 32;
+
+    /// <summary>
+    /// The current user's hash (32 lowercase hex digits: the first 16 bytes of SHA-256 over the UTF-8 user SID on Windows, or over the decimal
+    /// effective uid elsewhere). It names the user's well-known service endpoints and lets a service name its other per-user objects alike.
+    /// </summary>
+    public static string CurrentUserHash => UserHash.Value;
+
+    private static readonly Lazy<string> UserHash = new(() =>
+    {
+        var identity = OperatingSystem.IsWindows()
+            ? LocalRpcOsPeerResolver.CurrentUserSid
+            : LocalRpcOsPeerResolver.CurrentEffectiveUid?.ToString(CultureInfo.InvariantCulture);
+        if (identity is null)
+        {
+            throw new PlatformNotSupportedException("The current user's identity is not readable on this platform.");
+        }
+
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)).AsSpan(0, 16));
+    });
+
+    /// <summary>
+    /// The well-known per-user endpoint of a service (Design 02 §2.7): on Windows the pipe <c>arcforges-&lt;user hash&gt;-&lt;name&gt;</c>; on
+    /// Linux the socket <c>$XDG_RUNTIME_DIR/arcforges/&lt;name&gt;.sock</c>, or <c>&lt;fallbackDirectory&gt;/&lt;name&gt;.sock</c> when
+    /// <c>XDG_RUNTIME_DIR</c> is unset. A service-mode server creates the socket directory owner-only (0700) when it is missing. Server and
+    /// clients compute the same endpoint; nothing is discovered.
+    /// </summary>
+    /// <param name="serviceName">1 to 32 lowercase ASCII letters, digits or '-', starting with a letter, for example <c>node</c>.</param>
+    /// <param name="fallbackDirectory">The owner's socket directory (for the node, <c>&lt;data root&gt;/run</c>) used when <c>XDG_RUNTIME_DIR</c> is unset.</param>
+    public static LocalRpcEndpoint ForCurrentUserService(string serviceName, string? fallbackDirectory = null)
+    {
+        ArgumentNullException.ThrowIfNull(serviceName);
+        if (serviceName.Length is 0 or > MaximumServiceNameLength || serviceName[0] is < 'a' or > 'z'
+            || !serviceName.All(character => character is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '-'))
+        {
+            throw new ArgumentException("A service name is 1-32 lowercase ASCII letters, digits or '-', starting with a letter.", nameof(serviceName));
+        }
+
+        if (OperatingSystem.IsWindows())
+        {
+            return NamedPipe("arcforges-" + CurrentUserHash + "-" + serviceName);
+        }
+
+        var runtime = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
+        var directory = !string.IsNullOrEmpty(runtime) && Path.IsPathFullyQualified(runtime)
+            ? Path.Combine(Path.TrimEndingDirectorySeparator(runtime), "arcforges")
+            : fallbackDirectory ?? throw new InvalidOperationException("XDG_RUNTIME_DIR is not set and no fallback socket directory was given.");
+        return UnixDomainSocket(Path.Combine(Path.TrimEndingDirectorySeparator(directory), serviceName + ".sock"));
     }
 
     /// <summary>

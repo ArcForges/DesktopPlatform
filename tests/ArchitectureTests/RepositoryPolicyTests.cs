@@ -53,7 +53,10 @@ public sealed class RepositoryPolicyTests
     {
         // The closed map: every production binding is one library:entry-point export with exactly one owner directory and exactly its declared
         // marshalling flags (UTF-16 strings, last-error capture). A binding that is not listed, is listed twice or is declared elsewhere fails.
+        // An export that a second capability needs for its own purpose is listed again, explicitly, in the second-owner map below; it is
+        // declared once in each of the two owner directories and nowhere else.
         string image = Path.Combine(Root, "src", "Native", "ArcForges.Native.Image");
+        string localRpc = Path.Combine(Root, "src", "BuildingBlocks", "ArcForges.LocalRpc");
         string secrets = Path.Combine(Root, "src", "BuildingBlocks", "ArcForges.Security.Secrets");
         string broker = Path.Combine(Root, "src", "DesktopHelpers", "ArcForges.ContentSandbox.Broker", "Native");
         string helper = Path.Combine(Root, "src", "DesktopHelpers", "ArcForges.ContentSandbox", "Native");
@@ -107,6 +110,18 @@ public sealed class RepositoryPolicyTests
             ["libc:prctl"] = (helper, false, true),
             ["libc:setrlimit"] = (helper, false, true),
             ["libc:syscall"] = (helper, false, true),
+            // AF-DP-01: the LocalRpc service mode's same-user pipe and the pipe client's process identity.
+            ["Kernel32.dll:CreateNamedPipeW"] = (localRpc, true, true),
+            ["Kernel32.dll:GetNamedPipeClientProcessId"] = (localRpc, false, true),
+            ["Kernel32.dll:OpenProcess"] = (localRpc, false, true),
+            ["Kernel32.dll:GetExitCodeProcess"] = (localRpc, false, true),
+            ["Kernel32.dll:GetProcessTimes"] = (localRpc, false, true),
+            ["Kernel32.dll:QueryFullProcessImageNameW"] = (localRpc, false, true),
+        };
+        var secondOwners = new Dictionary<string, (string Owner, bool Utf16, bool LastError)>(StringComparer.Ordinal)
+        {
+            // AF-DP-01: the service-mode peer identity reads the pipe client's token user (the broker opens its child's token).
+            ["Advapi32.dll:OpenProcessToken"] = (localRpc, false, true),
         };
         var exports = new HashSet<string>(StringComparer.Ordinal);
         foreach (string file in Files("*.cs").Where(file => Path.GetRelativePath(Root, file)
@@ -121,8 +136,17 @@ public sealed class RepositoryPolicyTests
             {
                 matched++;
                 string key = match.Groups[1].Value + ":" + match.Groups[2].Value;
+                string owner = Path.GetDirectoryName(file)!;
+                if (secondOwners.TryGetValue(key, out var second) && second.Owner == owner)
+                {
+                    Xunit.Assert.Equal(second.Utf16, match.Groups[3].Success);
+                    Xunit.Assert.Equal(second.LastError, match.Groups[4].Success);
+                    Xunit.Assert.True(exports.Add(key + "@" + owner), "Duplicate production binding: " + match.Value);
+                    continue;
+                }
+
                 Xunit.Assert.True(expected.TryGetValue(key, out var allowed), key);
-                Xunit.Assert.Equal(allowed.Owner, Path.GetDirectoryName(file));
+                Xunit.Assert.Equal(allowed.Owner, owner);
                 Xunit.Assert.Equal(allowed.Utf16, match.Groups[3].Success);
                 Xunit.Assert.Equal(allowed.LastError, match.Groups[4].Success);
                 Xunit.Assert.True(exports.Add(key), "Duplicate production binding: " + match.Value);
@@ -131,7 +155,9 @@ public sealed class RepositoryPolicyTests
             Xunit.Assert.Equal(declarations, matched);
         }
 
-        Xunit.Assert.Equal(expected.Keys.Order(StringComparer.Ordinal), exports.OrderBy(value => value, StringComparer.Ordinal));
+        Xunit.Assert.Equal(
+            expected.Keys.Concat(secondOwners.Select(pair => pair.Key + "@" + pair.Value.Owner)).Order(StringComparer.Ordinal),
+            exports.OrderBy(value => value, StringComparer.Ordinal));
         foreach (string file in Files("*.csproj").Where(file => Path.GetRelativePath(Root, file)
             .Replace('\\', '/').StartsWith("src/", StringComparison.Ordinal)))
         {

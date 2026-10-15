@@ -6,9 +6,11 @@
     <RootNamespace>ArcForges.LocalRpc</RootNamespace>
     <IsPackable>true</IsPackable>
     <IsAotCompatible>true</IsAotCompatible>
+    <!-- The service-mode Windows bindings (LocalRpcWindowsNative) are LibraryImport declarations, whose generated stubs need unsafe code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>ArcForges.LocalRpc</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>Parent-owned generated gRPC transport over Windows Named Pipes and Unix domain sockets.</Description>
+    <Description>Generated gRPC transport over Windows Named Pipes and Unix domain sockets: parent-owned helper servers and a same-user per-user service mode.</Description>
     <LicenceBoundary>AGPL</LicenceBoundary>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
   </PropertyGroup>

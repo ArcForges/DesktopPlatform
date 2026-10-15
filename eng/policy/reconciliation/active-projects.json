@@ -92,7 +92,7 @@
     },
     {
       "path": "src/BuildingBlocks/ArcForges.LocalRpc/ArcForges.LocalRpc.csproj",
-      "blob": "d3fa2c1644fed529df04997868e49b666646a9b3"
+      "blob": "824cb99f5436703e6da9f38077928aeddc3c70ec"
     },
     {
       "path": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
@@ -185,6 +185,10 @@
     {
       "path": "tests/LocalRpcAotTests/LocalRpcAotTests.csproj",
       "blob": "b4e4c919be86f1bb758d89ee1f867bb34160cdcd"
+    },
+    {
+      "path": "tests/LocalRpcServiceAotTests/LocalRpcServiceAotTests.csproj",
+      "blob": "d79c273739a1b66d3e3195d2244efb8654cdc743"
     },
     {
       "path": "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj",

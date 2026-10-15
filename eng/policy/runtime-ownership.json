@@ -197,6 +197,10 @@
           "role": "test-or-build-tool"
         },
         {
+          "path": "tests/LocalRpcServiceAotTests/LocalRpcServiceAotTests.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
           "path": "tests/ReleaseArtifactTests/Realtime/RealtimeAotProbe.csproj",
           "role": "test-or-build-tool"
         },
