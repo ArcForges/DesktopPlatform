@@ -289,16 +289,29 @@ public sealed class SecretBrokerTests
     [Fact]
     public void PlatformStoreSelectionIsFailClosedAndNeverOverstatesIsolation()
     {
-        Assert.Throws<PlatformNotSupportedException>(() => OsSecretStore.Create(isWindows: false));
+        // A bus address that names nothing: no test reaches the user's own session bus or keyring. Without a reachable Secret
+        // Service the strict entry point refuses; it never falls back to a file (that is SelectForCurrentPlatform's reported choice).
+        var unreachable = new SecretServiceOptions
+        {
+            BusAddress = "unix:path=/nonexistent/arcforges-test-bus",
+            CallTimeout = TimeSpan.FromSeconds(5),
+        };
+        Assert.Throws<PlatformNotSupportedException>(() => OsSecretStore.Create(isWindows: false, unreachable));
         if (!OperatingSystem.IsWindows())
         {
-            Assert.Throws<PlatformNotSupportedException>(() => OsSecretStore.CreateForCurrentPlatform());
-            Assert.Throws<PlatformNotSupportedException>(() => OsSecretStore.Create(isWindows: true));
+            Assert.Throws<PlatformNotSupportedException>(() => OsSecretStore.Create(isWindows: true, unreachable));
             return;
         }
 
         var store = Assert.IsType<WindowsCredentialManagerSecretStore>(OsSecretStore.CreateForCurrentPlatform());
         Assert.Equal(SecretStoreIsolation.SameUserShared, store.Isolation);
+        // Selecting creates nothing: the Windows backend is Credential Manager, reported as the OS store whatever the data root.
+        var selection = OsSecretStore.SelectForCurrentPlatform(Path.Combine(Path.GetTempPath(), "arcforges-unused-data-root"));
+        Assert.IsType<WindowsCredentialManagerSecretStore>(selection.Store);
+        Assert.Equal(SecretStoreBackend.WindowsCredentialManager, selection.Backend);
+        Assert.Equal(SecretStoreProtection.OsSecretStore, selection.Protection);
+        Assert.True(selection.CredentialInOsStore);
+        Assert.Null(selection.FallbackReason);
         var installation = new SecretInstallationBinding(SecretApplicationDimension.ArcScope, new DeviceId(Device),
             new InstallationId(Installation));
         Assert.Throws<NotSupportedException>(() => new SecretBroker(installation, new ContextProvider(), store,

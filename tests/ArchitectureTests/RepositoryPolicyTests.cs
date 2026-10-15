@@ -117,11 +117,18 @@ public sealed class RepositoryPolicyTests
             ["Kernel32.dll:GetExitCodeProcess"] = (localRpc, false, true),
             ["Kernel32.dll:GetProcessTimes"] = (localRpc, false, true),
             ["Kernel32.dll:QueryFullProcessImageNameW"] = (localRpc, false, true),
+            // AF-DP-02: the Linux owner-only secret file fallback reads file owners (statx), the effective user and flushes its directory.
+            ["libc:geteuid"] = (secrets, false, false),
+            ["libc:statx"] = (secrets, false, true),
+            ["libc:open"] = (secrets, false, true),
+            ["libc:fsync"] = (secrets, false, true),
         };
         var secondOwners = new Dictionary<string, (string Owner, bool Utf16, bool LastError)>(StringComparer.Ordinal)
         {
             // AF-DP-01: the service-mode peer identity reads the pipe client's token user (the broker opens its child's token).
             ["Advapi32.dll:OpenProcessToken"] = (localRpc, false, true),
+            // AF-DP-02: the secret file fallback closes the directory descriptor it flushed (the broker closes its pipe descriptors).
+            ["libc:close"] = (secrets, false, true),
         };
         var exports = new HashSet<string>(StringComparer.Ordinal);
         foreach (string file in Files("*.cs").Where(file => Path.GetRelativePath(Root, file)

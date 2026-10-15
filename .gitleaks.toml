@@ -60,3 +60,17 @@ regexes = [
   '''^\n?    "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "7282dd206f5ca9cb59fe8d02e9423ac7080857fba03bd0ccff54410b4e2b6bff",$''',
   '''^\n?      "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "7282dd206f5ca9cb59fe8d02e9423ac7080857fba03bd0ccff54410b4e2b6bff",$'''
 ]
+
+[[allowlists]]
+description = "Exact AF-DP-02 successor Security.Secrets project input lines"
+paths = [
+  '''^eng/policy/dependency-policy[.]json$''',
+  '''^eng/policy/dependency-reviews/af-dp-02-r1[.]json$'''
+]
+regexTarget = "line"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexes = [
+  '''^\n?    "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "5b79da9460d70d102b92f5ef9e5f4046836451d2a0ad762576a6ad3df15f8846",$''',
+  '''^\n?      "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "5b79da9460d70d102b92f5ef9e5f4046836451d2a0ad762576a6ad3df15f8846",$'''
+]
