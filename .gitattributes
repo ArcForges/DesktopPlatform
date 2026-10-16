@@ -5,6 +5,8 @@
 *.slnx text eol=lf
 *.props text eol=lf
 *.targets text eol=lf
+.githooks/* text eol=lf
+eng/*.py text eol=lf
 tests/**/*.bin binary
 tests/**/*.snap.bin binary
 *.png binary
