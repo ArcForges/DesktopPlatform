@@ -46,6 +46,9 @@ ARCHITECTURE = ("architecture-tests", "tests/ArchitectureTests/ArcForges.Tests.A
 # The one architecture finding a local run produces by design (see the module docstring).
 LOCAL_RP09 = {"Rule": "RP-09", "Path": "", "Message": "Missing, stale or failing canonical naming/secret gate evidence.",
               "Line": 0}
+# Test projects with timing-sensitive tests (a 400 ms stream lifetime, a fixed 500 ms settle window): they run alone, after
+# every lane (measured: under the concurrent native build the flow-control test failed; alone it passed 5 of 5).
+TIMING_SENSITIVE = ("src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",)
 ARCHITECTURE_FACT = "ArcForges.Tests.ArchitectureTests.EvaluatedPolicyTests.ActualDesktopProjectsSatisfyTheSharedArchitecturePolicy"
 
 
@@ -225,12 +228,15 @@ def test_suite(name: str | None, project: str) -> tuple[str, int, float, str]:
 
 def command_managed_tests(args: argparse.Namespace) -> None:
     """Every suite of the hosted step except the architecture gate, which needs the native evidence of the Windows
-    lane and runs in `architecture`. Test projects run concurrently (bounded by --jobs); each one's output is printed
-    whole when it ends."""
+    lane and runs in `architecture`, and except the timing-sensitive ones, which `--timing-sensitive` runs alone. Test
+    projects run concurrently (bounded by --jobs); each one's output is printed whole when it ends."""
     RESULTS.mkdir(parents=True, exist_ok=True)
-    for trx in RESULTS.glob("*.trx"):
-        trx.unlink()
-    selected = [suite for suite in suites() if suite != ARCHITECTURE]
+    selected = [suite for suite in suites() if suite != ARCHITECTURE and (suite[1] in TIMING_SENSITIVE) == args.timing_sensitive]
+    if args.timing_sensitive and len(selected) != len(TIMING_SENSITIVE):
+        raise Failure(f"the timing-sensitive projects {TIMING_SENSITIVE} are not all in {WORKFLOW.relative_to(ROOT)}")
+    for name, _ in selected:
+        if name:
+            (RESULTS / f"{name}.trx").unlink(missing_ok=True)
     failures = []
     started = time.monotonic()
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
@@ -304,6 +310,7 @@ def main() -> int:
     sub.add_parser("handoff").add_argument("sha")
     tests = sub.add_parser("managed-tests")
     tests.add_argument("--jobs", type=int, default=1)
+    tests.add_argument("--timing-sensitive", action="store_true", help="only the timing-sensitive projects")
     args = parser.parse_args()
     commands = {"native": command_native, "stage": command_stage, "handoff": command_handoff, "hooks": command_hooks,
                 "managed-tests": command_managed_tests, "architecture": command_architecture, "pack": command_pack}

@@ -93,11 +93,13 @@ Windows projects and stages their DLLs for `NativeAbiTests`; CI uses the indepen
 After native staging, follow [package production](eng/packaging/README.md). C#, Native AOT and C17
 consumer diagnostics are explicit local opt-in only when an affected behavior needs them. See [native package scope and evidence](docs/native-package-release.md).
 
-The scheduled/manual [Deep check](.github/workflows/deep-check.yml) runs C# CodeQL only.
-C++ CI compiles and stages the Windows native libraries. CTest, managed ABI execution and isolated
-package consumers are local opt-in only; no macOS or hosted runtime testing is permitted. To validate the
+The scheduled/manual [Deep check](.github/workflows/deep-check.yml) runs C# CodeQL only. To validate the
 current configuration, use Actions → Deep check → Run workflow and select the desired branch.
 Re-running a historical workflow uses its original commit and can still execute the removed jobs.
+The PR gate's native job compiles and stages the Windows native libraries and runs the selected CTest
+and NativeAbi layout tests. Isolated package consumers are local opt-in only; no macOS or hosted runtime
+testing is permitted. The owner's PRs run the whole PR gate locally before the push (`python eng/verify.py`,
+see [AGENTS.md](AGENTS.md#local-verification-ad-0016)); external PRs run it on GitHub.
 
 ## Packages and Contracts
 

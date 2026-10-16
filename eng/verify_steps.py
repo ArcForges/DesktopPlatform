@@ -11,14 +11,16 @@ the hosted job used:
   the NativeAbi tests need; then the win-x64 Native AOT compile probes of `package-validation.yml`.
 - lane `wsl` (WSL Debian, in ~/.cache/arcforges-verify/DesktopPlatform): the clone identity, the `licence-policy`,
   `runtime-policy` and `reconciliation-policy` jobs, then the `pack` job up to its tests (locked restore, format,
-  accounting unittest, Release build, every test suite but the architecture gate), then the linux-x64 Native AOT
-  compile probes. Everything that runs dotnet in the clone is in this lane: concurrent restores or builds of shared
+  accounting unittest, Release build, every test suite but the architecture gate and the timing-sensitive LocalRpc
+  suite, four test projects at a time), then the linux-x64 Native AOT compile probes. Everything that runs dotnet in the clone is in this lane: concurrent restores or builds of shared
   projects in one checkout would race.
 - lane `wsl-policy`: the Python-only jobs that read neither the clone identity nor build outputs: `design-policy`,
   `reference-policy`, `provenance-policy`, `stage-integration` and `repository-hooks`.
 - lane `scan`: the secret scan (pinned gitleaks image digest, .gitleaks.toml) over the pushed range ({range}), in WSL
   Docker without network and with a read-only mount of the clone; `actionlint` only when .github/workflows/** changed.
-- after every lane (the exclusive phase is the only point after both hosts' lanes): the hand-off of the native stage
+- after every lane (the exclusive phase is the only point after both hosts' lanes): the LocalRpc suite alone (a 400 ms
+  stream lifetime and a fixed 500 ms settle window; one of its tests failed under the concurrent native build and
+  passed alone), the hand-off of the native stage
   and its licence evidence from Windows into the clone (hosted: artifacts `native-stage-*` and
   `native-licence-policy-*`), then the rest of `pack`: the architecture gate, invariant accounting and the reason
   registry; the pack itself; the packaging unittest against the packed candidate.
@@ -81,8 +83,10 @@ ENV = {"DOTNET_NOLOGO": "true", "DOTNET_CLI_TELEMETRY_OPTOUT": "true", "TESTINGP
 # Timeouts are five to ten times the durations measured on this workstation (18 logical processors, all lanes
 # concurrently), with a floor of five minutes; the native step's allows a cold vcpkg build of the pinned ports.
 
-# Test projects that eng/verify_local.py managed-tests runs concurrently (see PR measurements).
-TEST_JOBS = 1
+# Test projects that eng/verify_local.py managed-tests runs concurrently. Measured on the 15 projects in WSL (18 logical
+# processors, warm, no other lane): 60-61 s one at a time, 22-23 s with 4, 18 s with 8; 4 leaves the processors to the
+# concurrent Windows lane for 4 s more.
+TEST_JOBS = 4
 
 # The AOT compile probes of package-validation.yml: (step suffix, project, RIDs).
 AOT_PROBES = [
@@ -147,9 +151,13 @@ def unittest(pattern: str, directory: str = "eng") -> str:
     return f"python -m unittest discover -s {directory} -p '{pattern}' -v"
 
 
+# The Native AOT linker locates MSVC through vswhere, which hosted Windows runners have on PATH.
+VSWHERE_ON_PATH = "$env:PATH = (Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\\Installer') + ';' + $env:PATH; "
+
+
 def aot_win(name: str, project: str) -> Step:
     return win(f"win-aot-{name}", pwsh(
-        f"dotnet restore {project} --locked-mode; if ($LASTEXITCODE) {{ exit $LASTEXITCODE }}; "
+        VSWHERE_ON_PATH + f"dotnet restore {project} --locked-mode; if ($LASTEXITCODE) {{ exit $LASTEXITCODE }}; "
         f"dotnet publish {project} -c Release -r {RID_WIN} --no-restore"), 900)
 
 
@@ -202,7 +210,8 @@ STEPS = [
     # pr-gate.yml secret-scan (over the pushed range) and actionlint (when a workflow changed)
     wsl("secret-scan", SECRET_SCAN, 600, lane="scan"),
     wsl("actionlint", ACTIONLINT, 300, lane="actionlint", when=workflows_changed),
-    # After every lane: the native hand-off, then the rest of package-validation.yml pack
+    # After every lane: the timing-sensitive test projects alone, the native hand-off, then the rest of pack
+    wsl("timing-sensitive-tests", "python eng/verify_local.py managed-tests --timing-sensitive", 900, exclusive=True),
     win("native-handoff", ["python", "eng/verify_local.py", "handoff", "{sha}"], 600, exclusive=True),
     wsl("architecture-gate", "python eng/verify_local.py architecture", 900, exclusive=True),
     wsl("pack", "python eng/verify_local.py pack", 1200, exclusive=True),

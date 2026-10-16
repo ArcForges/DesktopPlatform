@@ -17,8 +17,11 @@ permissions:
 concurrency:
   group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+# Owner PRs (deku2026) are verified by the local pre-push hook (AGENTS.md, Local verification), so every job skips for
+# them; external PRs and the publication candidate (workflow_call from publish-nuget.yml on main pushes) run all gates.
 jobs:
   allocate-version:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.value }}
@@ -38,6 +41,7 @@ jobs:
           if ($LASTEXITCODE) { throw 'Invalid package version.' }
           "value=$version" >> $env:GITHUB_OUTPUT
   managed-packages:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     needs: [allocate-version, native, secret-scan, repository-hooks, design-policy, licence-policy, provenance-policy, reference-policy, runtime-policy, reconciliation-policy]
     uses: ./.github/workflows/package-validation.yml
     with:
@@ -46,8 +50,10 @@ jobs:
       naming_evidence_artifact: architecture-naming-${{ github.run_id }}-${{ github.run_attempt }}
       secret_evidence_artifact: architecture-secret-${{ github.run_id }}-${{ github.run_attempt }}
   native:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     uses: ./.github/workflows/native-abi.yml
   secret-scan:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -82,6 +88,7 @@ jobs:
           retention-days: 30
 
   repository-hooks:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -94,6 +101,7 @@ jobs:
         run: pre-commit run --all-files --show-diff-on-failure --color=always
 
   design-policy:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -118,6 +126,7 @@ jobs:
           retention-days: 30
 
   licence-policy:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -153,6 +162,7 @@ jobs:
           retention-days: 30
 
   reference-policy:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -175,6 +185,7 @@ jobs:
           retention-days: 30
 
   runtime-policy:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -211,6 +222,7 @@ jobs:
           retention-days: 30
 
   reconciliation-policy:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -234,6 +246,7 @@ jobs:
           retention-days: 30
 
   provenance-policy:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -262,7 +275,7 @@ jobs:
           retention-days: 30
 
   ci:
-    if: always()
+    if: ${{ always() && !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     needs: [allocate-version, managed-packages, native, secret-scan, repository-hooks, design-policy, licence-policy, provenance-policy, reference-policy, runtime-policy, reconciliation-policy, stage-integration]
     runs-on: ubuntu-latest
     env:
@@ -276,6 +289,7 @@ jobs:
           if ($failed.Count) { throw 'One or more platform gates did not succeed.' }
 
   stage-integration:
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
