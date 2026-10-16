@@ -135,15 +135,16 @@ def command_native(_: argparse.Namespace) -> None:
         run(["dotnet", "test", "--project", "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj",
              "--filter", "Category=NativeAbiLayout", "--no-restore"], env=env)
         # "Prove sccache actually cached": the launcher must be consulted and every compilation cacheable. An
-        # incremental build with nothing to compile (the same commit verified again) makes no compile request.
+        # incremental build that compiles nothing (Ninja ran no "Building C/CXX object" edge) makes no compile request.
         stats = sccache_stats(env)
         requests = int(re.search(r"Compile requests\s+(\d+)", stats).group(1))
         non_cacheable = int(re.search(r"Non-cacheable compilations\s+(\d+)", stats).group(1))
-        if requests <= 0 and "ninja: no work to do" not in build:
+        compiled = len(re.findall(r"Building CX?X? object", build))
+        if requests <= 0 and compiled:
             raise Failure("sccache saw no compile requests; the launcher is not wired up.")
         if non_cacheable > 0:
             raise Failure(f"sccache reported {non_cacheable} non-cacheable compilations; debug information must stay Embedded.")
-        print(f"sccache: {requests} compile requests, 0 non-cacheable.", flush=True)
+        print(f"sccache: {requests} compile requests for {compiled} compiled objects, 0 non-cacheable.", flush=True)
     finally:
         subprocess.run(["sccache", "--stop-server"], env=env, capture_output=True)
 
