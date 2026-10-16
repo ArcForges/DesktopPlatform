@@ -12,18 +12,17 @@ the hosted job used:
 - lane `wsl` (WSL Debian, in ~/.cache/arcforges-verify/DesktopPlatform): the clone identity, the `licence-policy`,
   `runtime-policy` and `reconciliation-policy` jobs, then the `pack` job up to its tests (locked restore, format,
   accounting unittest, Release build, every test suite but the architecture gate and the timing-sensitive LocalRpc
-  suite, four test projects at a time), then the linux-x64 Native AOT compile probes. Everything that runs dotnet in the clone is in this lane: concurrent restores or builds of shared
-  projects in one checkout would race.
+  suite, four test projects at a time), then the linux-x64 Native AOT compile probes. Everything that runs dotnet in
+  the clone is in this lane: concurrent restores or builds of shared projects in one checkout would race.
 - lane `wsl-policy`: the Python-only jobs that read neither the clone identity nor build outputs: `design-policy`,
   `reference-policy`, `provenance-policy`, `stage-integration` and `repository-hooks`.
 - lane `scan`: the secret scan (pinned gitleaks image digest, .gitleaks.toml) over the pushed range ({range}), in WSL
   Docker without network and with a read-only mount of the clone; `actionlint` only when .github/workflows/** changed.
 - after every lane (the exclusive phase is the only point after both hosts' lanes): the LocalRpc suite alone (a 400 ms
-  stream lifetime and a fixed 500 ms settle window; one of its tests failed under the concurrent native build and
-  passed alone), the hand-off of the native stage
-  and its licence evidence from Windows into the clone (hosted: artifacts `native-stage-*` and
-  `native-licence-policy-*`), then the rest of `pack`: the architecture gate, invariant accounting and the reason
-  registry; the pack itself; the packaging unittest against the packed candidate.
+  stream lifetime and a fixed 500 ms settle window: its flow-control test failed under the concurrent native build
+  and passed alone), the hand-off of the native stage and its licence evidence from Windows into the clone (hosted:
+  artifacts `native-stage-*` and `native-licence-policy-*`), then the rest of `pack`: the architecture gate, invariant
+  accounting and the reason registry; the pack itself; the packaging unittest against the packed candidate.
 
 Differences from the hosted jobs (eng/verify_local.py names each where it happens):
 - GitHub run identity: the candidate version is 1.0.0-ci.1.1 and accounting uses run 1, attempt 1 (hosted: the run id
@@ -40,7 +39,8 @@ Differences from the hosted jobs (eng/verify_local.py names each where it happen
   from that URL. The provenance step passes the merge base as `--base` (hosted: the PR base from the event).
 - vcpkg binary caching uses the user's default archive cache (hosted: actions/cache), sccache the user's default cache
   through a server on a port of its own that the step stops; vcpkg is the existing C:\\vcpkg at the pinned commit
-  (Env.md section 6).
+  (Env.md section 6). As on the hosted runner, vcpkg must build the ports with the reviewed CMake (the native profile's
+  vcpkgCMake); `native` checks the ports' build records and names the prerequisite when they differ.
 - `CI` and `GITHUB_ACTIONS` are not set: with them the build identity and evidence scripts require a GitHub run.
 Every change runs the full profile: the provenance, runtime-ownership and reconciliation inventories cover every
 tracked file, Markdown included, and the design policy verifies the generated documents.
