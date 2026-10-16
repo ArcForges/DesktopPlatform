@@ -127,7 +127,10 @@ def command_native(_: argparse.Namespace) -> None:
     run(["sccache", "--start-server"], env=env)
     try:
         run(["sccache", "--zero-stats"], env=env)
-        run(["cmake", "--preset", PRESET], env=env)
+        # A fresh configure, as on a hosted runner: re-applying the preset to an existing cache leaves the compiler
+        # entry at its preset value `cl`, which native.py stage rejects as an unreviewed compiler. The build directory's
+        # objects stay, so Ninja and sccache still rebuild only what changed.
+        run(["cmake", "--preset", PRESET, "--fresh"], env=env)
         build = run(["cmake", "--build", "--preset", PRESET], env=env, capture=True)
         run(["cmake", "--install", f"artifacts/cmake/win-x64/{PRESET.removeprefix('win-x64-')}"], env=env)
         run(["ctest", "--test-dir", f"artifacts/cmake/win-x64/{PRESET.removeprefix('win-x64-')}", "--output-on-failure",
