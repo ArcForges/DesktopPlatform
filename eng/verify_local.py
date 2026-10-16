@@ -109,6 +109,22 @@ def developer_environment(toolset: str, vcpkg: Path) -> dict[str, str]:
     return env
 
 
+def require_vcpkg_cmake(expected: str) -> None:
+    """native.py stage accepts only ports that vcpkg built with the reviewed CMake (the profile's vcpkgCMake; hosted CI
+    puts exactly that version on PATH before `vcpkg install`). vcpkg takes the first suitable CMake it finds, so a newer
+    one on PATH produces ports the stage rejects; this says so before the build instead of after it."""
+    found = {}
+    for info in (ROOT / "artifacts/vcpkg-installed" / TRIPLET / "share").glob("*/vcpkg_abi_info.txt"):
+        for line in info.read_text(encoding="utf-8").splitlines():
+            if line.startswith("cmake "):
+                found.setdefault(line.split(" ", 1)[1], []).append(info.parent.name)
+    if set(found) != {expected}:
+        raise Failure(f"vcpkg built the native dependencies with CMake {sorted(found)} (ports {found}); the reviewed native "
+                      f"profile requires CMake {expected} for vcpkg (eng/provenance/artifact-profiles/native-win-x64-r4.json). "
+                      f"Make CMake {expected} the first CMake on PATH for this push, or let vcpkg use its own pinned CMake "
+                      "download (VCPKG_FORCE_DOWNLOADED_BINARIES=1); installing tools is the user's decision.")
+
+
 def sccache_stats(env: dict[str, str]) -> str:
     return run(["sccache", "--show-stats"], env=env, capture=True)
 
@@ -123,6 +139,7 @@ def command_native(_: argparse.Namespace) -> None:
     run([str(vcpkg / "vcpkg.exe"), "install", *[f"{port}:{TRIPLET}" for port in PORTS],
          f"--x-install-root={ROOT / 'artifacts/vcpkg-installed'}",
          f"--overlay-triplets={ROOT / 'eng/native/vcpkg/triplets'}"])
+    require_vcpkg_cmake(profile["buildTools"]["vcpkgCMake"])
     env = developer_environment(toolset, vcpkg)
     run(["sccache", "--start-server"], env=env)
     try:
