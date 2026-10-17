@@ -44,6 +44,14 @@ class SecretScanAllowlistTests(unittest.TestCase):
     AFDP02_PROJECT_HASH = '5b79da9460d70d102b92f5ef9e5f4046836451d2a0ad762576a6ad3df15f8846'
     AFDP02_DESCRIPTION = 'Exact AF-DP-02 successor Security.Secrets project input lines'
     AFDP02_PATHS = (POLICY_PATH, AFDP02_RECEIPT_PATH)
+    # The OS secret-store guard adds InternalsVisibleTo for the tier to ArcForges.Security.Secrets.csproj and the new tier project,
+    # whose key contains "Secret" (ArcForges-Design 16-testing-strategy section 1).
+    GUARD_RECEIPT_PATH = 'eng/policy/dependency-reviews/os-secret-store-guard-r1.json'
+    GUARD_PROJECT_HASH = 'e4effc73ea98bf170cf384c55e43c34d30cbe4e67cd9abd5e81dae170fcf880e'
+    TIER_PROJECT_PATH = 'tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj'
+    TIER_PROJECT_HASH = '839dfa0b55f7ae2b2ad060ad0238e20b57c069bd1480f72220e398ccc4fdeeff'
+    GUARD_DESCRIPTION = 'Exact OS secret-store guard project input lines'
+    GUARD_PATHS = (POLICY_PATH, GUARD_RECEIPT_PATH)
 
     @classmethod
     def setUpClass(cls):
@@ -73,8 +81,9 @@ class SecretScanAllowlistTests(unittest.TestCase):
     def test_allowlist_has_only_the_exact_path_bound_task_groups(self):
         self.assertTrue(self.config['extend']['useDefault'])
         self.assertNotIn('allowlist', self.config)
-        self.assertEqual(len(self.groups), 6)
-        baseline, *task_groups, plt46, afdp02 = self.groups
+        self.assertEqual(len(self.groups), 7)
+        baseline, *task_groups, plt46, afdp02, guard = self.groups
+        self.assertEqual(guard['description'], self.GUARD_DESCRIPTION)
         self.assertEqual(plt46['description'], self.PLT46_DESCRIPTION)
         self.assertEqual(afdp02['description'], self.AFDP02_DESCRIPTION)
         self.assertEqual(baseline['description'], 'Generated outputs and public test fixtures')
@@ -134,7 +143,7 @@ class SecretScanAllowlistTests(unittest.TestCase):
 
     def test_plt46_group_is_the_exact_successor_project_digest_block(self):
         group = self._plt46_group()
-        self.assertIs(group, self.groups[-2])
+        self.assertIs(group, self.groups[-3])
         self.assertEqual(set(group), {'description', 'paths', 'regexTarget', 'targetRules', 'condition', 'regexes'})
         self.assertEqual(group['paths'], [
             '^eng/policy/dependency-policy[.]json$',
@@ -148,7 +157,7 @@ class SecretScanAllowlistTests(unittest.TestCase):
         self.assertNotEqual(self.ACTIVE_PROJECT_HASH, self.PROJECT_HASHES[0])
         self.assertRegex(self.ACTIVE_PROJECT_HASH, '^[0-9a-f]{64}$')
         # The earlier groups keep only the historical digests: the PLT.46 digest widens none of them.
-        for earlier in self.groups[:-2]:
+        for earlier in self.groups[:-3]:
             for pattern in earlier.get('regexes', ()):
                 self.assertNotIn(self.ACTIVE_PROJECT_HASH, pattern)
 
@@ -227,7 +236,7 @@ class SecretScanAllowlistTests(unittest.TestCase):
 
     def test_afdp02_group_is_the_exact_successor_project_digest_block(self):
         group = self._afdp02_group()
-        self.assertIs(group, self.groups[-1])
+        self.assertIs(group, self.groups[-2])
         self.assertEqual(set(group), {'description', 'paths', 'regexTarget', 'targetRules', 'condition', 'regexes'})
         self.assertEqual(group['paths'], [
             '^eng/policy/dependency-policy[.]json$',
@@ -240,7 +249,7 @@ class SecretScanAllowlistTests(unittest.TestCase):
         self.assertNotIn(self.AFDP02_PROJECT_HASH, (*self.PROJECT_HASHES, self.ACTIVE_PROJECT_HASH))
         self.assertRegex(self.AFDP02_PROJECT_HASH, '^[0-9a-f]{64}$')
         # No earlier group admits the AF-DP-02 digest.
-        for earlier in self.groups[:-1]:
+        for earlier in self.groups[:-2]:
             for pattern in earlier.get('regexes', ()):
                 self.assertNotIn(self.AFDP02_PROJECT_HASH, pattern)
 
@@ -298,9 +307,66 @@ class SecretScanAllowlistTests(unittest.TestCase):
                 with self.subTest(path=path, line=line):
                     self.assertFalse(self._allowed(path, line))
 
+    def _guard_group(self):
+        (group,) = [group for group in self.groups if group.get('description') == self.GUARD_DESCRIPTION]
+        return group
+
+    def _guard_lines(self):
+        return [self._line(path, digest, indent) for path, digest in ((self.PROJECT_PATHS[0], self.GUARD_PROJECT_HASH),
+                                                                      (self.TIER_PROJECT_PATH, self.TIER_PROJECT_HASH))
+                for indent in (4, 6)]
+
+    def test_guard_group_is_the_exact_successor_and_tier_project_digest_block(self):
+        group = self._guard_group()
+        self.assertIs(group, self.groups[-1])
+        self.assertEqual(set(group), {'description', 'paths', 'regexTarget', 'targetRules', 'condition', 'regexes'})
+        self.assertEqual(group['paths'], [
+            '^eng/policy/dependency-policy[.]json$',
+            '^eng/policy/dependency-reviews/os-secret-store-guard-r1[.]json$',
+        ])
+        self.assertEqual(group['targetRules'], ['generic-api-key'])
+        self.assertEqual(group['condition'], 'AND')
+        self.assertEqual(group['regexTarget'], 'line')
+        self.assertEqual(group['regexes'], [self._exact_regex(line) for line in self._guard_lines()])
+        for digest in (self.GUARD_PROJECT_HASH, self.TIER_PROJECT_HASH):
+            self.assertRegex(digest, '^[0-9a-f]{64}$')
+            self.assertNotIn(digest, (*self.PROJECT_HASHES, self.ACTIVE_PROJECT_HASH, self.AFDP02_PROJECT_HASH))
+            for earlier in self.groups[:-1]:
+                for pattern in earlier.get('regexes', ()):
+                    self.assertNotIn(digest, pattern)
+
+    def test_guard_group_allows_only_its_lines_in_its_two_paths(self):
+        group = self._guard_group()
+        for path in self.GUARD_PATHS:
+            for line in self._guard_lines():
+                with self.subTest(path=path, line=line):
+                    self.assertTrue(self._matches(group, path, line))
+                    self.assertTrue(self._matches(group, path, '\n' + line))
+                    self.assertTrue(self._allowed(path, line))
+                    self.assertFalse(self._allowed(path, line, 'another-rule'))
+                    self.assertFalse(self._matches(group, path, '\n\n' + line))
+                    self.assertFalse(self._matches(group, path, line + '\n'))
+                    self.assertFalse(self._matches(group, path, ' ' + line))
+                    self.assertFalse(self._allowed(path, line + ' credential=example-not-a-secret'))
+            for line in self._afdp02_lines() + self._active_lines():
+                with self.subTest(path=path, earlier=line):
+                    self.assertFalse(self._matches(group, path, line))
+        for path in (self.AFDP02_RECEIPT_PATH, 'eng/policy/dependency-reviews/os-secret-store-guard-r2.json',
+                     'x/eng/policy/dependency-policy.json', 'eng/policy/reconciliation/active-projects.json', 'README.md'):
+            for line in self._guard_lines():
+                with self.subTest(rejected_path=path, line=line):
+                    self.assertFalse(self._allowed(path, line))
+        for path in self.GUARD_PATHS:
+            for digest in ('a' * 64, self.TIER_PROJECT_HASH.upper(), self.GUARD_PROJECT_HASH[1:] + self.GUARD_PROJECT_HASH[0]):
+                for project in (self.PROJECT_PATHS[0], self.TIER_PROJECT_PATH, self.PROJECT_PATHS[1]):
+                    with self.subTest(path=path, digest=digest, project=project):
+                        self.assertFalse(self._allowed(path, self._line(project, digest, 4)))
+
     def test_actual_secrets_project_digest_is_allowlisted(self):
         actual = hashes(ROOT)
-        self.assertIn(actual[self.PROJECT_PATHS[0]], (self.PROJECT_HASHES[0], self.ACTIVE_PROJECT_HASH, self.AFDP02_PROJECT_HASH))
+        self.assertIn(actual[self.PROJECT_PATHS[0]], (self.PROJECT_HASHES[0], self.ACTIVE_PROJECT_HASH, self.AFDP02_PROJECT_HASH,
+                                                      self.GUARD_PROJECT_HASH))
+        self.assertEqual(actual[self.TIER_PROJECT_PATH], self.TIER_PROJECT_HASH)
         self.assertEqual(actual[self.PROJECT_PATHS[1]], self.PROJECT_HASHES[1])
 
     def test_exact_six_observed_lines_match_only_the_generic_api_key_rule(self):
@@ -381,11 +447,13 @@ class SecretScanAllowlistTests(unittest.TestCase):
         }
         active = self._line(self.PROJECT_PATHS[0], self.ACTIVE_PROJECT_HASH, 6)
         afdp02 = self._line(self.PROJECT_PATHS[0], self.AFDP02_PROJECT_HASH, 6)
+        guard = self._line(self.PROJECT_PATHS[0], self.GUARD_PROJECT_HASH, 6)
         found = 0
         for receipt in sorted(directory.glob('*.json'), key=lambda item: item.name.encode('utf-8')):
             relative = receipt.relative_to(ROOT).as_posix()
             lines = historical | ({active} if relative in (self.PLT46_RECEIPT_PATH, self.AFDP01_RECEIPT_PATH) else set()) \
-                | ({afdp02} if relative == self.AFDP02_RECEIPT_PATH else set())
+                | ({afdp02} if relative == self.AFDP02_RECEIPT_PATH else set()) \
+                | ({guard} if relative == self.GUARD_RECEIPT_PATH else set())
             for line in receipt.read_text(encoding='utf-8').split('\n'):
                 if any(project in line for project in self.PROJECT_PATHS):
                     found += 1
