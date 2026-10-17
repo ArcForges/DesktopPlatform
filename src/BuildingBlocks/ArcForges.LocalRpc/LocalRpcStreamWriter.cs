@@ -27,6 +27,9 @@ internal sealed class LocalRpcStreamCall
 
     internal LocalRpcStreamProfile Profile { get; }
 
+    /// <summary>When the stream's own lifetime ends (UTC), when its window is the profile's lifetime; null when a client deadline bounds it.</summary>
+    internal DateTime? LifetimeEnd { get; init; }
+
     internal TimeProvider Time { get; }
 
     /// <summary>How long the stream has carried no message (since it opened, or since the last message reached the transport).</summary>
@@ -81,24 +84,28 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
     {
         _call = call;
         _writer = writer;
-        _deadline = deadline;
+        // A profile lifetime is the library's own end; the call's deadline is then the server's backstop after it.
+        _deadline = call.LifetimeEnd ?? deadline;
         _ended = CancellationTokenSource.CreateLinkedTokenSource(callToken);
         _transport = CancellationTokenSource.CreateLinkedTokenSource(callToken);
         _pump = Task.Run(PumpAsync, CancellationToken.None);
 
-        // The stream ends at its deadline on its own, a guard before the gRPC server's deadline: the server completes the response at the
-        // deadline from its own timer, concurrently with a write the pump may have in flight, which cut a message short on the wire (the
-        // client read INTERNAL) or failed the write instead of ending it by its lifetime. Ending first lets the message in flight finish,
-        // drops the waiting ones and answers DEADLINE_EXCEEDED with the trailer through CompleteAsync, before the server's timer fires.
-        var lead = deadline == DateTime.MaxValue ? Timeout.InfiniteTimeSpan : deadline - LifetimeGuard - DateTime.UtcNow;
+        // The stream ends at its deadline on its own. The gRPC server completes the response at its deadline from its own timer, concurrently
+        // with a write the pump may have in flight, which cut a message short on the wire (the client read INTERNAL) or failed the write
+        // instead of ending it by its lifetime. Ending first lets the message in flight finish, drops the waiting ones and answers
+        // DEADLINE_EXCEEDED with the trailer through CompleteAsync. For a profile lifetime the server's deadline is set a backstop later
+        // (LocalRpcCallAdmission.LifetimeBackstop), so the writer ends at the lifetime itself; a shorter client deadline is also the
+        // client's own timer, which races any server answer, so the writer ends a guard before it and the trailer is best-effort.
+        var end = call.LifetimeEnd is { } own ? own : deadline - LifetimeGuard;
+        var lead = deadline == DateTime.MaxValue && call.LifetimeEnd is null ? Timeout.InfiniteTimeSpan : end - DateTime.UtcNow;
         if (lead > TimeSpan.Zero)
         {
-            _lifetime = TimeProvider.System.CreateTimer(static state => ((LocalRpcStreamWriter<T>)state!).EndLifetime(), this, lead,
+            _lifetime = call.Time.CreateTimer(static state => ((LocalRpcStreamWriter<T>)state!).EndLifetime(), this, lead,
                 Timeout.InfiniteTimeSpan);
         }
     }
 
-    /// <summary>How long before the call's deadline the stream ends by its lifetime (the tolerance of <see cref="CancelReason"/>).</summary>
+    /// <summary>How long before a client-declared deadline the stream ends by it (the tolerance of <see cref="CancelReason"/>).</summary>
     internal static TimeSpan LifetimeGuard { get; } = TimeSpan.FromMilliseconds(50);
 
     /// <summary>Cancelled when the stream ends for any reason other than the owner completing it: the client, the lifetime, overflow or stalled reads.</summary>
@@ -166,6 +173,7 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
 
         if (!_ended.IsCancellationRequested && _call.TryEnd(LocalRpcStreamEndReason.Completed))
         {
+            _lifetime?.Dispose();
             return;
         }
 
@@ -226,7 +234,8 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
 
     private void EndLifetime()
     {
-        if (Volatile.Read(ref _disposed) != 0)
+        // A stream that already ended (completed by its owner, or ended otherwise) keeps that end; Ended is never cancelled after a completion.
+        if (Volatile.Read(ref _disposed) != 0 || _call.EndReason != LocalRpcStreamEndReason.None)
         {
             return;
         }

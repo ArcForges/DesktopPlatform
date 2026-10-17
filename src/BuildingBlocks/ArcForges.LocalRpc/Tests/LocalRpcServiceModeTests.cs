@@ -9,7 +9,10 @@ namespace ArcForges.LocalRpc.Tests;
 /// stream lane and its back-pressure, and the idle rules. These run in hosted CI over real Kestrel HTTP/2 and Grpc.Net.Client on in-memory
 /// streams, with a fixed peer answer standing in for the OS (the OS peer, endpoint access and real-duration checks are
 /// <see cref="LocalRpcServiceOsChecks"/>, opt-in).
+/// Its servers read the process environment as every server does, so the class is in the process-wide-state collection: in a parallel run
+/// it started a server while LocalRpcTransportTests had set ASPNETCORE_URLS, and that host tried to bind 127.0.0.1:0.
 /// </summary>
+[Collection(LocalRpcCollection.Name)]
 public sealed class LocalRpcServiceModeTests
 {
     private static readonly LocalRpcStreamProfile Silent = new() { HeartbeatInterval = TimeSpan.FromSeconds(15) };
@@ -219,7 +222,7 @@ public sealed class LocalRpcServiceModeTests
 
         var failure = await ServiceClient.FailureAsync(new ServiceClient(channel.CallInvoker).WhoAmI(1).ResponseAsync);
 
-        Assert.Equal(StatusCode.Unavailable, failure.StatusCode);
+        AssertDroppedBeforeTheHandshake(failure);
         Assert.Equal(0, Volatile.Read(ref decisions));
         Assert.Empty(harness.Probe.Peers);
         await ServiceHarness.WaitUntilAsync(() => harness.Server.GetServiceSnapshot().PeersDenied[denial] >= 1, "the denial count", ct);
@@ -238,8 +241,18 @@ public sealed class LocalRpcServiceModeTests
 
         var failure = await ServiceClient.FailureAsync(new ServiceClient(channel.CallInvoker).WhoAmI(1).ResponseAsync);
 
-        Assert.Equal(StatusCode.Unavailable, failure.StatusCode);
+        AssertDroppedBeforeTheHandshake(failure);
         await ServiceHarness.WaitUntilAsync(() => harness.Server.GetServiceSnapshot().PeersDenied[LocalRpcPeerDenial.Refused] >= 1, "the refusal count", ct);
+    }
+
+    // A connection the server drops unread fails in the client's HTTP stack before any HTTP/2 stream exists, never in a handler (whose
+    // status would carry no client-side exception). Which status Grpc.Net.Client then derives is the HTTP client's timing, not the
+    // server's: SocketsHttpHandler sees the close either while writing its connection preface (an IOException inside: UNAVAILABLE) or
+    // while waiting for the server's (none inside: INTERNAL). In WSL a single cold run of the theory saw INTERNAL in 3 of 5 runs.
+    private static void AssertDroppedBeforeTheHandshake(RpcException failure)
+    {
+        Assert.Contains(failure.StatusCode, new[] { StatusCode.Unavailable, StatusCode.Internal });
+        Assert.IsType<HttpRequestException>(failure.Status.DebugException);
     }
 
     [Fact]
@@ -481,6 +494,46 @@ public sealed class LocalRpcServiceModeTests
 
         Assert.Equal(expected, writer.EndReason);
         Assert.True(writer.Ended.IsCancellationRequested);
+    }
+
+    // The lifetime timer of a stream its owner completed must not end it again: Ended stays uncancelled and the end stays Completed.
+    [Fact]
+    public async Task AStreamCompletedBeforeItsLifetimeKeepsItsCompletionWhenTheLifetimeTimerFires()
+    {
+        var clock = new ManualTimeProvider();
+        var call = new LocalRpcStreamCall(Silent, clock, new Microsoft.AspNetCore.Http.DefaultHttpContext())
+        {
+            LifetimeEnd = DateTime.UtcNow + TimeSpan.FromMinutes(1),
+        };
+        await using var writer = new LocalRpcStreamWriter<byte[]>(call, new CompletedResponseWriter(), DateTime.MaxValue, CancellationToken.None);
+
+        await writer.CompleteAsync();
+        clock.Advance(TimeSpan.FromMinutes(2));
+
+        Assert.Equal(LocalRpcStreamEndReason.Completed, writer.EndReason);
+        Assert.False(writer.Ended.IsCancellationRequested);
+    }
+
+    // Without a completion the same timer ends the stream by its lifetime, on the call's clock.
+    [Fact]
+    public async Task AProfileLifetimeEndsTheStreamOnTheCallsClock()
+    {
+        var clock = new ManualTimeProvider();
+        var call = new LocalRpcStreamCall(Silent, clock, new Microsoft.AspNetCore.Http.DefaultHttpContext())
+        {
+            LifetimeEnd = DateTime.UtcNow + TimeSpan.FromMinutes(1),
+        };
+        await using var writer = new LocalRpcStreamWriter<byte[]>(call, new CompletedResponseWriter(), DateTime.MaxValue, CancellationToken.None);
+
+        Assert.Equal(LocalRpcStreamEndReason.None, writer.EndReason);
+        clock.Advance(TimeSpan.FromMinutes(2));
+
+        Assert.Equal(LocalRpcStreamEndReason.LifetimeEnded, writer.EndReason);
+        Assert.True(writer.Ended.IsCancellationRequested);
+        var failure = await Assert.ThrowsAsync<RpcException>(writer.CompleteAsync);
+        Assert.Equal(StatusCode.DeadlineExceeded, failure.StatusCode);
+        Assert.True(LocalRpcStreamEnd.TryRead(failure, out var ended));
+        Assert.Equal(LocalRpcStreamEndReason.LifetimeEnded, ended);
     }
 
     private sealed class CompletedResponseWriter : IServerStreamWriter<byte[]>

@@ -413,7 +413,11 @@ makes a long-lived per-user service instead (ArcForges-Design `docs/reuse/deskto
   lanes and their 16/64 and 2-slot budgets: at most 8 open streams per connection and 32 per client process over all its connections to the
   server (`MaxStreamCallsPerConnection`, `MaxStreamCallsPerProcess`). A stream over either bound is refused at once with `RESOURCE_EXHAUSTED` and
   `x-af-refusal: stream-lane-full` (`LocalRpcRefusalReason.StreamLaneFull`, not dispatched); streams never queue. A stream's deadline is the
-  shorter of its client's and the profile's `MaxLifetime` (unbounded when both are absent); the 30 s data cap does not apply. The handler writes
+  shorter of its client's and the profile's `MaxLifetime` (unbounded when both are absent); the 30 s data cap does not apply. When the
+  profile's lifetime is the shorter, the library ends the stream at it with `DEADLINE_EXCEEDED`, `x-af-stream-end: lifetime-ended` and
+  `LifetimeEnded`, after the message in flight; the server's own gRPC deadline is set 1 s later, only as a backstop for a handler that does
+  not return. When the client's deadline is the shorter, the client's own timer ends the call at that deadline as well, so the library ends
+  the stream 50 ms before it and the trailer is best-effort (the client may report its own `DEADLINE_EXCEEDED` first). The handler writes
   through `context.OpenLocalRpcStream(responseStream)` (`LocalRpcStreamWriter<T>`): `TryWrite` queues without waiting and the library moves the
   messages to the transport in order. The library writes no frame of its own: the owner sends heartbeats every `HeartbeatInterval` (15 s by
   default) and the library measures inactivity (`Inactivity`, `HeartbeatOverdue`, the snapshot's `LongestInactivity`). More than
