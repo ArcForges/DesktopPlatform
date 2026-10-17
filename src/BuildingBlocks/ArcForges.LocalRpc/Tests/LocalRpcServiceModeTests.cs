@@ -454,10 +454,43 @@ public sealed class LocalRpcServiceModeTests
         var (messages, failure) = await ServiceClient.DrainAsync(call, ct);
 
         Assert.Equal(StatusCode.DeadlineExceeded, failure!.StatusCode);
+        Assert.True(LocalRpcStreamEnd.TryRead(failure, out var ended));
+        Assert.Equal(LocalRpcStreamEndReason.LifetimeEnded, ended);
         Assert.True(messages >= 1);
         await ServiceHarness.WaitUntilAsync(() => harness.Server.GetServiceSnapshot().StreamsActive == 0, "the stream to end", ct);
         Assert.Equal(LocalRpcStreamEndReason.LifetimeEnded, harness.Probe.Writers[1].EndReason);
         Assert.Equal(1, harness.Server.GetServiceSnapshot().StreamsEnded[LocalRpcStreamEndReason.LifetimeEnded]);
+    }
+
+    // At its deadline the gRPC server completes the response itself, so the write in flight fails with the response pipe's
+    // InvalidOperationException instead of a cancellation. Which of the two the writer sees is a race (on WSL the exception came first in
+    // most runs of the test above); either way the stream ended by its lifetime. Before the deadline the same failure is the client's.
+    [Theory]
+    [InlineData(-1, LocalRpcStreamEndReason.LifetimeEnded)]
+    [InlineData(3600, LocalRpcStreamEndReason.Cancelled)]
+    public async Task AWriteTheCompletedResponseRefusesEndsTheStreamByItsDeadlineNotAsAClientCancellation(
+        int secondsToDeadline, LocalRpcStreamEndReason expected)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var call = new LocalRpcStreamCall(Silent, TimeProvider.System, new Microsoft.AspNetCore.Http.DefaultHttpContext());
+        await using var writer = new LocalRpcStreamWriter<byte[]>(
+            call, new CompletedResponseWriter(), DateTime.UtcNow.AddSeconds(secondsToDeadline), CancellationToken.None);
+
+        Assert.True(writer.TryWrite([1]));
+        await ServiceHarness.WaitUntilAsync(() => writer.EndReason != LocalRpcStreamEndReason.None, "the refused write to end the stream", ct);
+
+        Assert.Equal(expected, writer.EndReason);
+        Assert.True(writer.Ended.IsCancellationRequested);
+    }
+
+    private sealed class CompletedResponseWriter : IServerStreamWriter<byte[]>
+    {
+        public WriteOptions? WriteOptions { get; set; }
+
+        public Task WriteAsync(byte[] message) =>
+            Task.FromException(new InvalidOperationException("Writing is not allowed after writer was completed."));
+
+        public Task WriteAsync(byte[] message, CancellationToken cancellationToken) => WriteAsync(message);
     }
 
     [Fact]

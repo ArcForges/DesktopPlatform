@@ -72,6 +72,7 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
     private readonly CancellationTokenSource _transport;
     private readonly Task _pump;
     private readonly DateTime _deadline;
+    private readonly ITimer? _lifetime;
     private int _buffered;
     private int _completing;
     private int _disposed;
@@ -84,7 +85,21 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
         _ended = CancellationTokenSource.CreateLinkedTokenSource(callToken);
         _transport = CancellationTokenSource.CreateLinkedTokenSource(callToken);
         _pump = Task.Run(PumpAsync, CancellationToken.None);
+
+        // The stream ends at its deadline on its own, a guard before the gRPC server's deadline: the server completes the response at the
+        // deadline from its own timer, concurrently with a write the pump may have in flight, which cut a message short on the wire (the
+        // client read INTERNAL) or failed the write instead of ending it by its lifetime. Ending first lets the message in flight finish,
+        // drops the waiting ones and answers DEADLINE_EXCEEDED with the trailer through CompleteAsync, before the server's timer fires.
+        var lead = deadline == DateTime.MaxValue ? Timeout.InfiniteTimeSpan : deadline - LifetimeGuard - DateTime.UtcNow;
+        if (lead > TimeSpan.Zero)
+        {
+            _lifetime = TimeProvider.System.CreateTimer(static state => ((LocalRpcStreamWriter<T>)state!).EndLifetime(), this, lead,
+                Timeout.InfiniteTimeSpan);
+        }
     }
+
+    /// <summary>How long before the call's deadline the stream ends by its lifetime (the tolerance of <see cref="CancelReason"/>).</summary>
+    internal static TimeSpan LifetimeGuard { get; } = TimeSpan.FromMilliseconds(50);
 
     /// <summary>Cancelled when the stream ends for any reason other than the owner completing it: the client, the lifetime, overflow or stalled reads.</summary>
     public CancellationToken Ended => _ended.Token;
@@ -180,6 +195,11 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
         }
 
         _ = _queue.Writer.TryComplete();
+        if (_lifetime is not null)
+        {
+            await _lifetime.DisposeAsync().ConfigureAwait(false);
+        }
+
         if (_call.EndReason == LocalRpcStreamEndReason.None)
         {
             End(LocalRpcStreamEndReason.Cancelled);
@@ -199,6 +219,20 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
             _ended.Dispose();
             _transport.Dispose();
         }
+    }
+
+    /// <summary>After an overflow or the end of the lifetime the waiting messages are dropped; the one already in flight completes.</summary>
+    private bool Dropping => _call.EndReason is LocalRpcStreamEndReason.Overflow or LocalRpcStreamEndReason.LifetimeEnded;
+
+    private void EndLifetime()
+    {
+        if (Volatile.Read(ref _disposed) != 0)
+        {
+            return;
+        }
+
+        End(LocalRpcStreamEndReason.LifetimeEnded);
+        _ = _queue.Writer.TryComplete();
     }
 
     private static RpcException Failure(StatusCode status, string detail, LocalRpcStreamEndReason reason) =>
@@ -249,7 +283,7 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
             while (await _queue.Reader.WaitToReadAsync(_transport.Token).ConfigureAwait(false))
             {
                 // After an overflow the waiting messages are dropped: the client resubscribes and the owner sends a reset.
-                while (_call.EndReason != LocalRpcStreamEndReason.Overflow && _queue.Reader.TryRead(out var message))
+                while (!Dropping && _queue.Reader.TryRead(out var message))
                 {
                     var write = _writer.WriteAsync(message, _transport.Token);
                     if (_call.Profile.RequireReads is { } limit)
@@ -277,7 +311,7 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
                     _call.MarkActivity();
                 }
 
-                if (_call.EndReason == LocalRpcStreamEndReason.Overflow)
+                if (Dropping)
                 {
                     return;
                 }
@@ -292,7 +326,10 @@ public sealed class LocalRpcStreamWriter<T> : IAsyncDisposable
         }
         catch (Exception)
         {
-            End(LocalRpcStreamEndReason.Cancelled);
+            // At the call's deadline the gRPC server completes the response itself, so a write in flight fails with the transport's own
+            // exception (an InvalidOperationException from the completed response pipe) rather than a cancellation. That end is the
+            // lifetime's, not the client's: it is classified by the same rule as a cancellation.
+            End(CancelReason());
         }
     }
 }
