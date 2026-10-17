@@ -205,6 +205,10 @@
           "role": "test-or-build-tool"
         },
         {
+          "path": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+          "role": "test-or-build-tool"
+        },
+        {
           "path": "tests/ReleaseArtifactTests/Realtime/RealtimeAotProbe.csproj",
           "role": "test-or-build-tool"
         },

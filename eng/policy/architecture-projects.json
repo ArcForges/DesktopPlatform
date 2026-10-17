@@ -368,6 +368,14 @@
     "aot": false
   },
   {
+    "path": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "role": "Test",
+    "owner": "DesktopPlatform",
+    "module": "",
+    "production": false,
+    "aot": false
+  },
+  {
     "path": "tests/ReleaseArtifactTests/Realtime/RealtimeAotProbe.csproj",
     "role": "Test",
     "owner": "DesktopPlatform",

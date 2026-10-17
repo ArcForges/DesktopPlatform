@@ -16,7 +16,12 @@ CI publishes it on `win-x64` and `linux-x64` (compile only) and never runs it. L
   test-only password) in a new temporary directory, with an environment that names only that directory, checks the reported
   `SecretService` / `OsSecretStore` choice and round-trips a value through the default collection, then stops both and deletes the
   directory. It never reaches the user's session bus or keyring. Without the two daemons it prints `SKIP:` with the reason (H-11).
-- **Windows.** Reports the `WindowsCredentialManager` / `OsSecretStore` selection only; it never writes to the user's Credential Manager.
+- **Windows.** Like every test project, the probe's runtime configuration sets the OS secret-store test tripwire
+  (`ArcForges.Security.Secrets.DenyOsStores`), so the selection is refused with `OsSecretStoreDeniedException` before any OS call: the
+  probe never reads or writes the user's Credential Manager, and the run shows that the switch and the refusal survive Native AOT. The
+  `WindowsCredentialManager` / `OsSecretStore` selection itself is asserted by the OS secret-store tier (`tests/OsSecretStoreTests`).
+- **Linux.** Both modes name only buses the probe owns (a path that does not exist, or a private daemon in its own temporary
+  directory), which are outside the tripwire's scope.
 
 Windows (Native AOT needs the Visual Studio C++ developer environment for the linker):
 

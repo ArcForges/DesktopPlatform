@@ -223,6 +223,8 @@ jobs:
       - run: dotnet format DesktopPlatform.slnx --verify-no-changes --no-restore
       - name: Test fail-closed invariant accounting
         run: python -m unittest discover -s eng/accounting -p 'test_*.py' -v
+      - name: Test the OS secret-store guard of the test scripts
+        run: python -m unittest discover -s eng -p 'test_os_secret_store_guard.py' -v
       - name: Build and test platform ownership
         env:
           PACKAGE_VERSION: ${{ steps.version.outputs.value }}

@@ -3,16 +3,18 @@ using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
+using ArcForges.Security.Secrets;
 using Xunit;
 
-namespace ArcForges.Security.Secrets.Tests;
+namespace ArcForges.Tests.OsSecretStoreTests;
 
 /// <summary>
 /// A private session bus and, optionally, a private unlocked GNOME Keyring that exist only for one test. Both run as children of the
 /// test process with an environment that names only a new temporary directory: their own bus socket, HOME, XDG data, config, cache
 /// and runtime directories (so the keyring files and the keyring control socket are new). They never see the user's session bus,
 /// keyring daemon or keyring files, and are killed and deleted when the test ends. The keyring password is random and test-only.
-/// The bus configuration lists no service directories, so nothing on it is D-Bus activated.
+/// The bus configuration lists no service directories, so nothing on it is D-Bus activated. Readiness is asked of the private bus
+/// daemon (NameHasOwner), and only then of the Secret Service, through the tier fixture's counted calls.
 /// </summary>
 [SupportedOSPlatform("linux")]
 internal sealed class PrivateSecretServiceKeyring : IDisposable
@@ -63,9 +65,10 @@ internal sealed class PrivateSecretServiceKeyring : IDisposable
     /// creates and unlocks its login keyring from a random password (the default collection); without it the keyring starts like a
     /// headless session in a fresh home: no login keyring and no default collection.
     /// </summary>
-    public static PrivateSecretServiceKeyring Start(bool withKeyring, bool unlock = true)
+    public static PrivateSecretServiceKeyring Start(OsSecretStoreTier tier, bool withKeyring, bool unlock = true)
     {
-        RequireTools(withKeyring ? ["dbus-daemon", "gnome-keyring-daemon"] : ["dbus-daemon"]);
+        ArgumentNullException.ThrowIfNull(tier);
+        RequireTools(withKeyring ? ["dbus-daemon", "gnome-keyring-daemon", "dbus-send"] : ["dbus-daemon"]);
         var root = Directory.CreateTempSubdirectory("afss-");
         File.SetUnixFileMode(root.FullName, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
         foreach (string name in new[] { "home", "data", "config", "cache", "run" })
@@ -138,7 +141,7 @@ internal sealed class PrivateSecretServiceKeyring : IDisposable
                     keyring.StandardInput.Close();
                 }
 
-                session.WaitForSecretService();
+                session.WaitForSecretService(tier, unlock);
             }
             else
             {
@@ -200,28 +203,42 @@ internal sealed class PrivateSecretServiceKeyring : IDisposable
         lock (_keyringOutput) _keyringOutput.AppendLine(line);
     }
 
-    private void WaitForSecretService()
+    private void WaitForSecretService(OsSecretStoreTier tier, bool unlock)
     {
+        // First the private bus daemon (not the Secret Service) reports when the keyring owns org.freedesktop.secrets.
         var deadline = Stopwatch.StartNew();
-        string? reason = null;
-        while (deadline.Elapsed < StartTimeout)
+        while (true)
         {
-            if (_keyring!.HasExited) break;
-            // Ready when the service answers: with a default collection, or (a keyring started without --unlock) without one.
-            if (SecretServiceSecretStore.TryOpen(Address, Options, out _, out reason)
-                || reason.Contains("no default collection", StringComparison.Ordinal))
+            if (_keyring!.HasExited) throw new InvalidOperationException("The private gnome-keyring-daemon exited. Output: " + KeyringOutput());
+            var owner = DBusSend("--dest=org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus.NameHasOwner",
+                "string:org.freedesktop.secrets");
+            if (owner.ExitCode == 0 && owner.Output.AsUtf8().Contains("boolean true", StringComparison.Ordinal)) break;
+            if (deadline.Elapsed > StartTimeout)
             {
-                return;
+                throw new InvalidOperationException("The private gnome-keyring-daemon did not own org.freedesktop.secrets. Output: "
+                    + KeyringOutput());
             }
 
             Thread.Sleep(100);
         }
 
-        string output;
-        lock (_keyringOutput) output = _keyringOutput.ToString();
-        throw new InvalidOperationException($"The private gnome-keyring-daemon did not provide the Secret Service ({reason}). Output: {output}");
+        // Then at most two counted Secret Service calls: ready with a default collection, or (started without --unlock) without one.
+        string? reason = null;
+        for (int attempt = 0; attempt < 2; attempt++)
+        {
+            if (tier.Call("readiness", () => SecretServiceSecretStore.TryOpen(Address, Options, out _, out reason))) return;
+            if (!unlock && reason!.Contains("no default collection", StringComparison.Ordinal)) return;
+            Thread.Sleep(250);
+        }
+
+        throw new InvalidOperationException($"The private gnome-keyring-daemon did not provide the Secret Service ({reason}). Output: "
+            + KeyringOutput());
     }
 
+    private string KeyringOutput()
+    {
+        lock (_keyringOutput) return _keyringOutput.ToString();
+    }
     private static ProcessStartInfo Isolated(string root, string executable, string? address)
     {
         var start = new ProcessStartInfo(executable) { UseShellExecute = false, CreateNoWindow = true };

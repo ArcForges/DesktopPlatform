@@ -10,6 +10,8 @@ namespace ArcForges.Security.Secrets;
 /// Current-Windows-user Credential Manager adapter. Credential Manager is shared by every process of the same user,
 /// so this store declares <see cref="SecretStoreIsolation.SameUserShared"/>: application isolation is the bound broker
 /// namespace only, and a hostile same-user sibling that bypasses the broker is not stopped by the OS.
+/// In a test process the runtime tripwire (<see cref="OsSecretStoreGuard"/>) refuses construction and every operation with
+/// <see cref="OsSecretStoreDeniedException"/> before any OS call, unless the OS secret-store tier's opt-in is set.
 /// </summary>
 [SupportedOSPlatform("windows")]
 public sealed partial class WindowsCredentialManagerSecretStore : ISecretBackingStore
@@ -19,11 +21,16 @@ public sealed partial class WindowsCredentialManagerSecretStore : ISecretBacking
     private const int CredentialNotFound = 1168;
     private const int MaximumCredentialBytes = 2560;
     private const string TargetPrefix = "ArcForges.Secrets.v1.";
+    private const string Store = "the Windows Credential Manager";
+
+    /// <summary>Creates the adapter; refused under the test tripwire (<see cref="OsSecretStoreGuard"/>).</summary>
+    public WindowsCredentialManagerSecretStore() => OsSecretStoreGuard.ThrowIfDenied(Store);
 
     public SecretStoreIsolation Isolation => SecretStoreIsolation.SameUserShared;
 
     public void Write(string opaqueTarget, ReadOnlySpan<byte> secret)
     {
+        OsSecretStoreGuard.ThrowIfDenied(Store);
         ValidateTarget(opaqueTarget);
         if (secret.IsEmpty || secret.Length > MaximumCredentialBytes)
         {
@@ -63,6 +70,7 @@ public sealed partial class WindowsCredentialManagerSecretStore : ISecretBacking
 
     public byte[]? Read(string opaqueTarget)
     {
+        OsSecretStoreGuard.ThrowIfDenied(Store);
         ValidateTarget(opaqueTarget);
         if (!CredReadW(opaqueTarget, GenericCredential, 0, out IntPtr credentialPointer))
         {
@@ -98,6 +106,7 @@ public sealed partial class WindowsCredentialManagerSecretStore : ISecretBacking
 
     public bool Delete(string opaqueTarget)
     {
+        OsSecretStoreGuard.ThrowIfDenied(Store);
         ValidateTarget(opaqueTarget);
         if (CredDeleteW(opaqueTarget, GenericCredential, 0)) return true;
         int error = Marshal.GetLastPInvokeError();

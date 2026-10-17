@@ -51,15 +51,25 @@ LOCAL_RP09 = {"Rule": "RP-09", "Path": "", "Message": "Missing, stale or failing
 # every lane (measured: under the concurrent native build the flow-control test failed; alone it passed 5 of 5).
 TIMING_SENSITIVE = ("src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",)
 ARCHITECTURE_FACT = "ArcForges.Tests.ArchitectureTests.EvaluatedPolicyTests.ActualDesktopProjectsSatisfyTheSharedArchitecturePolicy"
+# The opt-in of the OS secret-store integration tier (ArcForges-Design 16-testing-strategy section 1). Every suite started here is a
+# routine suite, so it never inherits the opt-in: a stray value is removed for each child (eng/verify_steps.py also refuses it).
+OS_SECRET_STORE_OPT_IN = "ARCFORGES_OS_SECRET_STORE_TESTS"
 
 
 class Failure(Exception):
     pass
 
 
+def routine_env(env: dict[str, str] | None = None) -> dict[str, str]:
+    """The environment for a routine child (`env`, or this process's): the same, without the OS secret-store tier's opt-in."""
+    result = dict(os.environ if env is None else env)
+    result.pop(OS_SECRET_STORE_OPT_IN, None)
+    return result
+
+
 def run(argv: list[str], env: dict[str, str] | None = None, cwd: Path = ROOT, capture: bool = False) -> str:
     print("+ " + " ".join(argv), flush=True)
-    result = subprocess.run(argv, cwd=cwd, env=env, text=True, encoding="utf-8", errors="replace",
+    result = subprocess.run(argv, cwd=cwd, env=routine_env(env), text=True, encoding="utf-8", errors="replace",
                             stdout=subprocess.PIPE if capture else None, stderr=subprocess.STDOUT if capture else None)
     if capture:
         print(result.stdout, end="", flush=True)
@@ -281,8 +291,8 @@ def test_suite(name: str | None, project: str) -> tuple[str, int, float, str]:
     if name:
         argv += ["--results-directory", str(RESULTS), "--report-xunit-trx", "--report-xunit-trx-filename", f"{name}.trx"]
     started = time.monotonic()
-    result = subprocess.run(argv, cwd=ROOT, text=True, encoding="utf-8", errors="replace", stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
+    result = subprocess.run(argv, cwd=ROOT, env=routine_env(), text=True, encoding="utf-8", errors="replace",
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     return project, result.returncode, time.monotonic() - started, f"+ {' '.join(argv)}\n{result.stdout}"
 
 
@@ -378,6 +388,9 @@ def main() -> int:
     tests.add_argument("--jobs", type=int, default=1)
     tests.add_argument("--timing-sensitive", action="store_true", help="only the timing-sensitive projects")
     args = parser.parse_args()
+    if os.environ.pop(OS_SECRET_STORE_OPT_IN, None) is not None:
+        print(f"removed {OS_SECRET_STORE_OPT_IN} from the environment: every suite here is routine and never reaches a real OS "
+              "secret store (only eng/os_secret_store_tier.py runs the tier)", flush=True)
     commands = {"native": command_native, "stage": command_stage, "handoff": command_handoff, "hooks": command_hooks,
                 "managed-tests": command_managed_tests, "architecture": command_architecture, "pack": command_pack,
                 "packaging-tests": command_packaging_tests}

@@ -11,7 +11,7 @@ the hosted job used:
   the NativeAbi tests need; then the win-x64 Native AOT compile probes of `package-validation.yml`.
 - lane `wsl` (WSL Debian, in ~/.cache/arcforges-verify/DesktopPlatform): the clone identity, the `licence-policy`,
   `runtime-policy` and `reconciliation-policy` jobs, then the `pack` job up to its tests (locked restore, format,
-  accounting unittest, Release build, every test suite but the architecture gate and the timing-sensitive LocalRpc
+  accounting unittest, the OS secret-store guard unittest, Release build, every test suite but the architecture gate and the timing-sensitive LocalRpc
   suite, four test projects at a time), then the linux-x64 Native AOT compile probes. Everything that runs dotnet in
   the clone is in this lane: concurrent restores or builds of shared projects in one checkout would race.
 - lane `wsl-policy`: the Python-only jobs that read neither the clone identity nor build outputs: `design-policy`,
@@ -49,6 +49,17 @@ tracked file, Markdown included, and the design policy verifies the generated do
 """
 
 import os
+
+# The single opt-in of the OS secret-store integration tier (ArcForges-Design 16-testing-strategy section 1). Only the tier's runner
+# (eng/os_secret_store_tier.py) and its hosted job set it; the pre-push verification refuses to run at all while it is present, so
+# a stray value can never reach a routine suite (eng/verify_local.py also removes it from every suite it starts).
+OS_SECRET_STORE_OPT_IN = "ARCFORGES_OS_SECRET_STORE_TESTS"
+if OS_SECRET_STORE_OPT_IN in os.environ:
+    raise SystemExit(
+        f"arcforges-verify: FAIL {OS_SECRET_STORE_OPT_IN} is set in this environment. It is the opt-in of the OS secret-store "
+        "integration tier, which only that tier's runner or hosted job sets, and the pre-push verification refuses to run with it "
+        f"(routine suites never reach a real OS secret store). Remove it (PowerShell: Remove-Item Env:{OS_SECRET_STORE_OPT_IN}; "
+        f"bash: unset {OS_SECRET_STORE_OPT_IN}) and run again.")
 
 REPOSITORY = "DesktopPlatform"
 RID_WIN, RID_LINUX = "win-x64", "linux-x64"
@@ -192,6 +203,7 @@ STEPS = [
     wsl("reconciliation-policy", "set -e; " + unittest("test_reconciliation.py") + "; python eng/reconciliation.py", 900),
     wsl("format", "dotnet format DesktopPlatform.slnx --verify-no-changes --no-restore", 900),
     wsl("accounting-tests", unittest("test_*.py", "eng/accounting"), 300),
+    wsl("secret-store-guard-tests", unittest("test_os_secret_store_guard.py"), 300),
     wsl("wsl-build", "dotnet build DesktopPlatform.slnx -c Release --no-restore -p:EmitCompilerGeneratedFiles=true "
         + VERSION_PROPERTIES, 1200),
     wsl("managed-tests", f"python eng/verify_local.py managed-tests --jobs {TEST_JOBS}", 1800),

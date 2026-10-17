@@ -4,8 +4,8 @@
   "inputHashes": {
     ".python-version": "922fe0c3de073b01988e23348ea184456161678c5e329e6f34be89be24383f93",
     "Directory.Build.props": "5755571e24d77ac71c2acee2d14e511b308269d84fc8b01ef6be19cdf08fa418",
-    "Directory.Build.targets": "f38a795efa407c99b0190316cbfece23d0e84d179b5ec63ba88257746412a917",
-    "Directory.Packages.props": "9cb88b2671e66550749d5d1869134dff194bb268c8aff5cc286ead2f76ef4845",
+    "Directory.Build.targets": "71554fa4e3ad43d09505499777866f3e559eef6d56a0a589abe488326bee6b29",
+    "Directory.Packages.props": "8b85006c215b62f769ac826584a048fe8c29a4d8a317ac9b3a30d8478b2c8b68",
     "NuGet.config": "274d3bbf1913f74ace4d77a96223ea744018536aca462b58b6283ac94cfc2f07",
     "benchmarks/probes/acquisition/AcquisitionProbe.csproj": "02bf424b1c64762d0303d4a24a8715a3c2123ac60e3aac146c14be245b5d44bd",
     "benchmarks/probes/acquisition/packages.lock.json": "cbbc653c41d6c060a74f249099ac50c04062869ec4bd91000fe234164f04b7e6",
@@ -231,7 +231,7 @@
     "src/BuildingBlocks/ArcForges.Security.Audit/Tests/ArcForges.Security.Audit.Tests.csproj": "e170254575a6b0723efb271ab7c1216f006c7a816677bd5b447cfff258e79082",
     "src/BuildingBlocks/ArcForges.Security.Audit/Tests/packages.lock.json": "1c93de4dbc04b8f0a15fef30f352c476b7543ff26f381cbdd348c0803fc092fd",
     "src/BuildingBlocks/ArcForges.Security.Audit/packages.lock.json": "ba8caa1127c0dc5f1036d45aea694e80008a6395dbe6c5a1d96e3fc4a2bf4352",
-    "src/BuildingBlocks/ArcForges.Security.Secrets/ArcForges.Security.Secrets.csproj": "5b79da9460d70d102b92f5ef9e5f4046836451d2a0ad762576a6ad3df15f8846",
+    "src/BuildingBlocks/ArcForges.Security.Secrets/ArcForges.Security.Secrets.csproj": "e4effc73ea98bf170cf384c55e43c34d30cbe4e67cd9abd5e81dae170fcf880e",
     "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj": "d6798bbbcf980fab4467c6d831871b075e55aeef6e09c7df67c4d72cd2334120",
     "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/packages.lock.json": "72c3025a1020b794e6934d5669e44d19a23186d3f6a0267f1e32e70feff9207d",
     "src/BuildingBlocks/ArcForges.Security.Secrets/packages.lock.json": "1285ac596ef4f043e30290daa6f126f170d8d42eedfb74d2c48b362a003a99d9",
@@ -278,6 +278,8 @@
     "tests/LocalRpcServiceAotTests/packages.lock.json": "f4bc2b3c7b11c427f1d8eb880d1f39368831ab026def945dece31b3f455f01bf",
     "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj": "14abae6f85b4424deab0e0c749aa3c0a850401b578e1ea45e910a7164a0cafa0",
     "tests/NativeAbiTests/packages.lock.json": "da237463bcfea624e3a008de4079e0eeb57a71fcb31d7a3ed012556fc885da5a",
+    "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj": "839dfa0b55f7ae2b2ad060ad0238e20b57c069bd1480f72220e398ccc4fdeeff",
+    "tests/OsSecretStoreTests/packages.lock.json": "927938f7e828f10ea8880a13edc304336a43fc3cd886d38177273ac001ff6145",
     "tests/PersistenceTests/ArcForges.Tests.PersistenceTests.csproj": "5a947697cc93979c5e6c149b100fee204d706695e0e4d596af7bf95a674c3008",
     "tests/PersistenceTests/packages.lock.json": "c94488ff2560372433bf2ca0d6f04a69429d10cde23265edca24ea6f798b6778",
     "tests/ReleaseArtifactTests/GrpcWeb/Directory.Packages.props": "75389a85362198cb44500b21765fda9a7a83ce13a17e6fbeb5b5ec9d9f8b68c7",
@@ -778,26 +780,26 @@
   "nativeGate": "eng/native_provenance.py",
   "sourceGate": "eng/check_provenance.py",
   "review": {
-    "owner": "AF-DP-02 author (claude-opus-5-5, delegated worker)",
-    "reviewer": "AF-DP-02 independent reviewer (claude-opus-5-5, separate session from the author; exact-head review of 6564ce22 recorded on ArcForges/DesktopPlatform#188)",
-    "reviewedOn": "2026-10-15",
-    "decision": "approved",
-    "baselineCommit": "35721a1622d43e8fbd133cb0e603c27004839219",
-    "maintenanceAssessment": "AF-DP-02 admits one third-party coordinate, Tmds.DBus.Protocol 0.94.1 (MIT, author Tom Deseyn; upstream github.com/tmds/Tmds.DBus at commit b4a7fed0b878f74cb54f7cca84d2889af4e596ba per its nuspec), the D-Bus protocol library the design names for the Linux Secret Service backend (ArcForges-Design docs/reuse/desktopplatform-refactor.md section 2). It is a low-level, Native AOT compatible library without reflection-based serialization; the backend uses only its connection, message writer/reader, signal watch and error types. Its net8.0/net9.0 dependency group lists only System.IO.Pipelines 8.0.0, which is part of Microsoft.NETCore.App 10 and is pruned from the net10.0 restore graph, so no transitive package enters any lock file. Maintenance: the later releases were reviewed against this use. 0.94.2 and 0.95.0 change only Tmds.DBus.Generator, not Tmds.DBus.Protocol. 0.95.1 (2026-09-04) fixes the MatchRule key names for PathNamespace, Arg0Namespace and Arg0Path, which this backend does not use: its only match rule is sender/path/interface/member, for org.freedesktop.Secret.Prompt.Completed. 0.94.1 includes the 0.92.0 fix for GHSA-xrw6-gwf8-vvr9 (signal sender spoofing), on which that sender-filtered Prompt.Completed watch relies. Decision: keep 0.94.1, the version restored with the recorded content hash; a later upgrade is an ordinary reviewed dependency change. The NuGet closure grows from 58 to 59 coordinates; the Python closure (10 coordinates) is unchanged. Bound inputs that change: Directory.Packages.props (the Tmds.DBus.Protocol version, and the ArcForges.Contracts.Foundation 1.0.0-ci.216.1 pin for the new SecretStoreSelectionAotTests probe, the same pin ArcForges.Security.Secrets already uses); the ArcForges.Security.Secrets project file (the Tmds.DBus.Protocol reference and a description naming the Linux backends; references, framework, package identity and pack items otherwise unchanged) and its packages.lock.json; the Secrets tests lock file (the project reference's new dependency); the new non-packable Native AOT probe tests/SecretStoreSelectionAotTests (eng/build/desktop-aot.props, desktop-rids.props, one project reference, no package reference of its own) and its lock file; eng/packaging/packages.json (ArcForges.Security.Secrets externalDependencies gains Tmds.DBus.Protocol 0.94.1). No version, lock or build setting of any other project changes.",
+    "owner": "OS secret-store guard author (claude-opus-5-5, delegated worker)",
+    "reviewer": "pending: the independent reviewer of this change (claude-opus-5-5, separate session from the author) records the exact-head review here before the merge",
+    "reviewedOn": "2026-10-17",
+    "decision": "pending independent review",
+    "baselineCommit": "25576c293481cc2038a22182e3f41a5019f88eb6",
+    "maintenanceAssessment": "No third-party coordinate is added, removed or changed: the NuGet closure stays at 59 coordinates and the Python closure at 10. The change implements the OS secret-store test guard of ArcForges-Design main d06ed76 (docs/architecture/16-testing-strategy.md section 1, docs/reuse/desktopplatform-refactor.md section 2, AD-0016 amendment of 2026-10-17, L-26). Bound inputs that change: Directory.Build.targets (every test project, and no packable project, gets the runtime configuration option ArcForges.Security.Secrets.DenyOsStores=true); Directory.Packages.props (the ArcForges.Contracts.Foundation 1.0.0-ci.216.1 pin for the new tier project, the same pin ArcForges.Security.Secrets and its other consumers already use); the ArcForges.Security.Secrets project file (InternalsVisibleTo for the tier test assembly; references, framework, package identity and pack items unchanged); the new non-packable test project tests/OsSecretStoreTests (xunit.v3, Microsoft.NET.Test.Sdk and xunit.runner.visualstudio at their admitted versions, one project reference) and its lock file, which contains only already admitted coordinates. No version, lock or build setting of any other project changes.",
     "upgradeChecks": {
-      "compilation": "Windows 11 x64 (10.0.26300) with the pinned SDK 10.0.400: dotnet restore DesktopPlatform.slnx --locked-mode, dotnet build DesktopPlatform.slnx -c Release --no-restore (0 warnings, 0 errors, warnings as errors) and dotnet format DesktopPlatform.slnx --verify-no-changes --no-restore pass. WSL2 Debian 13 x64 with SDK 10.0.400 on a Linux-native git clone of the head: the same locked restore, format check and Release build (with the CI PackageVersion/Version properties) pass. The exact commands, environments and results are in the AF-DP-02 pull request.",
-      "aot-trim": "tests/SecretStoreSelectionAotTests published with Native AOT (eng/build/desktop-aot.props: PublishAot, TrimMode full, IL2026/IL3050 and every warning as an error) for linux-x64 (WSL2 Debian) and win-x64 (Visual Studio 2026 developer environment, MSVC 14.51.36231) without warnings. The linux-x64 executable ran the file fallback and, against a private dbus-daemon and gnome-keyring-daemon, the Secret Service round trip through Tmds.DBus.Protocol (PASS); the win-x64 executable reported the Credential Manager selection (PASS, nothing written). ArcForges.Security.Secrets stays IsAotCompatible with the trim and AOT analyzers at 0 warnings. CI adds the matching compile-only job secrets-aot (linux-x64, win-x64).",
-      "compatibility": "Additive public API only: SecretStoreProtection, SecretStoreBackend, SecretServiceOptions, SecretStoreSelection and OsSecretStore.SelectForCurrentPlatform. OsSecretStore moved from the Windows adapter's file to SecretStoreSelection.cs with the same signature; CreateForCurrentPlatform keeps Credential Manager on Windows and now returns the Secret Service on Linux when one is reachable, still never a file. WindowsCredentialManagerSecretStore is unchanged. The package gains the exact dependency Tmds.DBus.Protocol 0.94.1 (eng/packaging/packages.json); a targeted pack of ArcForges.Security.Secrets with the repository's nuspec finalization and inspect() passed with the dependencies ArcForges.Security, ArcForges.Contracts.Foundation 1.0.0-ci.216.1 and Tmds.DBus.Protocol 0.94.1.",
-      "licence-provenance": "Tmds.DBus.Protocol 0.94.1 is MIT (nuspec licence expression; flat-container nuspec SHA-256 recorded in nugetClosure), compatible with the AGPL-3.0-only package; it is consumed as a NuGet dependency, no source is copied. The new files are first-party AGPL-3.0-only and inventoried in eng/provenance/files.json; the probe is declared in the licence-boundary, runtime-ownership, architecture-projects and reconciliation records; this receipt is inventoried.",
-      "security-sbom": "The NuGet closure gains one coordinate (59 total) with its locked content hash; the Python closure is unchanged. NuGetAudit (mode all) reported no advisory during the restores. 0.94.1 contains the 0.92.0 fix for GHSA-xrw6-gwf8-vvr9 (D-Bus signal sender spoofing); the backend's only signal watch is filtered by the org.freedesktop.secrets sender. No further advisory status is claimed. The new native bindings are libc statx, geteuid, open and fsync (and close as a second owner beside the ContentSandbox broker), admitted in the closed binding map. The secret scan (pinned gitleaks image) found no leaks over the branch history; the Secrets project digest lines are allowlisted by an exact path-bound AF-DP-02 group with tests.",
-      "runtime-performance-migration": "No migration: no stored data changes and Windows behaviour is unchanged. Linux is new behaviour, exercised for real in WSL2 Debian: the file fallback (modes, atomic rename, refusal and repair) on every run, and the Secret Service against a private dbus-daemon and an unlocked private gnome-keyring-daemon started by the test (opt-in ARCFORGES_LOCAL_OS_SECRET_STORE=1), cross-checked with secret-tool and dbus-send; the user's own session bus and keyring were never contacted. Each Secret Service operation opens its own connection and session (a few hundred milliseconds per test round trip).",
-      "framework-runtime-posture": "No framework, SDK or runtime major change; global.json remains on the .NET SDK 10.0.400."
+      "compilation": "Windows 11 x64 (10.0.26300) with the pinned SDK 10.0.400: dotnet restore DesktopPlatform.slnx --locked-mode and dotnet build DesktopPlatform.slnx -c Release --no-restore (0 warnings, 0 errors, warnings as errors). The pre-push verification (python eng/verify.py run) repeats the locked restore, format check and Release build on Windows and WSL2 Debian; its PASS line is recorded in the pull request.",
+      "aot-trim": "ArcForges.Security.Secrets stays IsAotCompatible with the trim and AOT analyzers at 0 warnings; the guard reads one AppContext switch and one environment variable, without reflection. tests/SecretStoreSelectionAotTests still publishes with Native AOT (the pre-push win-x64 and linux-x64 probes).",
+      "compatibility": "Additive public API: OsSecretStoreGuard (DenyOsStoresSwitch, OptInVariable, IsDenied, ThrowIfDenied) and OsSecretStoreDeniedException (an InvalidOperationException). WindowsCredentialManagerSecretStore gains an explicit parameterless constructor (same signature as before). Production behaviour is unchanged: the adapters refuse only in a process whose runtime configuration sets the switch (test projects), and release builds never set it. In such a process the Windows adapter and the Secret Service on the user's session bus throw OsSecretStoreDeniedException before any OS call unless ARCFORGES_OS_SECRET_STORE_TESTS=1; selection propagates the refusal and never falls back to the file store. Consumer test projects that construct the real adapters must move those tests to their OS secret-store tier (ArcForges admits this version).",
+      "licence-provenance": "No dependency licence changes. The new files are first-party AGPL-3.0-only and inventoried in eng/provenance/files.json; the tier project is declared in the licence-boundary, runtime-ownership, architecture-projects and reconciliation records; this receipt is inventoried.",
+      "security-sbom": "The NuGet and Python closures are unchanged, so the SBOM inputs are unchanged. NuGetAudit (mode all) reported no advisory during the locked restore. The guard narrows access: routine tests can no longer reach the user's Credential Manager or session Secret Service. No new native binding.",
+      "runtime-performance-migration": "No migration and no stored data change. The real-store tests moved from local opt-in (ARCFORGES_LOCAL_OS_SECRET_STORE) to the OS secret-store tier (hosted Windows runner; ArcForgesTest for Linux), with at most 4 entries, 32 calls, 10 s per call and 5 minutes per run. The tripwire costs one switch and one environment read per adapter call.",
+      "framework-runtime-posture": "No framework, SDK or runtime change; global.json remains on the .NET SDK 10.0.400."
     },
     "inputHashes": {
       ".python-version": "922fe0c3de073b01988e23348ea184456161678c5e329e6f34be89be24383f93",
       "Directory.Build.props": "5755571e24d77ac71c2acee2d14e511b308269d84fc8b01ef6be19cdf08fa418",
-      "Directory.Build.targets": "f38a795efa407c99b0190316cbfece23d0e84d179b5ec63ba88257746412a917",
-      "Directory.Packages.props": "9cb88b2671e66550749d5d1869134dff194bb268c8aff5cc286ead2f76ef4845",
+      "Directory.Build.targets": "71554fa4e3ad43d09505499777866f3e559eef6d56a0a589abe488326bee6b29",
+      "Directory.Packages.props": "8b85006c215b62f769ac826584a048fe8c29a4d8a317ac9b3a30d8478b2c8b68",
       "NuGet.config": "274d3bbf1913f74ace4d77a96223ea744018536aca462b58b6283ac94cfc2f07",
       "benchmarks/probes/acquisition/AcquisitionProbe.csproj": "02bf424b1c64762d0303d4a24a8715a3c2123ac60e3aac146c14be245b5d44bd",
       "benchmarks/probes/acquisition/packages.lock.json": "cbbc653c41d6c060a74f249099ac50c04062869ec4bd91000fe234164f04b7e6",
@@ -1023,7 +1025,7 @@
       "src/BuildingBlocks/ArcForges.Security.Audit/Tests/ArcForges.Security.Audit.Tests.csproj": "e170254575a6b0723efb271ab7c1216f006c7a816677bd5b447cfff258e79082",
       "src/BuildingBlocks/ArcForges.Security.Audit/Tests/packages.lock.json": "1c93de4dbc04b8f0a15fef30f352c476b7543ff26f381cbdd348c0803fc092fd",
       "src/BuildingBlocks/ArcForges.Security.Audit/packages.lock.json": "ba8caa1127c0dc5f1036d45aea694e80008a6395dbe6c5a1d96e3fc4a2bf4352",
-      "src/BuildingBlocks/ArcForges.Security.Secrets/ArcForges.Security.Secrets.csproj": "5b79da9460d70d102b92f5ef9e5f4046836451d2a0ad762576a6ad3df15f8846",
+      "src/BuildingBlocks/ArcForges.Security.Secrets/ArcForges.Security.Secrets.csproj": "e4effc73ea98bf170cf384c55e43c34d30cbe4e67cd9abd5e81dae170fcf880e",
       "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj": "d6798bbbcf980fab4467c6d831871b075e55aeef6e09c7df67c4d72cd2334120",
       "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/packages.lock.json": "72c3025a1020b794e6934d5669e44d19a23186d3f6a0267f1e32e70feff9207d",
       "src/BuildingBlocks/ArcForges.Security.Secrets/packages.lock.json": "1285ac596ef4f043e30290daa6f126f170d8d42eedfb74d2c48b362a003a99d9",
@@ -1070,6 +1072,8 @@
       "tests/LocalRpcServiceAotTests/packages.lock.json": "f4bc2b3c7b11c427f1d8eb880d1f39368831ab026def945dece31b3f455f01bf",
       "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj": "14abae6f85b4424deab0e0c749aa3c0a850401b578e1ea45e910a7164a0cafa0",
       "tests/NativeAbiTests/packages.lock.json": "da237463bcfea624e3a008de4079e0eeb57a71fcb31d7a3ed012556fc885da5a",
+      "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj": "839dfa0b55f7ae2b2ad060ad0238e20b57c069bd1480f72220e398ccc4fdeeff",
+      "tests/OsSecretStoreTests/packages.lock.json": "927938f7e828f10ea8880a13edc304336a43fc3cd886d38177273ac001ff6145",
       "tests/PersistenceTests/ArcForges.Tests.PersistenceTests.csproj": "5a947697cc93979c5e6c149b100fee204d706695e0e4d596af7bf95a674c3008",
       "tests/PersistenceTests/packages.lock.json": "c94488ff2560372433bf2ca0d6f04a69429d10cde23265edca24ea6f798b6778",
       "tests/ReleaseArtifactTests/GrpcWeb/Directory.Packages.props": "75389a85362198cb44500b21765fda9a7a83ce13a17e6fbeb5b5ec9d9f8b68c7",
@@ -1083,9 +1087,9 @@
     "frameworkVersions": {
       "dotnetSdk": "10.0.400"
     },
-    "previousReceipt": "eng/policy/dependency-reviews/af-dp-01-r1.json"
+    "previousReceipt": "eng/policy/dependency-reviews/af-dp-02-r1.json"
   },
-  "reviewReceipt": "eng/policy/dependency-reviews/af-dp-02-r1.json",
+  "reviewReceipt": "eng/policy/dependency-reviews/os-secret-store-guard-r1.json",
   "pythonClosure": {
     "pre-commit/4.6.0": {
       "hashes": [

@@ -71,6 +71,8 @@ internal sealed class SecretServiceSecretStore : ISecretBackingStore
         [NotNullWhen(false)] out string? unavailableReason)
     {
         ArgumentNullException.ThrowIfNull(options);
+        // The test tripwire decides before any bus call, and its refusal is never an unavailable backend.
+        OsSecretStoreGuard.ThrowIfSecretServiceDenied(options.BusAddress, address);
         store = null;
         if (string.IsNullOrEmpty(address))
         {
@@ -109,6 +111,7 @@ internal sealed class SecretServiceSecretStore : ISecretBackingStore
 
     public void Write(string opaqueTarget, ReadOnlySpan<byte> secret)
     {
+        Guard();
         SecretStoreKey.Validate(opaqueTarget, nameof(opaqueTarget));
         SecretStoreKey.ValidateValue(secret, nameof(secret));
         byte[] owned = secret.ToArray();
@@ -129,6 +132,7 @@ internal sealed class SecretServiceSecretStore : ISecretBackingStore
 
     public byte[]? Read(string opaqueTarget)
     {
+        Guard();
         SecretStoreKey.Validate(opaqueTarget, nameof(opaqueTarget));
         return Run(async cancellationToken =>
         {
@@ -139,6 +143,7 @@ internal sealed class SecretServiceSecretStore : ISecretBackingStore
 
     public bool Delete(string opaqueTarget)
     {
+        Guard();
         SecretStoreKey.Validate(opaqueTarget, nameof(opaqueTarget));
         return Run(async cancellationToken =>
         {
@@ -148,11 +153,18 @@ internal sealed class SecretServiceSecretStore : ISecretBackingStore
     }
 
     /// <summary>Whether a session of this store's service encrypts values on the bus (for tests and diagnostics).</summary>
-    internal bool NegotiatesEncryptedTransport() => Run(async cancellationToken =>
+    internal bool NegotiatesEncryptedTransport()
     {
-        using var session = await OpenAsync(cancellationToken).ConfigureAwait(false);
-        return session.IsEncrypted;
-    }, _options);
+        Guard();
+        return Run(async cancellationToken =>
+        {
+            using var session = await OpenAsync(cancellationToken).ConfigureAwait(false);
+            return session.IsEncrypted;
+        }, _options);
+    }
+
+    // Every operation re-checks the tripwire with the address this store was opened with, before its connection.
+    private void Guard() => OsSecretStoreGuard.ThrowIfSecretServiceDenied(_options.BusAddress, _address);
 
     private Task<SecretServiceSession> OpenAsync(CancellationToken cancellationToken) =>
         SecretServiceSession.OpenAsync(_address, _options, plainOnly: false, cancellationToken);

@@ -1692,17 +1692,32 @@
   {
     "apiSymbol": "ArcForges.Security.Secrets.ISecretBackingStore.Write(string, System.ReadOnlySpan<byte>)",
     "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
-    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.WindowsCredentialManagerRoundTripIsExplicitlyLocalOptIn()"
+    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.ReferencesAreOpaqueAndPersonalWorkspaceScopesAreSeparated()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.ISecretBackingStore.Write(string, System.ReadOnlySpan<byte>)",
+    "testProject": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "testMethod": "ArcForges.Tests.OsSecretStoreTests.WindowsCredentialManagerTierTests.AnEntryIsWrittenOverwrittenReadAndDeletedAndThenAbsent()"
   },
   {
     "apiSymbol": "ArcForges.Security.Secrets.ISecretBackingStore.Read(string)",
     "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
-    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.WindowsCredentialManagerRoundTripIsExplicitlyLocalOptIn()"
+    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.ReferencesAreOpaqueAndPersonalWorkspaceScopesAreSeparated()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.ISecretBackingStore.Read(string)",
+    "testProject": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "testMethod": "ArcForges.Tests.OsSecretStoreTests.WindowsCredentialManagerTierTests.AnEntryIsWrittenOverwrittenReadAndDeletedAndThenAbsent()"
   },
   {
     "apiSymbol": "ArcForges.Security.Secrets.ISecretBackingStore.Delete(string)",
     "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
-    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.WindowsCredentialManagerRoundTripIsExplicitlyLocalOptIn()"
+    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.ReferencesAreOpaqueAndPersonalWorkspaceScopesAreSeparated()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.ISecretBackingStore.Delete(string)",
+    "testProject": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "testMethod": "ArcForges.Tests.OsSecretStoreTests.WindowsCredentialManagerTierTests.AnEntryIsWrittenOverwrittenReadAndDeletedAndThenAbsent()"
   },
   {
     "apiSymbol": "ArcForges.Security.Secrets.ISecretHostContextProvider.GetCurrent()",
@@ -1727,17 +1742,32 @@
   {
     "apiSymbol": "ArcForges.Security.Secrets.WindowsCredentialManagerSecretStore.Write(string, System.ReadOnlySpan<byte>)",
     "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
-    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.WindowsCredentialManagerRoundTripIsExplicitlyLocalOptIn()"
+    "testMethod": "ArcForges.Security.Secrets.Tests.OsSecretStoreGuardTests.TheCredentialManagerAdapterIsRefusedAtConstructionAndAtEveryOperation()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.WindowsCredentialManagerSecretStore.Write(string, System.ReadOnlySpan<byte>)",
+    "testProject": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "testMethod": "ArcForges.Tests.OsSecretStoreTests.WindowsCredentialManagerTierTests.AnEntryIsWrittenOverwrittenReadAndDeletedAndThenAbsent()"
   },
   {
     "apiSymbol": "ArcForges.Security.Secrets.WindowsCredentialManagerSecretStore.Read(string)",
     "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
-    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.WindowsCredentialManagerRoundTripIsExplicitlyLocalOptIn()"
+    "testMethod": "ArcForges.Security.Secrets.Tests.OsSecretStoreGuardTests.TheCredentialManagerAdapterIsRefusedAtConstructionAndAtEveryOperation()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.WindowsCredentialManagerSecretStore.Read(string)",
+    "testProject": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "testMethod": "ArcForges.Tests.OsSecretStoreTests.WindowsCredentialManagerTierTests.AnEntryIsWrittenOverwrittenReadAndDeletedAndThenAbsent()"
   },
   {
     "apiSymbol": "ArcForges.Security.Secrets.WindowsCredentialManagerSecretStore.Delete(string)",
     "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
-    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.WindowsCredentialManagerRoundTripIsExplicitlyLocalOptIn()"
+    "testMethod": "ArcForges.Security.Secrets.Tests.OsSecretStoreGuardTests.TheCredentialManagerAdapterIsRefusedAtConstructionAndAtEveryOperation()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.WindowsCredentialManagerSecretStore.Delete(string)",
+    "testProject": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "testMethod": "ArcForges.Tests.OsSecretStoreTests.WindowsCredentialManagerTierTests.AnEntryIsWrittenOverwrittenReadAndDeletedAndThenAbsent()"
   },
   {
     "apiSymbol": "ArcForges.Security.Secrets.SecretBroker.RevokeAllConnectorGrants()",
@@ -1747,7 +1777,12 @@
   {
     "apiSymbol": "ArcForges.Security.Secrets.OsSecretStore.CreateForCurrentPlatform()",
     "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
-    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.PlatformStoreSelectionIsFailClosedAndNeverOverstatesIsolation()"
+    "testMethod": "ArcForges.Security.Secrets.Tests.OsSecretStoreGuardTests.TheWindowsSelectionPropagatesTheRefusalAndNeverFallsBack()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.OsSecretStore.CreateForCurrentPlatform()",
+    "testProject": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "testMethod": "ArcForges.Tests.OsSecretStoreTests.WindowsCredentialManagerTierTests.TheWindowsSelectionIsCredentialManagerReportedAsTheSharedOsStore()"
   },
   {
     "apiSymbol": "ArcForges.Security.Secrets.OsSecretStore.SelectForCurrentPlatform(string, ArcForges.Security.Secrets.SecretServiceOptions?)",
@@ -1756,13 +1791,18 @@
   },
   {
     "apiSymbol": "ArcForges.Security.Secrets.OsSecretStore.SelectForCurrentPlatform(string, ArcForges.Security.Secrets.SecretServiceOptions?)",
-    "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
-    "testMethod": "ArcForges.Security.Secrets.Tests.LinuxSecretStoreSelectionTests.ThePrivateKeyringIsSelectedReportedAsOsStoreAndRoundTripsThroughTheDefaultCollection()"
+    "testProject": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "testMethod": "ArcForges.Tests.OsSecretStoreTests.SecretServiceTierTests.ThePrivateKeyringIsSelectedReportedAsOsStoreAndRoundTripsThroughTheDefaultCollection()"
   },
   {
     "apiSymbol": "ArcForges.Security.Secrets.OsSecretStore.SelectForCurrentPlatform(string, ArcForges.Security.Secrets.SecretServiceOptions?)",
     "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
-    "testMethod": "ArcForges.Security.Secrets.Tests.SecretBrokerTests.PlatformStoreSelectionIsFailClosedAndNeverOverstatesIsolation()"
+    "testMethod": "ArcForges.Security.Secrets.Tests.OsSecretStoreGuardTests.TheWindowsSelectionPropagatesTheRefusalAndNeverFallsBack()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.OsSecretStore.SelectForCurrentPlatform(string, ArcForges.Security.Secrets.SecretServiceOptions?)",
+    "testProject": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+    "testMethod": "ArcForges.Tests.OsSecretStoreTests.WindowsCredentialManagerTierTests.TheWindowsSelectionIsCredentialManagerReportedAsTheSharedOsStore()"
   },
   {
     "apiSymbol": "ArcForges.Security.Audit.AuditPartition.For(ArcForges.Security.HumanPrincipal, System.DateTimeOffset)",
@@ -3308,5 +3348,10 @@
     "apiSymbol": "ArcForges.LocalRpc.LocalRpcStreamWriter<T>.DisposeAsync()",
     "testProject": "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ArcForges.LocalRpc.Tests.csproj",
     "testMethod": "ArcForges.LocalRpc.Tests.LocalRpcServiceModeTests.TheStreamLaneHoldsEightStreamsPerConnectionBesideSixteenDataCallsAndRefusesTheNinthAtOnce()"
+  },
+  {
+    "apiSymbol": "ArcForges.Security.Secrets.OsSecretStoreGuard.ThrowIfDenied(string)",
+    "testProject": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
+    "testMethod": "ArcForges.Security.Secrets.Tests.OsSecretStoreGuardTests.ThisTestProcessSetsTheTripwireSwitchFromItsRuntimeConfiguration()"
   }
 ]

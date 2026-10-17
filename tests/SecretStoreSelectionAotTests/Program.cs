@@ -18,12 +18,21 @@ try
 {
     if (OperatingSystem.IsWindows())
     {
-        // Selection only: the probe never writes to the user's Credential Manager.
-        var selection = OsSecretStore.SelectForCurrentPlatform(Path.Combine(Path.GetTempPath(), "arcforges-secrets-aot-unused"));
-        Check(selection.Backend == SecretStoreBackend.WindowsCredentialManager, "Windows selects Credential Manager");
-        Check(selection.Protection == SecretStoreProtection.OsSecretStore && selection.CredentialInOsStore, "Windows reports the OS store");
-        Console.WriteLine("PASS: windows selection WindowsCredentialManager/OsSecretStore (nothing written)");
-        return 0;
+        // Like every test project, the probe's runtime configuration sets the OS secret-store test tripwire, so the selection is
+        // refused before any OS call and the probe never reaches the user's Credential Manager. This proves that the AppContext
+        // switch and the refusal survive Native AOT; the Windows selection itself is asserted by the OS secret-store tier.
+        try
+        {
+            _ = OsSecretStore.SelectForCurrentPlatform(Path.Combine(Path.GetTempPath(), "arcforges-secrets-aot-unused"));
+        }
+        catch (OsSecretStoreDeniedException)
+        {
+            Console.WriteLine("PASS: windows selection refused by the test tripwire before any OS call (nothing read or written)");
+            return 0;
+        }
+
+        Console.Error.WriteLine("FAIL: the Windows selection was not refused by the test tripwire.");
+        return 1;
     }
 
     if (!OperatingSystem.IsLinux())
@@ -48,11 +57,6 @@ catch (InvalidOperationException failure)
 {
     Console.Error.WriteLine("FAIL: " + failure.Message);
     return 1;
-}
-
-static void Check([DoesNotReturnIf(false)] bool condition, string what)
-{
-    if (!condition) throw new InvalidOperationException(what);
 }
 
 [SupportedOSPlatform("linux")]
