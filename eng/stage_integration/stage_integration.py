@@ -115,12 +115,19 @@ def conjuncts(text):
     return terms + [text[start:].strip()]
 
 
-def allowed_condition(condition, policy):
+PUSH_EXCLUSION = "github.event_name != 'push'"
+
+
+def allowed_condition(condition, policy, called_on_push=False):
+    """Whether a gate's job or step condition keeps the gate running for every pull request. In a workflow that a push-triggered
+    workflow calls (DesktopPlatform's publication candidate: publish-nuget.yml calls pr-gate.yml), the push exclusion would silently drop
+    the candidate's gates, so it is refused there."""
     text = expression(condition)
     if text in {expression(item) for item in policy['allowedConditions']}:
         return True
+    companions = OWNER_COMPANIONS - {PUSH_EXCLUSION} if called_on_push else OWNER_COMPANIONS
     terms = conjuncts(text)
-    return terms.count(OWNER_EXCLUSION) == 1 and all(term == OWNER_EXCLUSION or term in OWNER_COMPANIONS for term in terms)
+    return terms.count(OWNER_EXCLUSION) == 1 and all(term == OWNER_EXCLUSION or term in companions for term in terms)
 
 
 def digest(value):
@@ -901,6 +908,7 @@ def evaluate(snapshot, policy, today=None):
     for repository in policy['repositories']:
         facts = repos[repository]['facts']
         reachable = pull_request_workflows(facts['workflows'])
+        push_called = push_called_workflows(facts['workflows'])
         for marker in facts['markers']:
             if not marker['found']:
                 findings.append(finding('SI-09', repository, f'policy host marker {marker["id"]} is missing', marker['path']))
@@ -915,7 +923,7 @@ def evaluate(snapshot, policy, today=None):
                 findings.append(finding('SI-09', repository,
                                         f'gate {gate["id"]} is in a workflow no pull request reaches', where))
             for label, condition in (('step', gate['stepIf']), ('job', gate['jobIf'])):
-                if condition and not allowed_condition(condition, policy):
+                if condition and not allowed_condition(condition, policy, where in push_called):
                     findings.append(finding('SI-09', repository,
                                             f'gate {gate["id"]} {label} is conditional on {condition}', where))
             for label, value in (('step', gate['stepContinueOnError']), ('job', gate['jobContinueOnError'])):
@@ -971,6 +979,19 @@ def evaluate(snapshot, policy, today=None):
 
     findings.sort(key=lambda row: (row['rule'], row['repository'], row['message'], row.get('path', '')))
     return findings
+
+
+def push_called_workflows(workflows):
+    """Workflows that a push-triggered workflow reaches through reusable-workflow calls (the callers themselves excluded)."""
+    by_path = {item['path']: item for item in workflows}
+    pending = [call for item in workflows if 'push' in item['triggers'] for call in item.get('calls', [])]
+    reached = set()
+    while pending:
+        path = pending.pop()
+        if path in by_path and path not in reached:
+            reached.add(path)
+            pending.extend(by_path[path].get('calls', []))
+    return reached
 
 
 def pull_request_workflows(workflows):
