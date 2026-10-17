@@ -493,6 +493,22 @@ class ReviewGaps(unittest.TestCase):
                 files['Mobile'][path] = mutate(files['Mobile'][path])
                 self.assertEqual(rules(run(files)), ['SI-09'], label)
 
+    def test_si09_the_owner_exclusion_of_ad_0016_is_an_allowed_gate_condition(self):
+        owner = si.OWNER_EXCLUSION
+        accepted = [f'${{{{ {owner} }}}}', owner, f'${{{{ always() && {owner} }}}}',
+                    f"github.event_name != 'push' && {owner}", f"always() && github.event_name != 'push' && {owner}",
+                    f"${{{{ github.event_name != 'schedule' && {owner} }}}}",
+                    f"github.event_name != 'push' && github.event_name != 'schedule' && {owner}"]
+        refused = [f'{owner} || true', f"github.event_name == 'push' && {owner}", owner.replace('deku2026', 'someone'),
+                   owner.removeprefix('!'), f'{owner} && {owner}', f"{owner} && github.event.pull_request.draft == false",
+                   f"!(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026' || true)"]
+        for condition in accepted + refused:
+            with self.subTest(condition):
+                files = world_files()
+                path = '.github/workflows/ci.yml'
+                files['Mobile'][path] = files['Mobile'][path].replace(b'  gate:\n', f'  gate:\n    if: {condition}\n'.encode())
+                self.assertEqual(rules(run(files)), [] if condition in accepted else ['SI-09'], condition)
+
     def test_si09_gate_facts_must_match_the_declared_gates(self):
         snapshot = snapshot_of(world_files())
         snapshot['repositories']['Mobile']['facts']['gates'] = []
