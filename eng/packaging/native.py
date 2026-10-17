@@ -251,6 +251,9 @@ def stage(directory, vcpkg, installed_root):
     require(not audit["dirty"], "Commit reviewed changes before producing a source-bound native artifact.")
     profile = native_provenance.profile()
     build_tools = owned_build_tools(profile, installed_root)
+    if local := native_provenance.local_toolchain():
+        print(f"local toolchain: vcpkg CMake {local['vcpkgCMake']} (reviewed {profile['buildTools']['vcpkgCMake']}); "
+              "this stage is local verification evidence only", flush=True)
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     actual = subprocess.check_output(["git", "-C", str(vcpkg), "rev-parse", "HEAD"], text=True).strip()
     require(actual == VCPKG_COMMIT, "Native toolchain source pin mismatch.")
@@ -303,7 +306,9 @@ def stage(directory, vcpkg, installed_root):
                     "files": sorted(selected.values(), key=lambda f: f["name"])}
         write_json(destination / "native-manifest.json", metadata)
         write_json(runtime / (entry["library"] + ".manifest.json"), metadata)
+        local = native_provenance.local_toolchain()
         write_json(destination / "sbom.json", {"schemaVersion": 1, "sourceCommit": commit, "buildTools": build_tools,
+                   **({"localToolchain": local} if local else {}),
                    "binaryFiles": metadata["files"], "buildDependencies": records,
                    "visualCppRuntime": {"record": profile["platformRuntime"]["id"],
                                         "version": crt.parents[1].name,

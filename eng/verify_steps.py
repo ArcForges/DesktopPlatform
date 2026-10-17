@@ -39,8 +39,10 @@ Differences from the hosted jobs (eng/verify_local.py names each where it happen
   from that URL. The provenance step passes the merge base as `--base` (hosted: the PR base from the event).
 - vcpkg binary caching uses the user's default archive cache (hosted: actions/cache), sccache the user's default cache
   through a server on a port of its own that the step stops; vcpkg is the existing C:\\vcpkg at the pinned commit
-  (Env.md section 6). As on the hosted runner, vcpkg must build the ports with the reviewed CMake (the native profile's
-  vcpkgCMake); `native` checks the ports' build records and names the prerequisite when they differ.
+  (Env.md section 6). vcpkg builds the ports with the first suitable CMake it finds; when that is not the reviewed one
+  (the native profile's vcpkgCMake, which hosted CI puts first), the stage, pack and packaging steps pass the version
+  from the ports' build records as ARCFORGES_LOCAL_NATIVE_TOOLCHAIN, a local-only allowance that eng/native_provenance.py
+  refuses under GitHub Actions and records in the stage's SBOM (`localToolchain`); every other native check stays.
 - `CI` and `GITHUB_ACTIONS` are not set: with them the build identity and evidence scripts require a GitHub run.
 Every change runs the full profile: the provenance, runtime-ownership and reconciliation inventories cover every
 tracked file, Markdown included, and the design policy verifies the generated documents.
@@ -215,5 +217,5 @@ STEPS = [
     win("native-handoff", ["python", "eng/verify_local.py", "handoff", "{sha}"], 600, exclusive=True),
     wsl("architecture-gate", "python eng/verify_local.py architecture", 900, exclusive=True),
     wsl("pack", "python eng/verify_local.py pack", 1200, exclusive=True),
-    wsl("packaging-tests", unittest("test_*.py", "eng/packaging"), 600, exclusive=True),
+    wsl("packaging-tests", "python eng/verify_local.py packaging-tests", 600, exclusive=True),
 ]

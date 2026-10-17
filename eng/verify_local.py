@@ -10,6 +10,7 @@ job of .github/workflows/pr-gate.yml, native-abi.yml or package-validation.yml (
   python eng/verify_local.py managed-tests   WSL: package-validation.yml `pack`, the test suites of "Build and test"
   python eng/verify_local.py architecture    WSL: `pack`, the architecture gate, invariant accounting and reason registry
   python eng/verify_local.py pack            WSL: `pack`, the version check and "Pack explicit release allowlist"
+  python eng/verify_local.py packaging-tests WSL: `pack`, "Verify rejection of invalid versions and altered candidates"
 
 Only the GitHub-bound parts differ, each named where it happens: run ids and artifact uploads have local equivalents
 (the local identity RUN/ATTEMPT below, and copies between the two verification checkouts), and the hosted secret-scan
@@ -109,20 +110,41 @@ def developer_environment(toolset: str, vcpkg: Path) -> dict[str, str]:
     return env
 
 
-def require_vcpkg_cmake(expected: str) -> None:
-    """native.py stage accepts only ports that vcpkg built with the reviewed CMake (the profile's vcpkgCMake; hosted CI
-    puts exactly that version on PATH before `vcpkg install`). vcpkg takes the first suitable CMake it finds, so a newer
-    one on PATH produces ports the stage rejects; this says so before the build instead of after it."""
-    found = {}
-    for info in (ROOT / "artifacts/vcpkg-installed" / TRIPLET / "share").glob("*/vcpkg_abi_info.txt"):
+def vcpkg_toolchain(expected: str) -> dict[str, str]:
+    """The environment for native.py when vcpkg built the ports with a CMake other than the reviewed one (the profile's
+    vcpkgCMake; hosted CI puts exactly that version first on PATH). Env.md section 6: the existing vcpkg is used as it is and a
+    local version difference is not a build failure, so the local verification passes that one version, read from the ports'
+    build records, as ARCFORGES_LOCAL_NATIVE_TOOLCHAIN; native.py records it in the stage's SBOM, and every other check stays."""
+    found: dict[str, list[str]] = {}
+    for info in sorted((ROOT / "artifacts/vcpkg-installed").glob("*/share/*/vcpkg_abi_info.txt")):
         for line in info.read_text(encoding="utf-8").splitlines():
             if line.startswith("cmake "):
                 found.setdefault(line.split(" ", 1)[1], []).append(info.parent.name)
-    if set(found) != {expected}:
-        raise Failure(f"vcpkg built the native dependencies with CMake {sorted(found)} (ports {found}); the reviewed native "
-                      f"profile requires CMake {expected} for vcpkg (eng/provenance/artifact-profiles/native-win-x64-r4.json). "
-                      f"Make CMake {expected} the first CMake on PATH for this push, or let vcpkg use its own pinned CMake "
-                      "download (VCPKG_FORCE_DOWNLOADED_BINARIES=1); installing tools is the user's decision.")
+    if not found:
+        raise Failure("the native dependencies have no vcpkg build records; `native` did not install them")
+    if len(found) != 1:
+        raise Failure(f"vcpkg built the native dependencies with several CMake versions: {found}")
+    version = next(iter(found))
+    if version == expected:
+        return {}
+    print(f"local toolchain: vcpkg built the native dependencies with CMake {version} (reviewed: {expected}); "
+          "the stage records it and is local verification evidence only", flush=True)
+    return {"ARCFORGES_LOCAL_NATIVE_TOOLCHAIN": f"vcpkgCMake={version}"}
+
+
+def staged_toolchain() -> dict[str, str]:
+    """The allowance a handed-off native stage was produced with (its SBOMs' localToolchain), for the steps that verify it."""
+    recorded = {json.dumps(json.loads(path.read_text(encoding="utf-8")).get("localToolchain"), sort_keys=True)
+                for path in (ROOT / "artifacts/native-packages").glob("*/sbom.json")}
+    if not recorded:
+        raise Failure("artifacts/native-packages has no native stage; `native-handoff` did not complete")
+    if len(recorded) != 1:
+        raise Failure(f"the native stage packages record different toolchains: {recorded}")
+    local = json.loads(next(iter(recorded)))
+    if local is None:
+        return {}
+    print(f"local toolchain: the native stage was built with vcpkg CMake {local['vcpkgCMake']} (local verification only)", flush=True)
+    return {"ARCFORGES_LOCAL_NATIVE_TOOLCHAIN": f"vcpkgCMake={local['vcpkgCMake']}"}
 
 
 def sccache_stats(env: dict[str, str]) -> str:
@@ -139,7 +161,7 @@ def command_native(_: argparse.Namespace) -> None:
     run([str(vcpkg / "vcpkg.exe"), "install", *[f"{port}:{TRIPLET}" for port in PORTS],
          f"--x-install-root={ROOT / 'artifacts/vcpkg-installed'}",
          f"--overlay-triplets={ROOT / 'eng/native/vcpkg/triplets'}"])
-    require_vcpkg_cmake(profile["buildTools"]["vcpkgCMake"])
+    vcpkg_toolchain(profile["buildTools"]["vcpkgCMake"])
     env = developer_environment(toolset, vcpkg)
     run(["sccache", "--start-server"], env=env)
     try:
@@ -171,9 +193,11 @@ def command_native(_: argparse.Namespace) -> None:
 
 def command_stage(_: argparse.Namespace) -> None:
     vcpkg = vcpkg_root()
+    profile = json.loads((ROOT / "eng/provenance/artifact-profiles/native-win-x64-r4.json").read_text(encoding="utf-8"))
+    env = dict(os.environ, **vcpkg_toolchain(profile["buildTools"]["vcpkgCMake"]))
     # native.py refuses an existing stage (hosted CI starts from an empty checkout); the previous commit's is removed.
     shutil.rmtree(ROOT / "artifacts/native-packages", ignore_errors=True)
-    run(["python", "eng/packaging/native.py", "stage", "--vcpkg-root", str(vcpkg)])
+    run(["python", "eng/packaging/native.py", "stage", "--vcpkg-root", str(vcpkg)], env=env)
 
 
 def wsl_path(path: Path) -> str:
@@ -320,13 +344,19 @@ def command_pack(_: argparse.Namespace) -> None:
     run(["python", "eng/packaging/packages.py", "version", "--version", VERSION])
     # packages.py refuses to overwrite a candidate (hosted CI starts from an empty checkout); the previous one goes.
     shutil.rmtree(ROOT / "artifacts/packages", ignore_errors=True)
-    run(["python", "eng/packaging/packages.py", "pack", "--version", VERSION])
+    run(["python", "eng/packaging/packages.py", "pack", "--version", VERSION], env=dict(os.environ, **staged_toolchain()))
+
+
+def command_packaging_tests(_: argparse.Namespace) -> None:
+    """The packaging unittest against the packed candidate, with the toolchain allowance its native stage was produced with."""
+    run(["python", "-m", "unittest", "discover", "-s", "eng/packaging", "-p", "test_*.py", "-v"],
+        env=dict(os.environ, **staged_toolchain()))
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("native", "stage", "hooks", "architecture", "pack"):
+    for name in ("native", "stage", "hooks", "architecture", "pack", "packaging-tests"):
         sub.add_parser(name)
     sub.add_parser("handoff").add_argument("sha")
     tests = sub.add_parser("managed-tests")
@@ -334,7 +364,8 @@ def main() -> int:
     tests.add_argument("--timing-sensitive", action="store_true", help="only the timing-sensitive projects")
     args = parser.parse_args()
     commands = {"native": command_native, "stage": command_stage, "handoff": command_handoff, "hooks": command_hooks,
-                "managed-tests": command_managed_tests, "architecture": command_architecture, "pack": command_pack}
+                "managed-tests": command_managed_tests, "architecture": command_architecture, "pack": command_pack,
+                "packaging-tests": command_packaging_tests}
     try:
         commands[args.command](args)
     except (Failure, subprocess.CalledProcessError, OSError) as error:

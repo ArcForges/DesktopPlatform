@@ -68,6 +68,33 @@ def check_sources(value: dict, name: str, sbom: dict) -> None:
             "; expected " + json.dumps(required, sort_keys=True) + "; observed " + json.dumps(actual, sort_keys=True))
 
 
+# Local pre-push verification only (eng/verify_local.py, Env.md section 6): the user's existing vcpkg builds the ports with whatever
+# CMake it finds, and a local version difference is not a build failure. With this variable set to `vcpkgCMake=<version>`, the
+# upstream build records may name that CMake instead of the reviewed one; every other check stays. The stage records it in its
+# SBOM as `localToolchain`, so such bytes never pass a verification without the variable, and the variable is refused under
+# GitHub Actions: the hosted PR gate and the publication keep the reviewed toolchain exactly.
+LOCAL_TOOLCHAIN = "ARCFORGES_LOCAL_NATIVE_TOOLCHAIN"
+
+
+def local_toolchain(environment=None) -> dict | None:
+    """The local toolchain allowance ({"vcpkgCMake": version}), or None when it is not requested."""
+    env = os.environ if environment is None else environment
+    requested = env.get(LOCAL_TOOLCHAIN)
+    if not requested:
+        return None
+    require(env.get("GITHUB_ACTIONS") != "true", LOCAL_TOOLCHAIN + " is a local verification allowance and is refused under GitHub Actions")
+    name, _, version = requested.partition("=")
+    require(name == "vcpkgCMake" and len(version.split(".")) == 3 and all(part.isdigit() for part in version.split(".")),
+            LOCAL_TOOLCHAIN + " must be vcpkgCMake=<major.minor.patch>")
+    return {"vcpkgCMake": version}
+
+
+def vcpkg_cmake(value: dict, environment=None) -> str:
+    """The CMake every upstream build record must name: the reviewed one, or the allowed local one."""
+    local = local_toolchain(environment)
+    return local["vcpkgCMake"] if local else value["buildTools"]["vcpkgCMake"]
+
+
 def profile(root: Path = ROOT) -> dict:
     value = provenance.document(provenance.read(root, PROFILE))
     provenance.fields(value, "schemaVersion id authority vcpkgCommit baseline buildTools triplets components packages platformRuntime cachedResourceOmissions")
@@ -331,6 +358,9 @@ def inspect_material(value: dict, package: str, read, names: set[str]) -> dict:
         provenance.path(name)
     sbom = provenance.document(read("sbom.json"))
     require(sbom["buildTools"] == value["buildTools"], "Unreviewed native build tools in SBOM")
+    local = local_toolchain()
+    require(sbom.get("localToolchain") == local, "Native SBOM local toolchain differs from this verification's allowance"
+            if local else "Native stage was produced with a local toolchain allowance")
     expected = value["packages"][package]
     dependencies = sbom["buildDependencies"]
     actual = [{k: d[k] for k in ("name", "triplet", "version", "features")} for d in dependencies]
@@ -344,7 +374,7 @@ def inspect_material(value: dict, package: str, read, names: set[str]) -> dict:
                 "Unexpected native licence/SPDX location")
         build = [line.split(" ", 1) for line in read(dependency["buildInfo"]).decode("utf-8").splitlines() if line]
         triplet = value["triplets"][dependency["triplet"]]
-        require([r[1] for r in build if r[0] == "cmake" and len(r) == 2] == [value["buildTools"]["vcpkgCMake"]] and
+        require([r[1] for r in build if r[0] == "cmake" and len(r) == 2] == [vcpkg_cmake(value)] and
                 [r[1] for r in build if r[0] == "triplet" and len(r) == 2] == [dependency["triplet"]],
                 "Unreviewed upstream build generator/triplet: " + dependency["name"])
         identities = [r[1] for r in build if r[0] == "triplet_abi" and len(r) == 2]

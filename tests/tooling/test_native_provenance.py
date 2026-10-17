@@ -5,6 +5,7 @@ import copy
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import sys
 import tarfile
@@ -20,6 +21,10 @@ import native as producer
 
 class NativeClosureTests(unittest.TestCase):
     def setUp(self):
+        environment = patch.dict(os.environ)
+        environment.start()
+        self.addCleanup(environment.stop)
+        os.environ.pop(native.LOCAL_TOOLCHAIN, None)
         self.package = "Example.Runtime.win-x64"
         self.dll = "runtimes/win-x64/native/vcruntime140.dll"
         self.files = {
@@ -88,6 +93,56 @@ class NativeClosureTests(unittest.TestCase):
                 self.files["licenses/example-x64-windows.abi.txt"] = content
                 with self.assertRaisesRegex(ValueError, "upstream build generator/triplet"):
                     self.inspect()
+
+    def allow_local(self, value="vcpkgCMake=4.4.4"):
+        os.environ[native.LOCAL_TOOLCHAIN] = value
+        os.environ.pop("GITHUB_ACTIONS", None)
+
+    def test_local_toolchain_allowance_is_refused_under_github_actions(self):
+        with self.assertRaisesRegex(ValueError, "refused under GitHub Actions"):
+            native.local_toolchain({native.LOCAL_TOOLCHAIN: "vcpkgCMake=4.4.4", "GITHUB_ACTIONS": "true"})
+        self.allow_local()
+        os.environ["GITHUB_ACTIONS"] = "true"
+        self.sbom["localToolchain"] = {"vcpkgCMake": "4.4.4"}
+        self.files["licenses/example-x64-windows.abi.txt"] = self.files["licenses/example-x64-windows.abi.txt"].replace(b"cmake 4.4.0", b"cmake 4.4.4")
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "refused under GitHub Actions"):
+            self.inspect()
+
+    def test_local_toolchain_allowance_names_one_exact_cmake(self):
+        self.assertIsNone(native.local_toolchain({}))
+        self.assertEqual({"vcpkgCMake": "4.4.4"}, native.local_toolchain({native.LOCAL_TOOLCHAIN: "vcpkgCMake=4.4.4"}))
+        for value in ["4.4.4", "vcpkgCMake=", "vcpkgCMake=4.4", "ownedCMake=4.3.3", "vcpkgCMake=4.4.x"]:
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "must be vcpkgCMake="):
+                native.local_toolchain({native.LOCAL_TOOLCHAIN: value})
+
+    def test_local_toolchain_accepts_only_the_recorded_local_cmake_and_keeps_every_other_check(self):
+        name = "licenses/example-x64-windows.abi.txt"
+        self.files[name] = self.files[name].replace(b"cmake 4.4.0", b"cmake 4.4.4")
+        self.sbom["localToolchain"] = {"vcpkgCMake": "4.4.4"}
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "produced with a local toolchain allowance"):
+            self.inspect()  # without the allowance such a stage never verifies
+        self.allow_local()
+        self.assertEqual(self.inspect()["records"], ["example-r1"])
+        self.allow_local("vcpkgCMake=4.4.5")
+        with self.assertRaisesRegex(ValueError, "local toolchain differs"):
+            self.inspect()
+        self.sbom["localToolchain"] = {"vcpkgCMake": "4.4.5"}
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "upstream build generator/triplet"):
+            self.inspect()  # the build records must name the allowed CMake
+        self.allow_local()
+        self.sbom["localToolchain"] = {"vcpkgCMake": "4.4.4"}
+        self.sbom["buildTools"]["ownedCMake"] = "4.4.3"
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "native build tools in SBOM"):
+            self.inspect()  # the owned tools stay exact
+        self.sbom["buildTools"]["ownedCMake"] = "4.3.3"
+        del self.sbom["localToolchain"]
+        self.refresh()
+        with self.assertRaisesRegex(ValueError, "local toolchain differs"):
+            self.inspect()  # an allowed run records the local toolchain
 
     def test_rejects_unreviewed_owned_tools_in_candidate(self):
         self.sbom["buildTools"]["ownedCMake"] = "4.4.3"
