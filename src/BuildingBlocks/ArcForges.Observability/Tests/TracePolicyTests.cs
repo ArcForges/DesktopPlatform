@@ -11,6 +11,7 @@ namespace ArcForges.Observability.Tests;
 /// nothing here talks to a telemetry backend.
 /// </summary>
 [SuppressMessage("Reliability", "CA2000", Justification = "Manual test spans are never listened to, hold no unmanaged resource and are collected with the test.")]
+[Collection(nameof(SignalEmitterSourceListener))]
 public sealed class TracePolicyTests
 {
     private static readonly TimeSpan Window = DiagnosticSpanBuffer.Retention;
@@ -652,3 +653,12 @@ public sealed class TracePolicyTests
         Assert.Throws<ObjectDisposedException>(() => rig.Policy.OnSpanEnded(TracePolicyRig.Span(TracePolicyRig.Trace(1))));
     }
 }
+
+/// <summary>
+/// A test that attaches a policy to <see cref="SignalEmitter.SourceName"/> listens to a process-wide source, so it would also
+/// record the error spans of other test classes emitting at the same time and attribute their error facts to its own identity
+/// (seen as two to four facts where one is expected, in half of the runs on an 18-thread workstation). Its class runs alone.
+/// </summary>
+[CollectionDefinition(nameof(SignalEmitterSourceListener), DisableParallelization = true)]
+[SuppressMessage("Maintainability", "CA1515", Justification = "xUnit1027: a collection definition must be public.")]
+public sealed class SignalEmitterSourceListener;

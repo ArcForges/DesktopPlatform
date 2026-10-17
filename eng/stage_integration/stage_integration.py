@@ -80,6 +80,56 @@ def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
 
 
+# AD-0016: validation jobs skip only for the owner's pull requests, which the owner's local pre-push verification runs instead; every
+# other pull request still runs the gate. A gate condition is therefore also allowed when it is that owner exclusion, alone or joined
+# by `&&` to terms that never apply to a pull request (the push and schedule exclusions) or to `always()`, written with or without
+# `${{ }}`. Nothing else is, so a gate cannot be narrowed to some pull requests through this rule.
+OWNER_EXCLUSION = "!(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026')"
+OWNER_COMPANIONS = frozenset({"always()", "github.event_name != 'push'", "github.event_name != 'schedule'"})
+
+
+def expression(condition):
+    """A workflow condition without its optional `${{ }}` wrapper, with whitespace collapsed."""
+    text = ' '.join(condition.split())
+    if text.startswith('${{') and text.endswith('}}'):
+        text = text[3:-2].strip()
+    return text
+
+
+def conjuncts(text):
+    """The top-level `&&` terms of an expression (parentheses and quoted strings are not split)."""
+    terms, depth, quote, start, index = [], 0, False, 0, 0
+    while index < len(text):
+        char = text[index]
+        if char == "'":
+            quote = not quote
+        elif not quote and char == '(':
+            depth += 1
+        elif not quote and char == ')':
+            depth -= 1
+        elif not quote and depth == 0 and text.startswith('&&', index):
+            terms.append(text[start:index].strip())
+            start = index + 2
+            index += 1
+        index += 1
+    return terms + [text[start:].strip()]
+
+
+PUSH_EXCLUSION = "github.event_name != 'push'"
+
+
+def allowed_condition(condition, policy, called_on_push=False):
+    """Whether a gate's job or step condition keeps the gate running for every pull request. In a workflow that a push-triggered
+    workflow calls (DesktopPlatform's publication candidate: publish-nuget.yml calls pr-gate.yml), the push exclusion would silently drop
+    the candidate's gates, so it is refused there."""
+    text = expression(condition)
+    if text in {expression(item) for item in policy['allowedConditions']}:
+        return True
+    companions = OWNER_COMPANIONS - {PUSH_EXCLUSION} if called_on_push else OWNER_COMPANIONS
+    terms = conjuncts(text)
+    return terms.count(OWNER_EXCLUSION) == 1 and all(term == OWNER_EXCLUSION or term in companions for term in terms)
+
+
 def digest(value):
     return hashlib.sha256(canonical(value).encode('utf-8')).hexdigest()
 
@@ -858,6 +908,7 @@ def evaluate(snapshot, policy, today=None):
     for repository in policy['repositories']:
         facts = repos[repository]['facts']
         reachable = pull_request_workflows(facts['workflows'])
+        push_called = push_called_workflows(facts['workflows'])
         for marker in facts['markers']:
             if not marker['found']:
                 findings.append(finding('SI-09', repository, f'policy host marker {marker["id"]} is missing', marker['path']))
@@ -872,7 +923,7 @@ def evaluate(snapshot, policy, today=None):
                 findings.append(finding('SI-09', repository,
                                         f'gate {gate["id"]} is in a workflow no pull request reaches', where))
             for label, condition in (('step', gate['stepIf']), ('job', gate['jobIf'])):
-                if condition and condition not in policy['allowedConditions']:
+                if condition and not allowed_condition(condition, policy, where in push_called):
                     findings.append(finding('SI-09', repository,
                                             f'gate {gate["id"]} {label} is conditional on {condition}', where))
             for label, value in (('step', gate['stepContinueOnError']), ('job', gate['jobContinueOnError'])):
@@ -928,6 +979,19 @@ def evaluate(snapshot, policy, today=None):
 
     findings.sort(key=lambda row: (row['rule'], row['repository'], row['message'], row.get('path', '')))
     return findings
+
+
+def push_called_workflows(workflows):
+    """Workflows that a push-triggered workflow reaches through reusable-workflow calls (the callers themselves excluded)."""
+    by_path = {item['path']: item for item in workflows}
+    pending = [call for item in workflows if 'push' in item['triggers'] for call in item.get('calls', [])]
+    reached = set()
+    while pending:
+        path = pending.pop()
+        if path in by_path and path not in reached:
+            reached.add(path)
+            pending.extend(by_path[path].get('calls', []))
+    return reached
 
 
 def pull_request_workflows(workflows):

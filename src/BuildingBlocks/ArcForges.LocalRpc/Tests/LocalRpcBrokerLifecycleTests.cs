@@ -342,9 +342,18 @@ public sealed class LocalRpcBrokerLifecycleTests
             Assert.True(created.IsSuccess);
         }
 
-        await BoundsHarness.WaitUntilAsync(() => registry.OpenSessions == 0, "every short lease to expire", TestContext.Current.CancellationToken);
+        int EndCount()
+        {
+            lock (ends)
+            {
+                return ends.Count;
+            }
+        }
 
-        Assert.Equal(60, ends.Count);
+        // The registry forgets a session before the owner's callback runs (both outside the session's lock), so the test waits for both.
+        await BoundsHarness.WaitUntilAsync(() => registry.OpenSessions == 0 && EndCount() == 60, "every short lease to expire", TestContext.Current.CancellationToken);
+
+        Assert.Equal(60, EndCount());
         Assert.All(ends, end => Assert.Equal(LocalRpcBrokerEndReason.Expired, end.Reason));
     }
 
@@ -361,7 +370,9 @@ public sealed class LocalRpcBrokerLifecycleTests
         }
 
         Assert.Equal(LocalRpcBrokerSessionState.Open, rig.Session.State);
-        await BoundsHarness.WaitUntilAsync(() => rig.Session.State == LocalRpcBrokerSessionState.Closed, "the unrenewed session to expire", TestContext.Current.CancellationToken);
+        // A close is visible as Closed under the session's lock; its work (mappings, registry, the owner's callback) runs after, outside
+        // every lock, so the test waits for the callback, the last of it, before it checks the end.
+        await BoundsHarness.WaitUntilAsync(() => rig.Ends.Count == 1, "the unrenewed session to expire", TestContext.Current.CancellationToken);
         LocalRpcBrokerSessionTests.AssertEnded(rig, LocalRpcBrokerEndReason.Expired);
     }
 

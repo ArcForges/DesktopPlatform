@@ -165,6 +165,19 @@ internal sealed class LocalRpcCallAdmission
     /// The deadline of a stream-lane call: the shorter of the client's declared deadline and the profile's lifetime, or none when neither
     /// bounds it. The data deadline cap does not apply.
     /// </summary>
+    /// <summary>
+    /// How far past a profile lifetime the server's own gRPC deadline is set. The writer ends the stream at the lifetime itself
+    /// (<c>DEADLINE_EXCEEDED</c> with the <c>x-af-stream-end</c> trailer); the server's timer, which completes the response concurrently with
+    /// any write in flight and sends no trailer, is only a backstop for a handler that does not return.
+    /// </summary>
+    internal static TimeSpan LifetimeBackstop { get; } = TimeSpan.FromSeconds(1);
+
+    /// <summary>Whether the stream's window is its profile's lifetime (no shorter deadline declared by the client).</summary>
+    internal static bool LifetimeOwnsWindow(HttpContext context, LocalRpcStreamProfile profile) =>
+        profile.MaxLifetime is { } lifetime
+        && !(context.Request.Headers.TryGetValue(TimeoutHeader, out var values) && values.Count == 1
+            && TryParseTimeout(values[0], out var declared) && declared < lifetime);
+
     internal static TimeSpan? StreamWindow(HttpContext context, LocalRpcStreamProfile profile)
     {
         TimeSpan? declared = context.Request.Headers.TryGetValue(TimeoutHeader, out var values) && values.Count == 1
@@ -188,6 +201,8 @@ internal sealed class LocalRpcCallAdmission
         LocalRpcStreamCall? call = null;
         var started = _registry.Time.GetTimestamp();
         var window = StreamWindow(context, profile);
+        var lifetimeOwned = LifetimeOwnsWindow(context, profile);
+        var lifetimeEnd = lifetimeOwned && window is { } own ? DateTime.UtcNow + own : (DateTime?)null;
         peer.CallStarted();
         try
         {
@@ -200,14 +215,14 @@ internal sealed class LocalRpcCallAdmission
             entered = true;
             if (window is { } bounded)
             {
-                context.Request.Headers[TimeoutHeader] = ToTimeoutHeader(bounded);
+                context.Request.Headers[TimeoutHeader] = ToTimeoutHeader(lifetimeOwned ? bounded + LifetimeBackstop : bounded);
             }
             else
             {
                 _ = context.Request.Headers.Remove(TimeoutHeader);
             }
 
-            call = new LocalRpcStreamCall(profile, _registry.Time, context);
+            call = new LocalRpcStreamCall(profile, _registry.Time, context) { LifetimeEnd = lifetimeEnd };
             context.Features.Set(call);
             _registry.StreamOpened(call);
             using (LocalRpcCallbackGuard.Enter(nested ? 1 : 0))

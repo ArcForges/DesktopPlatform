@@ -1021,7 +1021,11 @@
     "tests/SecretStoreSelectionAotTests/Program.cs",
     "tests/SecretStoreSelectionAotTests/README.md",
     "tests/SecretStoreSelectionAotTests/packages.lock.json",
-    "eng/policy/dependency-reviews/af-dp-02-r1.json"
+    "eng/policy/dependency-reviews/af-dp-02-r1.json",
+    ".githooks/pre-push",
+    "eng/verify.py",
+    "eng/verify_steps.py",
+    "eng/verify_local.py"
   ],
   "reused": {
     "LICENSE": "canonical-agpl-legal-r1",
