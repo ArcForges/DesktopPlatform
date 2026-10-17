@@ -250,13 +250,28 @@ def command_hooks(_: argparse.Namespace) -> None:
 
 def suites() -> list[tuple[str | None, str]]:
     """The test projects of the hosted "Build and test platform ownership" step, in its order, with the TRX name of
-    the accounting suites; read from the workflow so that the two lists cannot drift."""
+    the accounting suites; read from the workflow so that the two lists cannot drift. Every `dotnet test` of the step must be either one of the two loops over the accounting suite tables or a plain line read here, so a line of
+    another shape fails closed instead of being skipped."""
     text = WORKFLOW.read_text(encoding="utf-8")
-    found: list[tuple[str | None, str]] = []
-    for match in re.finditer(r"Name = '([^']+)'; Project = '([^']+)'|dotnet test --project (\S+) -c Release --no-build$",
-                             text, re.MULTILINE):
-        found.append((match.group(1), match.group(2)) if match.group(1) else (None, match.group(3)))
-    if len(found) < 10 or ARCHITECTURE not in found:
+    marker = "      - name: Build and test platform ownership\n"
+    if text.count(marker) != 1:
+        raise Failure(f"cannot find the 'Build and test platform ownership' step in {WORKFLOW.relative_to(ROOT)}")
+    step = text.split(marker, 1)[1]
+    following = re.search(r"^      - ", step, re.MULTILINE)
+    step = step[:following.start()] if following else step
+    tables = re.findall(r"Name = '([^']+)'; Project = '([^']+)'", step)
+    plain = re.findall(r"^\s*dotnet test --project (\S+) -c Release --no-build$", step, re.MULTILINE)
+    loops = len(re.findall(r"dotnet test --project \$suite\.Project ", step))
+    total = len(re.findall(r"\bdotnet\s+test\b", step))
+    if loops != 2 or total != loops + len(plain) or not tables or step.count("$lateAccountingSuites = @(") != 1:
+        raise Failure(f"the test lines of {WORKFLOW.relative_to(ROOT)} changed shape ({total} `dotnet test --project`, {loops} "
+                      f"suite loops, {len(plain)} plain lines, {len(tables)} accounting suites); update eng/verify_local.py")
+    # The hosted step runs the first accounting table, the plain lines, then the late accounting table; the order is kept.
+    early, late = step.split("$lateAccountingSuites = @(", 1)[0], step.split("$lateAccountingSuites = @(", 1)[1]
+    first = re.findall(r"Name = '([^']+)'; Project = '([^']+)'", early)
+    second = re.findall(r"Name = '([^']+)'; Project = '([^']+)'", late)
+    found: list[tuple[str | None, str]] = [*first, *[(None, project) for project in plain], *second]
+    if ARCHITECTURE not in found or len(found) != len(set(project for _, project in found)):
         raise Failure(f"cannot read the test suites of {WORKFLOW.relative_to(ROOT)}; update eng/verify_local.py")
     return found
 
