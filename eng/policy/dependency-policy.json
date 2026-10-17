@@ -780,10 +780,9 @@
   "nativeGate": "eng/native_provenance.py",
   "sourceGate": "eng/check_provenance.py",
   "review": {
-    "owner": "OS secret-store guard author (claude-opus-5-5, delegated worker)",
-    "reviewer": "pending: the independent reviewer of this change (claude-opus-5-5, separate session from the author) records the exact-head review here before the merge",
+    "owner": "OS secret-store guard author (claude-opus-5-5, delegated worker; branch chore/os-secret-store-guard)",
+    "reviewer": "Independent exact-head reviewer (claude-opus-5-5, separate session from the author) recorded on the ArcForges/DesktopPlatform pull request of branch chore/os-secret-store-guard",
     "reviewedOn": "2026-10-17",
-    "decision": "pending independent review",
     "baselineCommit": "25576c293481cc2038a22182e3f41a5019f88eb6",
     "maintenanceAssessment": "No third-party coordinate is added, removed or changed: the NuGet closure stays at 59 coordinates and the Python closure at 10. The change implements the OS secret-store test guard of ArcForges-Design main d06ed76 (docs/architecture/16-testing-strategy.md section 1, docs/reuse/desktopplatform-refactor.md section 2, AD-0016 amendment of 2026-10-17, L-26). Bound inputs that change: Directory.Build.targets (every test project, and no packable project, gets the runtime configuration option ArcForges.Security.Secrets.DenyOsStores=true); Directory.Packages.props (the ArcForges.Contracts.Foundation 1.0.0-ci.216.1 pin for the new tier project, the same pin ArcForges.Security.Secrets and its other consumers already use); the ArcForges.Security.Secrets project file (InternalsVisibleTo for the tier test assembly; references, framework, package identity and pack items unchanged); the new non-packable test project tests/OsSecretStoreTests (xunit.v3, Microsoft.NET.Test.Sdk and xunit.runner.visualstudio at their admitted versions, one project reference) and its lock file, which contains only already admitted coordinates. No version, lock or build setting of any other project changes.",
     "upgradeChecks": {
