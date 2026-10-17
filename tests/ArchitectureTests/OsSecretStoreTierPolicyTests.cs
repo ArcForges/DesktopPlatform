@@ -97,8 +97,13 @@ public sealed partial class OsSecretStoreTierPolicyTests
         foreach (string path in selectors)
         {
             string text = File.ReadAllText(Path.Combine(Root, path));
+            // Workflows, hooks and the verification scripts may not name the tier at all; any other eng script may not put it on a
+            // dotnet command line (a policy test may name the project as data, for example a digest of its project file).
             bool names = text.Contains("OsSecretStoreTests", StringComparison.Ordinal) || text.Contains(tierName, StringComparison.Ordinal);
-            Xunit.Assert.True(!names || path is TierWorkflow or TierRunner or GuardScriptTest, path + " selects the OS secret-store tier");
+            bool strict = !path.EndsWith(".py", StringComparison.Ordinal) || path.StartsWith("eng/verify", StringComparison.Ordinal);
+            bool selects = strict ? names : text.Split('\n').Any(line => line.Contains("dotnet", StringComparison.Ordinal)
+                && line.Contains("OsSecretStoreTests", StringComparison.Ordinal));
+            Xunit.Assert.True(!selects || path is TierWorkflow or TierRunner or GuardScriptTest, path + " selects the OS secret-store tier");
             // No workflow, hook or script runs a whole solution or directory, which could select the tier: every `dotnet test` names one
             // project (command lines in workflows and hooks, argument lists in the Python scripts).
             if (!path.EndsWith(".py", StringComparison.Ordinal))
