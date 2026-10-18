@@ -32,7 +32,7 @@ public sealed class OsSecretStoreTierDefinition : ICollectionFixture<OsSecretSto
 /// reaching one fails the run, and every later run call is refused with the same reason;</item>
 /// <item>exact-name cleanup from the list only, each deletion followed by one read-back that must find the entry absent. After the
 /// run has failed, every listed name that may exist gets exactly one bounded exact-name delete and one absence read from a separate
-/// cleanup allowance (<see cref="CleanupAllowance"/> calls, 10 s each, sequential, outside the run budget). Every name ends with its
+/// cleanup allowance (<see cref="CleanupAllowance"/> calls, 10 s each, sequential, outside the run budget), after waiting once for any timed-out call that may still be running for it. Every name ends with its
 /// true outcome in the list (<c>DELETED-ABSENT</c>, <c>DELETE-FAILED</c>, <c>STILL-PRESENT</c>, <c>ABSENCE-UNVERIFIED</c>,
 /// <c>NOT-ATTEMPTED</c> or <c>discarded</c>). Nothing is retried beyond that, enumerated or deleted by pattern; a remaining name
 /// is evidence (L-26) and needs exact-name manual cleanup.</item>
@@ -63,6 +63,7 @@ public sealed class OsSecretStoreTier : IDisposable
     private int _next;
     private int _calls;
     private int _cleanupCalls;
+    private readonly List<PendingCall> _pending = [];
     private string? _failure;
 
     public OsSecretStoreTier()
@@ -129,7 +130,10 @@ public sealed class OsSecretStoreTier : IDisposable
     /// One secret-store call of the run, counted and bounded by <see cref="CallTimeout"/>. A call refused by a limit (or after the
     /// run failed) is not made at all; a call that exceeds its bound fails the run with <see cref="TimeoutException"/>.
     /// </summary>
-    public T Call<T>(string operation, Func<T> call)
+    public T Call<T>(string operation, Func<T> call) => RunCall(null, operation, call);
+
+    // A run call; `name` is the listed entry it is for when the fixture knows it (null for a test's own calls, which may be for any).
+    private T RunCall<T>(string? name, string operation, Func<T> call)
     {
         ArgumentNullException.ThrowIfNull(call);
         lock (_gate)
@@ -144,7 +148,7 @@ public sealed class OsSecretStoreTier : IDisposable
             _calls++;
         }
 
-        return Bounded(operation, call, failRun: true);
+        return Bounded(name, operation, call, failRun: true);
     }
 
     /// <summary>As <see cref="Call{T}(string, Func{T})"/> for a call without a result.</summary>
@@ -182,7 +186,7 @@ public sealed class OsSecretStoreTier : IDisposable
         {
             try
             {
-                _ = Call("delete " + name, () => store.Delete(name));
+                _ = RunCall(name, "delete " + name, () => store.Delete(name));
             }
             catch (TierRefusedException)
             {
@@ -216,7 +220,7 @@ public sealed class OsSecretStoreTier : IDisposable
         byte[]? remaining;
         try
         {
-            remaining = Call("read back " + name, () => store.Read(name));
+            remaining = RunCall(name, "read back " + name, () => store.Read(name));
         }
         catch (TierRefusedException)
         {
@@ -306,6 +310,26 @@ public sealed class OsSecretStoreTier : IDisposable
             return;
         }
 
+        // A call that timed out keeps running and could land after this cleanup's delete or read (overlapping calls, a wrong
+        // outcome). Every timed-out call that may concern this name is waited for once, within its bound; one still pending
+        // leaves the name unverified, without any further call.
+        foreach (var pending in PendingFor(name))
+        {
+            if (!pending.Waited)
+            {
+                pending.Waited = true;
+                _ = ((IAsyncResult)pending.Task).AsyncWaitHandle.WaitOne(CallTimeout);
+            }
+
+            if (!pending.Task.IsCompleted)
+            {
+                Finish(name, "ABSENCE-UNVERIFIED (a timed-out call is still pending: " + pending.Operation + "; no further call)");
+                return;
+            }
+
+            _ = pending.Task.Exception; // observed: its outcome is superseded by the cleanup below
+        }
+
         int needed = entry.Deleted ? 1 : 2;
         lock (_gate)
         {
@@ -324,7 +348,7 @@ public sealed class OsSecretStoreTier : IDisposable
         {
             try
             {
-                _ = Bounded("cleanup delete " + name, () => store.Delete(name), failRun: false);
+                _ = Bounded(name, "cleanup delete " + name, () => store.Delete(name), failRun: false);
             }
             catch (TimeoutException failure)
             {
@@ -342,7 +366,7 @@ public sealed class OsSecretStoreTier : IDisposable
         byte[]? remaining;
         try
         {
-            remaining = Bounded("cleanup read back " + name, () => store.Read(name), failRun: false);
+            remaining = Bounded(name, "cleanup read back " + name, () => store.Read(name), failRun: false);
         }
         catch (Exception failure) when (failure is not OutOfMemoryException)
         {
@@ -363,7 +387,12 @@ public sealed class OsSecretStoreTier : IDisposable
         Finish(name, deleteFailure is null ? DeletedAbsent : DeletedAbsent + " (the delete reported " + deleteFailure + ")");
     }
 
-    private T Bounded<T>(string operation, Func<T> call, bool failRun)
+    private List<PendingCall> PendingFor(string name)
+    {
+        lock (_gate) return [.. _pending.Where(pending => (pending.Name is null || pending.Name == name) && !pending.Task.IsCompleted)];
+    }
+
+    private T Bounded<T>(string? name, string operation, Func<T> call, bool failRun)
     {
         var task = Task.Run(call);
         if (!((IAsyncResult)task).AsyncWaitHandle.WaitOne(CallTimeout))
@@ -371,6 +400,8 @@ public sealed class OsSecretStoreTier : IDisposable
             string reason = $"'{operation}' did not finish within {CallTimeout.TotalSeconds:0} s";
             lock (_gate)
             {
+                // The task keeps running; it is kept so that cleanup never overlaps it.
+                _pending.Add(new PendingCall(name, operation, task));
                 if (failRun) MarkFailed(reason);
                 else Record("CLEANUP-TIMEOUT " + reason, "-");
             }
@@ -447,6 +478,15 @@ public sealed class OsSecretStoreTier : IDisposable
 
     /// <summary>A listed entry: the store it lives in, and whether the run's delete of it has returned.</summary>
     private readonly record struct Entry(ISecretBackingStore? Store, bool Deleted = false);
+
+    /// <summary>A call that exceeded its bound and may still be running; cleanup waits for it once before touching its name.</summary>
+    private sealed class PendingCall(string? name, string operation, Task task)
+    {
+        public string? Name { get; } = name;
+        public string Operation { get; } = operation;
+        public Task Task { get; } = task;
+        public bool Waited { get; set; }
+    }
 
     /// <summary>A run call that a limit (or the run's earlier failure) refused: the call was not made.</summary>
     private sealed class TierRefusedException : InvalidOperationException

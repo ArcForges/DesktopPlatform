@@ -90,8 +90,10 @@ public static class OsSecretStoreGuard
 
         // Decide on where the socket really is: symbolic links in the path or its parent directories are resolved first, so a link
         // under the temporary directory into /run/user/<uid> is the user's bus. A path that cannot be resolved is in scope.
+        // The raw path is resolved component by component, as the kernel does: a ".." after a link applies to the link's target,
+        // so it must not be dropped textually first. The textual form is only compared directly with the user buses.
         string normalized = Normalize(path);
-        string? real = ResolveLinks(normalized);
+        string? real = ResolveLinks(path.Replace('\\', '/'));
         if (real is null) return true;
         var buses = userBuses.Select(Normalize).SelectMany(bus => new[] { bus, ResolveLinks(bus) ?? bus }).ToHashSet(StringComparer.Ordinal);
         if (buses.Contains(normalized) || buses.Contains(real)) return true;
@@ -109,7 +111,7 @@ public static class OsSecretStoreGuard
     /// </summary>
     internal static string? ResolveLinks(string path)
     {
-        if (OperatingSystem.IsWindows()) return path;
+        if (OperatingSystem.IsWindows()) return Normalize(path);
         const int MaximumLinks = 40;
         var pending = new List<string>(path.Split('/', StringSplitOptions.RemoveEmptyEntries));
         string current = "/";

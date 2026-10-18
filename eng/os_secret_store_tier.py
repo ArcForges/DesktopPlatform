@@ -32,8 +32,9 @@ PROJECT = "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj"
 LINUX_DISTRIBUTION = "ArcForgesTest"
 EVIDENCE = ROOT / "artifacts/evidence/os-secret-store-tier"
 NOT_RUN = 3
-# The fixture bounds the tier to five minutes; the process bound adds the test host's start-up.
-PROCESS_TIMEOUT = 360
+# The fixture bounds the tier to five minutes; the process bound adds the cleanup allowance after a failed run (8 calls of at
+# most 10 s) and the test host's start-up, so a failing run is never killed mid-cleanup.
+PROCESS_TIMEOUT = 420
 
 
 def refusal(environ: dict[str, str], platform: str) -> tuple[int, str] | None:

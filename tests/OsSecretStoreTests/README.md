@@ -26,7 +26,7 @@ switch `ArcForges.Security.Secrets.DenyOsStores` that every test project sets) r
   deleted by pattern. The read-backs and absence checks are test verification, not production behaviour (04-execution section 2).
 - **Cleanup after a failed run.** When a limit stops the run (call timeout, call budget, tier time), every listed name that may
   exist (a write that failed or timed out included) gets exactly one bounded exact-name delete and one absence read, from a
-  separate cleanup allowance of at most 8 calls (10 s each, sequential, outside the run's 32), and never more. The list records
+  separate cleanup allowance of at most 8 calls (10 s each, sequential, outside the run's 32), and never more. A call that timed out keeps running, so before cleanup touches a name it waits once (within the 10 s bound) for every timed-out call that may concern it; if one is still pending, the name is recorded `ABSENCE-UNVERIFIED (a timed-out call is still pending)` and gets no further call. The list records
   each name's true outcome: `DELETED-ABSENT`, `DELETE-FAILED (<reason>)`, `STILL-PRESENT`, `ABSENCE-UNVERIFIED (<reason>)` or
   `NOT-ATTEMPTED (<reason>)` (for example when the allowance is used up). The run then fails with every name whose absence is not
   verified. **Those remaining names are evidence and need exact-name manual cleanup** (on the workstation only by the user, or with the

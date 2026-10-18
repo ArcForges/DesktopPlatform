@@ -154,8 +154,12 @@ public sealed class OsSecretStoreGuardTests : IDisposable
         File.CreateSymbolicLink(chained, "user-bus");
         string viaParent = Path.Combine(_root, "parent-link");
         Directory.CreateSymbolicLink(viaParent, Path.Combine(_root, "runtime-directory"));
+        // A ".." after a link applies to the link's target, as in the kernel: <root>/deep/../bus is /run/user/1000/bus, although the
+        // text <root>/bus would be test-owned.
+        string deep = Path.Combine(_root, "deep");
+        Directory.CreateSymbolicLink(deep, "/run/user/1000/sub");
         foreach (string inScope in new[] { userBus, Path.Combine(runtimeDirectory, "bus"), chained, Path.Combine(viaParent, "bus"),
-            Path.Combine(_root, "x", "..", "user-bus") })
+            Path.Combine(_root, "x", "..", "user-bus"), deep + "/../bus" })
         {
             Assert.True(OsSecretStoreGuard.IsUserSessionBus("unix:path=" + inScope, null, null, 1000, temporary), inScope);
         }
