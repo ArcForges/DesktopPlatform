@@ -3,6 +3,20 @@
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
   </ItemGroup>
+  <!-- The runtime tripwire of the OS secret-store test guard (ArcForges-Design 16-testing-strategy section 1): every test project
+       (IsTestProject, or a project under tests/, a Tests/ directory or a Fixture/ directory: the Test role of
+       eng/policy/architecture-projects.json) denies the real OS secret stores through its runtime configuration, unless
+       ARCFORGES_OS_SECRET_STORE_TESTS=1 is set for the OS secret-store tier. Packable (release) projects never set it, and
+       tests/ArchitectureTests checks both directions in the built runtime configurations. -->
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <_ArcForgesProjectDirectory>/$([MSBuild]::MakeRelative('$(MSBuildThisFileDirectory)', '$(MSBuildProjectDirectory)').Replace('\', '/').TrimEnd('/'))/</_ArcForgesProjectDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' And '$(IsPackable)' != 'true' And ('$(IsTestProject)' == 'true' Or $(_ArcForgesProjectDirectory.StartsWith('/tests/')) Or $(_ArcForgesProjectDirectory.Contains('/Tests/')) Or $(_ArcForgesProjectDirectory.Contains('/Fixture/')))">
+    <ArcForgesDenyOsSecretStores>true</ArcForgesDenyOsSecretStores>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(ArcForgesDenyOsSecretStores)' == 'true'">
+    <RuntimeHostConfigurationOption Include="ArcForges.Security.Secrets.DenyOsStores" Value="true" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(ArcForgesDeployWindowsNativeRuntime)' == 'true'">
     <ArcForgesWindowsNativeRuntimeDirectory>$(MSBuildThisFileDirectory)artifacts\msbuild\native\win-x64\$(Configuration)\</ArcForgesWindowsNativeRuntimeDirectory>
   </PropertyGroup>

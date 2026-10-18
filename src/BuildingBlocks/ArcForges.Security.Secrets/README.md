@@ -38,8 +38,8 @@ Two different things are called isolation, and this package keeps them apart.
 `WindowsCredentialManagerSecretStore` is the current-user Windows adapter and declares
 `SameUserShared`. Credential Manager is addressable by name from every process of the same
 Windows user, so it is **not** an OS-enforced sibling boundary: a hostile same-user
-application that bypasses the broker can read an entry whose target it can compute. An
-explicit local opt-in test records this observation with a second, ArcForges-free process.
+application that bypasses the broker can read an entry whose target it can compute. A test
+of the OS secret-store tier records this observation with a second, ArcForges-free process.
 An OS-enforced Windows adapter needs package identity (MSIX/AppContainer) and is not provided
 here. No macOS keychain (code-signature access group), Linux secret-portal or Android keystore
 adapter exists. `OsSecretStore.CreateForCurrentPlatform` returns Credential Manager on Windows and the
@@ -47,9 +47,36 @@ Secret Service on Linux when one is reachable; otherwise it fails closed with
 `PlatformNotSupportedException` and never falls back to files, preferences or memory. Only
 `OsSecretStore.SelectForCurrentPlatform` (below) selects the reported file fallback.
 
-The real Windows round trip is an explicit local opt-in via `ARCFORGES_LOCAL_OS_SECRET_STORE=1`;
-normal tests remain offline, and the two Windows-only tests are reported as skipped everywhere else,
-including hosted CI. The Windows adapter's execution evidence is therefore a local opt-in run, not CI.
+The real Windows round trip, a missing entry and the same-user sibling observation (`cmdkey`) are tests of the
+OS secret-store integration tier (below), not of the routine suite.
+
+## Test tripwire and the OS secret-store tier
+
+Routine tests never reach a real OS secret store (ArcForges-Design `docs/architecture/16-testing-strategy.md`
+section 1, AD-0016 amendment of 2026-10-17). `OsSecretStoreGuard` is the runtime tripwire:
+
+- Every test project sets the AppContext switch `ArcForges.Security.Secrets.DenyOsStores=true` in its runtime
+  configuration (this repository's `Directory.Build.targets`; consumers set it in their own test projects, for
+  example `<RuntimeHostConfigurationOption Include="ArcForges.Security.Secrets.DenyOsStores" Value="true" />`).
+- While it is set, the Windows Credential Manager adapter (construction and every operation) and the Secret Service
+  adapter on the user's session bus check it before any OS call and throw `OsSecretStoreDeniedException`, unless
+  `ARCFORGES_OS_SECRET_STORE_TESTS=1` (the tier's single opt-in) is set. The Secret Service scope is the user's
+  session bus: no explicit `BusAddress`, or one equal to `DBUS_SESSION_BUS_ADDRESS`, `/run/user/<uid>/bus` or
+  `$XDG_RUNTIME_DIR/bus`, and any address that cannot be shown to be test-owned. Only a `unix:path=` socket that does
+  not exist, or that lies in a directory of its own under the temporary directory (a private daemon), is outside it.
+- `OsSecretStore.SelectForCurrentPlatform` and `CreateForCurrentPlatform` propagate the refusal; it is never an
+  unavailable backend, so selection never falls back to the file store on refusal.
+- `OsSecretStoreGuard.ThrowIfDenied(store)` lets a consumer guard another user store (for example a CNG user key) the
+  same way. Release builds never set the switch, so production behaviour is unchanged.
+
+The tier is `tests/OsSecretStoreTests` (trait `env=os-secret-store`), which no routine suite, pre-push step or other
+workflow selects. It runs minimal and sequential tests through a fixture that names each entry `ArcForges.Secrets.v1.`
+plus the uppercase SHA-256 hex of `arcforges.os-secret-store-test.v1|<run id>|<n>` (fresh random run id), writes that
+name to the run's name list before creating it, deletes only listed names and verifies their absence (a failed check is
+evidence, never retried), and fails the run at 4 entries at once, 32 store calls, 10 s per call or 5 minutes. The
+Windows Credential Manager tests run on disposable hosted Windows runners (`.github/workflows/os-secret-store-tier.yml`:
+external pull requests, `merge_group`, manual dispatch and weekly); locally only through `eng/os_secret_store_tier.py`
+with the explicit opt-in. The Linux Secret Service tests run only in the isolated `ArcForgesTest` WSL distribution.
 
 ## Linux backends and the node's credential store (AF-DP-02)
 
@@ -103,10 +130,11 @@ Obligations of the consumer (the node):
 
 Tests run on a real Linux file system and, for the Secret Service, against a private `dbus-daemon` and an
 unlocked private `gnome-keyring-daemon` that the test starts in a new temporary directory and stops
-afterwards; they never reach the user's session bus or keyring. The Secret Service tests are the explicit
-local opt-in `ARCFORGES_LOCAL_OS_SECRET_STORE=1` on Linux and skip, with the reason, when `dbus-daemon`,
-`gnome-keyring-daemon`, `secret-tool` or `dbus-send` is not installed (user installs, H-11). The file
-fallback tests run on every Linux test run. `tests/SecretStoreSelectionAotTests` is the Native AOT probe of the selection.
+afterwards; they never reach the user's session bus or keyring. The Secret Service tests belong to the OS
+secret-store tier: they run only with `ARCFORGES_OS_SECRET_STORE_TESTS=1` in the `ArcForgesTest` WSL distribution
+and skip, with the reason, when `dbus-daemon`, `gnome-keyring-daemon`, `secret-tool` or `dbus-send` is not
+installed there (user installs, H-11). The file fallback tests and the selection over a bus address that does
+not exist run on every Linux test run. `tests/SecretStoreSelectionAotTests` is the Native AOT probe of the selection.
 
 ## Known limits
 
@@ -118,7 +146,8 @@ fallback tests run on every Linux test run. `tests/SecretStoreSelectionAotTests`
 - Expired grants are evicted when the next grant is minted or on `RevokeAllConnectorGrants`; only the foreground
   human host can mint grants, so the table is host-bounded.
 - Native AOT: `tests/SecretStoreSelectionAotTests` publishes the selection, both Linux backends and the Windows adapter with
-  Native AOT (compile only in CI); its local runs are the AOT execution evidence.
+  Native AOT (compile only in CI); its local runs are the AOT execution evidence. Its runtime configuration sets the
+  tripwire switch like every test project, so a Windows run shows the refusal in Native AOT instead of the selection.
 - The Secret Service is reached only on the session bus of the same user, so its transport encryption protects
   the value from bus monitors, not from the service itself; whoever owns `org.freedesktop.secrets` is trusted.
 - A desktop prompt (unlocking a locked collection) needs a desktop session; without one the prompt is dismissed

@@ -6,7 +6,9 @@ Keep C# 14, C++20, explicit source provenance, committed dependency locks and wa
 
 PR CI compiles/stages Windows native outputs, builds/packages the managed solution on Linux,
 and runs targeted offline architecture/policy tests, formatting, dependency review and secret scanning.
-Weekly/manual Deep check retains C# CodeQL only. No macOS, native runtime, installed-consumer,
+Weekly/manual Deep check retains C# CodeQL only. The separate OS secret-store tier (minimal, sequential
+Credential Manager tests on a hosted Windows runner: external PRs, merge_group, dispatch, weekly) is the only
+suite that reaches a real OS secret store. No macOS, native runtime, installed-consumer,
 GUI/device/browser or live-service CI is permitted under [AGENTS.md](AGENTS.md).
 
 Run relevant format/static checks once. The independent IDE build and runtime diagnostics are explicit

@@ -124,7 +124,7 @@
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security.Secrets/ArcForges.Security.Secrets.csproj",
-      "blob": "fd53794d0654df1c47214754b278c24838059f99"
+      "blob": "86f2dcd4fff9c6bb319bdbbdc053ee1b99b0bc35"
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Security.Secrets/Tests/ArcForges.Security.Secrets.Tests.csproj",
@@ -193,6 +193,10 @@
     {
       "path": "tests/SecretStoreSelectionAotTests/SecretStoreSelectionAotTests.csproj",
       "blob": "8717f231edcdcf1c9a0a90aa20f27921102d7345"
+    },
+    {
+      "path": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+      "blob": "808f7cf7b5573d51e184ae24f059ad628f4f5e81"
     },
     {
       "path": "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj",

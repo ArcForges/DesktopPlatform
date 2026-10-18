@@ -189,6 +189,10 @@
       "kind": "msbuild"
     },
     {
+      "path": "tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj",
+      "kind": "msbuild"
+    },
+    {
       "path": "tests/NativeAbiTests/ArcForges.Tests.NativeAbiTests.csproj",
       "kind": "msbuild"
     },

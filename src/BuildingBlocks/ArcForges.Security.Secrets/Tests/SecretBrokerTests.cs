@@ -9,9 +9,6 @@ namespace ArcForges.Security.Secrets.Tests;
 
 public sealed class SecretBrokerTests
 {
-    public static bool LocalWindowsStoreEnabled => OperatingSystem.IsWindows()
-        && Environment.GetEnvironmentVariable("ARCFORGES_LOCAL_OS_SECRET_STORE") == "1";
-
     private static readonly Guid Realm = Guid.Parse("10000000-0000-0000-0000-000000000001");
     private static readonly Guid User = Guid.Parse("20000000-0000-0000-0000-000000000002");
     private static readonly Guid Device = Guid.Parse("30000000-0000-0000-0000-000000000003");
@@ -291,6 +288,8 @@ public sealed class SecretBrokerTests
     {
         // A bus address that names nothing: no test reaches the user's own session bus or keyring. Without a reachable Secret
         // Service the strict entry point refuses; it never falls back to a file (that is SelectForCurrentPlatform's reported choice).
+        // The Windows selection (Credential Manager, reported as the OS store and SameUserShared) needs the real adapter, which the
+        // test tripwire refuses here (OsSecretStoreGuardTests); it is asserted by the OS secret-store tier (tests/OsSecretStoreTests).
         var unreachable = new SecretServiceOptions
         {
             BusAddress = "unix:path=/nonexistent/arcforges-test-bus",
@@ -300,21 +299,12 @@ public sealed class SecretBrokerTests
         if (!OperatingSystem.IsWindows())
         {
             Assert.Throws<PlatformNotSupportedException>(() => OsSecretStore.Create(isWindows: true, unreachable));
-            return;
         }
 
-        var store = Assert.IsType<WindowsCredentialManagerSecretStore>(OsSecretStore.CreateForCurrentPlatform());
-        Assert.Equal(SecretStoreIsolation.SameUserShared, store.Isolation);
-        // Selecting creates nothing: the Windows backend is Credential Manager, reported as the OS store whatever the data root.
-        var selection = OsSecretStore.SelectForCurrentPlatform(Path.Combine(Path.GetTempPath(), "arcforges-unused-data-root"));
-        Assert.IsType<WindowsCredentialManagerSecretStore>(selection.Store);
-        Assert.Equal(SecretStoreBackend.WindowsCredentialManager, selection.Backend);
-        Assert.Equal(SecretStoreProtection.OsSecretStore, selection.Protection);
-        Assert.True(selection.CredentialInOsStore);
-        Assert.Null(selection.FallbackReason);
+        // A store that declares only the same-user shared class never satisfies the strict OS-enforced policy.
         var installation = new SecretInstallationBinding(SecretApplicationDimension.ArcScope, new DeviceId(Device),
             new InstallationId(Installation));
-        Assert.Throws<NotSupportedException>(() => new SecretBroker(installation, new ContextProvider(), store,
+        Assert.Throws<NotSupportedException>(() => new SecretBroker(installation, new ContextProvider(), new MemoryBackingStore(),
             new RecordingConnectorExecutor(), SecretIsolationPolicy.RequireOsEnforcedPerApplication));
     }
 
@@ -478,58 +468,6 @@ public sealed class SecretBrokerTests
         {
             var failure = Assert.Throws<System.Reflection.TargetInvocationException>(() => Check(bad));
             Assert.IsAssignableFrom<ArgumentException>(failure.InnerException);
-        }
-    }
-
-    [Fact(Skip = "Explicit local Windows Credential Manager opt-in (ARCFORGES_LOCAL_OS_SECRET_STORE=1).", SkipUnless = nameof(LocalWindowsStoreEnabled))]
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    public void WindowsCredentialManagerRoundTripIsExplicitlyLocalOptIn()
-    {
-        string target = "ArcForges.Secrets.v1." + Convert.ToHexString(SHA256.HashData(RandomNumberGenerator.GetBytes(32)));
-        var store = new WindowsCredentialManagerSecretStore();
-        byte[] value = RandomNumberGenerator.GetBytes(32);
-        try
-        {
-            store.Write(target, value);
-            Assert.Equal(value, store.Read(target));
-        }
-        finally
-        {
-            CryptographicOperations.ZeroMemory(value);
-            _ = store.Delete(target);
-        }
-
-        Assert.Null(store.Read(target));
-    }
-
-    [Fact(Skip = "Explicit local Windows Credential Manager opt-in (ARCFORGES_LOCAL_OS_SECRET_STORE=1).", SkipUnless = nameof(LocalWindowsStoreEnabled))]
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    public void WindowsCredentialManagerEntryIsVisibleToASameUserSiblingProcessSoItIsNotAnOsIsolationBoundary()
-    {
-        string target = "ArcForges.Secrets.v1." + Convert.ToHexString(SHA256.HashData(RandomNumberGenerator.GetBytes(32)));
-        var store = new WindowsCredentialManagerSecretStore();
-        byte[] value = RandomNumberGenerator.GetBytes(32);
-        try
-        {
-            store.Write(target, value);
-            // A different process of the same Windows user, with no ArcForges code, addresses the entry by name.
-            string cmdkey = Path.Combine(Environment.SystemDirectory, "cmdkey.exe");
-            using var sibling = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(cmdkey)
-            {
-                ArgumentList = { "/list:" + target },
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            })!;
-            string output = sibling.StandardOutput.ReadToEnd();
-            sibling.WaitForExit();
-            Assert.Contains(target, output, StringComparison.Ordinal);
-            Assert.Equal(SecretStoreIsolation.SameUserShared, store.Isolation);
-        }
-        finally
-        {
-            CryptographicOperations.ZeroMemory(value);
-            _ = store.Delete(target);
         }
     }
 

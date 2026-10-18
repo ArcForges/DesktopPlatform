@@ -74,3 +74,19 @@ regexes = [
   '''^\n?    "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "5b79da9460d70d102b92f5ef9e5f4046836451d2a0ad762576a6ad3df15f8846",$''',
   '''^\n?      "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "5b79da9460d70d102b92f5ef9e5f4046836451d2a0ad762576a6ad3df15f8846",$'''
 ]
+
+[[allowlists]]
+description = "Exact OS secret-store guard project input lines"
+paths = [
+  '''^eng/policy/dependency-policy[.]json$''',
+  '''^eng/policy/dependency-reviews/os-secret-store-guard-r1[.]json$'''
+]
+regexTarget = "line"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexes = [
+  '''^\n?    "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "e4effc73ea98bf170cf384c55e43c34d30cbe4e67cd9abd5e81dae170fcf880e",$''',
+  '''^\n?      "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "e4effc73ea98bf170cf384c55e43c34d30cbe4e67cd9abd5e81dae170fcf880e",$''',
+  '''^\n?    "tests/OsSecretStoreTests/ArcForges[.]Tests[.]OsSecretStoreTests[.]csproj": "839dfa0b55f7ae2b2ad060ad0238e20b57c069bd1480f72220e398ccc4fdeeff",$''',
+  '''^\n?      "tests/OsSecretStoreTests/ArcForges[.]Tests[.]OsSecretStoreTests[.]csproj": "839dfa0b55f7ae2b2ad060ad0238e20b57c069bd1480f72220e398ccc4fdeeff",$'''
+]

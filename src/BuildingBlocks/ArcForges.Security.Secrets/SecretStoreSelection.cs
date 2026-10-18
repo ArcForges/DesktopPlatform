@@ -111,7 +111,8 @@ public static class OsSecretStore
     /// Returns the OS secret-store adapter of the current platform: Windows Credential Manager, or on Linux the Secret Service
     /// of the session bus when it is available. Otherwise throws <see cref="PlatformNotSupportedException"/>. It never falls back
     /// to files, preferences, environment variables or memory; the reported file fallback is chosen only by
-    /// <see cref="SelectForCurrentPlatform"/>.
+    /// <see cref="SelectForCurrentPlatform"/>. In a test process the runtime tripwire (<see cref="OsSecretStoreGuard"/>) refuses the
+    /// user's stores with <see cref="OsSecretStoreDeniedException"/> before any OS call.
     /// </summary>
     public static ISecretBackingStore CreateForCurrentPlatform() => Create(OperatingSystem.IsWindows());
 
@@ -119,7 +120,9 @@ public static class OsSecretStore
     /// Selects the node's credential store and records the choice. Windows: Credential Manager. Linux: the Secret Service when the
     /// session bus and <c>org.freedesktop.secrets</c> are available, otherwise one 0600 file per secret under
     /// <c>&lt;dataRoot&gt;/run/secrets/</c> with <see cref="SecretStoreProtection.FileOwnerOnly"/>, which the caller reports as weaker
-    /// storage. Other platforms throw <see cref="PlatformNotSupportedException"/>.
+    /// storage. Other platforms throw <see cref="PlatformNotSupportedException"/>. In a test process the runtime tripwire
+    /// (<see cref="OsSecretStoreGuard"/>) refuses Credential Manager, and the Secret Service on the user's session bus, with
+    /// <see cref="OsSecretStoreDeniedException"/> before any OS call; the refusal propagates and never selects the file fallback.
     /// </summary>
     /// <param name="dataRoot">The absolute node data root that owns the <c>run/secrets</c> fallback directory.</param>
     /// <param name="options">Secret Service options; <see langword="null"/> uses the session bus of the environment.</param>

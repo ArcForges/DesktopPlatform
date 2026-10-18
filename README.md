@@ -96,6 +96,10 @@ consumer diagnostics are explicit local opt-in only when an affected behavior ne
 The scheduled/manual [Deep check](.github/workflows/deep-check.yml) runs C# CodeQL only. To validate the
 current configuration, use Actions → Deep check → Run workflow and select the desired branch.
 Re-running a historical workflow uses its original commit and can still execute the removed jobs.
+The [OS secret-store tier](.github/workflows/os-secret-store-tier.yml) runs the minimal, sequential Windows
+Credential Manager tests of `tests/OsSecretStoreTests` alone on a disposable hosted runner for external PRs,
+`merge_group`, manual dispatch and weekly ([tier rules](tests/OsSecretStoreTests/README.md)); no routine suite or
+pre-push step reaches a real OS secret store, and every test project sets the test tripwire.
 The PR gate's native job compiles and stages the Windows native libraries and runs the selected CTest
 and NativeAbi layout tests. Isolated package consumers are local opt-in only; no macOS or hosted runtime
 testing is permitted. The owner's PRs run the whole PR gate locally before the push (`python eng/verify.py`,
