@@ -139,6 +139,45 @@ public sealed class OsSecretStoreGuardTests : IDisposable
         Assert.True(OsSecretStoreGuard.IsUserSessionBus("unix:path=" + ownSocket, null, null, 1000, _root));
     }
 
+    [Fact(Skip = LinuxOnly, SkipUnless = nameof(OnLinux))]
+    [SupportedOSPlatform("linux")]
+    public void ASymbolicLinkIsJudgedByItsRealTargetSoALinkIntoTheUserRuntimeDirectoryIsInScope()
+    {
+        // Links in this test's own temporary directory; their targets are only read, never opened, and no bus is contacted. The
+        // user bus is /run/user/1000/bus by the arguments below, whether or not it exists here.
+        string temporary = Path.GetTempPath();
+        string userBus = Path.Combine(_root, "user-bus");
+        File.CreateSymbolicLink(userBus, "/run/user/1000/bus");
+        string runtimeDirectory = Path.Combine(_root, "runtime-directory");
+        Directory.CreateSymbolicLink(runtimeDirectory, "/run/user/1000");
+        string chained = Path.Combine(_root, "chained");
+        File.CreateSymbolicLink(chained, "user-bus");
+        string viaParent = Path.Combine(_root, "parent-link");
+        Directory.CreateSymbolicLink(viaParent, Path.Combine(_root, "runtime-directory"));
+        foreach (string inScope in new[] { userBus, Path.Combine(runtimeDirectory, "bus"), chained, Path.Combine(viaParent, "bus"),
+            Path.Combine(_root, "x", "..", "user-bus") })
+        {
+            Assert.True(OsSecretStoreGuard.IsUserSessionBus("unix:path=" + inScope, null, null, 1000, temporary), inScope);
+        }
+
+        // A link loop cannot be resolved, so it is in scope.
+        string loop = Path.Combine(_root, "loop");
+        File.CreateSymbolicLink(loop, "loop");
+        Assert.True(OsSecretStoreGuard.IsUserSessionBus("unix:path=" + loop, null, null, 1000, temporary));
+        Assert.Null(OsSecretStoreGuard.ResolveLinks(loop));
+
+        // A link to this test's own socket stays test-owned, and a link to a path that does not exist reaches nothing.
+        string ownSocket = Path.Combine(_root, "bus");
+        using var own = Listen(ownSocket);
+        string alias = Path.Combine(_root, "alias");
+        File.CreateSymbolicLink(alias, ownSocket);
+        Assert.Equal(ownSocket, OsSecretStoreGuard.ResolveLinks(alias));
+        Assert.False(OsSecretStoreGuard.IsUserSessionBus("unix:path=" + alias, null, null, 1000, temporary));
+        string nowhere = Path.Combine(_root, "nowhere");
+        File.CreateSymbolicLink(nowhere, "/nonexistent/arcforges-test-bus");
+        Assert.False(OsSecretStoreGuard.IsUserSessionBus("unix:path=" + nowhere, null, null, 1000, temporary));
+    }
+
     [SupportedOSPlatform("linux")]
     private static System.Net.Sockets.Socket Listen(string path)
     {

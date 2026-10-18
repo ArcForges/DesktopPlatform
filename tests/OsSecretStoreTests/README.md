@@ -24,6 +24,14 @@ switch `ArcForges.Security.Secrets.DenyOsStores` that every test project sets) r
 - **Safe cleanup.** Only listed names are deleted, by exact name, and each is read back once: it must be absent. A remaining entry
   fails the test and is reported by name; a failed absence check is evidence (L-26) and is never retried. Nothing is enumerated or
   deleted by pattern. The read-backs and absence checks are test verification, not production behaviour (04-execution section 2).
+- **Cleanup after a failed run.** When a limit stops the run (call timeout, call budget, tier time), every listed name that may
+  exist (a write that failed or timed out included) gets exactly one bounded exact-name delete and one absence read, from a
+  separate cleanup allowance of at most 8 calls (10 s each, sequential, outside the run's 32), and never more. The list records
+  each name's true outcome: `DELETED-ABSENT`, `DELETE-FAILED (<reason>)`, `STILL-PRESENT`, `ABSENCE-UNVERIFIED (<reason>)` or
+  `NOT-ATTEMPTED (<reason>)` (for example when the allowance is used up). The run then fails with every name whose absence is not
+  verified. **Those remaining names are evidence and need exact-name manual cleanup** (on the workstation only by the user, or with the
+  user's approval, exactly those names after checking them against the run's list; a hosted runner is discarded with the run);
+  nothing deletes by pattern.
 - **Never stress or load.** No stress, load, soak or concurrency test runs here, hosted runners included.
 
 ## Where it runs

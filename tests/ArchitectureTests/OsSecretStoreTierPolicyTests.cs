@@ -69,6 +69,37 @@ public sealed partial class OsSecretStoreTierPolicyTests
         Xunit.Assert.All(AllowList.Values, reason => Xunit.Assert.False(string.IsNullOrWhiteSpace(reason)));
     }
 
+    [Xunit.Theory]
+    [Xunit.InlineData("var store = ArcForges.Security.Secrets.OsSecretStore.CreateForCurrentPlatform();")]
+    [Xunit.InlineData("_ = global::ArcForges.Security.Secrets.OsSecretStore.SelectForCurrentPlatform(root);")]
+    [Xunit.InlineData("using static ArcForges.Security.Secrets.OsSecretStore;")]
+    [Xunit.InlineData("using S = ArcForges.Security.Secrets.OsSecretStore;")]
+    [Xunit.InlineData("var type = typeof(OsSecretStore);")]
+    [Xunit.InlineData("string name = nameof(OsSecretStore);")]
+    [Xunit.InlineData("OsSecretStore . CreateForCurrentPlatform()")]
+    [Xunit.InlineData("new ArcForges.Security.Secrets.WindowsCredentialManagerSecretStore()")]
+    [Xunit.InlineData("using W = global::ArcForges.Security.Secrets.WindowsCredentialManagerSecretStore;")]
+    [Xunit.InlineData("var type = typeof(global::ArcForges.Security.Secrets.SecretServiceSecretStore);")]
+    [Xunit.InlineData("using static ArcForges.Security.Secrets.SecretServiceSecretStore;")]
+    public void TheReferenceCheckCatchesEveryFormOfNamingTheAdaptersAndTheirSelection(string source) =>
+        Xunit.Assert.Matches(AdapterReference(), source);
+
+    [Xunit.Theory]
+    [Xunit.InlineData("if (OsSecretStoreGuard.IsDenied) return;")]
+    [Xunit.InlineData("OsSecretStoreGuard.ThrowIfDenied(\"a CNG user key store\");")]
+    [Xunit.InlineData("catch (ArcForges.Security.Secrets.OsSecretStoreDeniedException) { }")]
+    [Xunit.InlineData("tests/OsSecretStoreTests/ArcForges.Tests.OsSecretStoreTests.csproj")]
+    [Xunit.InlineData("public sealed partial class OsSecretStoreTierPolicyTests")]
+    public void TheReferenceCheckIgnoresTheGuardItsErrorAndTheTierName(string source) =>
+        Xunit.Assert.DoesNotMatch(AdapterReference(), source);
+
+    [Xunit.Theory]
+    [Xunit.InlineData("CredReadW(target, 1, 0, out var credential)")]
+    [Xunit.InlineData("[LibraryImport(\"Advapi32.dll\", EntryPoint = \"CredEnumerateW\")]")]
+    [Xunit.InlineData("Process.Start(\"cmdkey.exe\", \"/list\")")]
+    [Xunit.InlineData("secret-tool lookup application arcforges")]
+    public void TheDirectStoreCheckCatchesTheCredentialApiAndTheStoreClients(string source) =>
+        Xunit.Assert.Matches(DirectStoreAccess(), source);
     [Xunit.Fact]
     public void ProductionSourcesNameTheAdaptersOnlyInTheirOwnLibrary()
     {
@@ -272,7 +303,9 @@ public sealed partial class OsSecretStoreTierPolicyTests
         return directory?.FullName ?? throw new InvalidOperationException("DesktopPlatform root not found.");
     }
 
-    [GeneratedRegex(@"(?<![\w.])OsSecretStore\s*\.|\bWindowsCredentialManagerSecretStore\b|\bSecretServiceSecretStore\b")]
+    // The bare type names in any form (qualified, global::, using static, aliases, typeof/nameof, member access); a word character
+    // after the name (OsSecretStoreGuard, OsSecretStoreDeniedException, OsSecretStoreTests) is another identifier.
+    [GeneratedRegex(@"\bOsSecretStore\b|\bWindowsCredentialManagerSecretStore\b|\bSecretServiceSecretStore\b")]
     private static partial Regex AdapterReference();
 
     [GeneratedRegex(@"\bCred(?:Read|Write|Delete|Enumerate|Free|Rename|GetTargetInfo)[AW]?\b|\bcmdkey\b|\bsecret-tool\b", RegexOptions.IgnoreCase)]

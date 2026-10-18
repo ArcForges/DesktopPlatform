@@ -59,7 +59,8 @@ public static class OsSecretStoreGuard
     /// <c>unix:path=</c> socket that is not the user's session bus and that either does not exist or lies in a directory of its
     /// own under the temporary directory (a private daemon). Everything else is the user's session bus or cannot be shown not to be:
     /// the <c>DBUS_SESSION_BUS_ADDRESS</c> value or a path in it, <c>/run/user/&lt;uid&gt;/bus</c>, <c>$XDG_RUNTIME_DIR/bus</c>,
-    /// abstract, TCP, launchd or escaped addresses, address lists, and existing sockets elsewhere.
+    /// abstract, TCP, launchd or escaped addresses, address lists, and existing sockets elsewhere. The decision is made on the
+    /// socket's real location: symbolic links in the path and its parent directories are resolved first.
     /// </summary>
     internal static bool IsUserSessionBus(string address, string? sessionBusVariable, string? runtimeDirectory, uint? userId,
         string temporaryDirectory)
@@ -87,15 +88,72 @@ public static class OsSecretStoreGuard
             }
         }
 
+        // Decide on where the socket really is: symbolic links in the path or its parent directories are resolved first, so a link
+        // under the temporary directory into /run/user/<uid> is the user's bus. A path that cannot be resolved is in scope.
         string normalized = Normalize(path);
-        if (userBuses.Any(bus => string.Equals(Normalize(bus), normalized, StringComparison.Ordinal))) return true;
-        if (!File.Exists(normalized) && !Directory.Exists(normalized)) return false;
-        string temporary = Normalize(temporaryDirectory);
-        string? parent = Path.GetDirectoryName(normalized);
-        return parent is null || string.Equals(parent, temporary, StringComparison.Ordinal)
-            || !normalized.StartsWith(temporary + "/", StringComparison.Ordinal);
+        string? real = ResolveLinks(normalized);
+        if (real is null) return true;
+        var buses = userBuses.Select(Normalize).SelectMany(bus => new[] { bus, ResolveLinks(bus) ?? bus }).ToHashSet(StringComparer.Ordinal);
+        if (buses.Contains(normalized) || buses.Contains(real)) return true;
+        if (!File.Exists(real) && !Directory.Exists(real)) return false;
+        string temporary = ResolveLinks(Normalize(temporaryDirectory)) ?? Normalize(temporaryDirectory);
+        int slash = real.LastIndexOf('/');
+        string parent = slash <= 0 ? "/" : real[..slash];
+        return string.Equals(parent, temporary, StringComparison.Ordinal) || !real.StartsWith(temporary + "/", StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// The path with every symbolic link in it resolved, as realpath does (final target and parent directories; components that do
+    /// not exist are kept as they are). Null when it cannot be resolved (a link loop, or an error reading a link), which callers
+    /// treat as in scope. On Windows (where the Secret Service does not exist) the path is returned unchanged.
+    /// </summary>
+    internal static string? ResolveLinks(string path)
+    {
+        if (OperatingSystem.IsWindows()) return path;
+        const int MaximumLinks = 40;
+        var pending = new List<string>(path.Split('/', StringSplitOptions.RemoveEmptyEntries));
+        string current = "/";
+        int links = 0;
+        try
+        {
+            while (pending.Count > 0)
+            {
+                string component = pending[0];
+                pending.RemoveAt(0);
+                string next = Normalize(current + "/" + component);
+                string? target = LinkTarget(next);
+                if (target is null)
+                {
+                    current = next;
+                    continue;
+                }
+
+                if (++links > MaximumLinks) return null;
+                string absolute = target.StartsWith('/') ? target : current + "/" + target;
+                pending.InsertRange(0, absolute.Split('/', StringSplitOptions.RemoveEmptyEntries));
+                current = "/";
+            }
+        }
+        catch (Exception failure) when (failure is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            return null;
+        }
+
+        return Normalize(current);
+    }
+
+    // The immediate target of a symbolic link (relative or absolute); null when the path is not a link or does not exist.
+    private static string? LinkTarget(string path)
+    {
+        try
+        {
+            return new FileInfo(path).LinkTarget;
+        }
+        catch (Exception failure) when (failure is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return null;
+        }
+    }
     /// <summary>The socket path of a single <c>unix:path=</c> address (other keys allowed, such as <c>guid</c>); otherwise null.</summary>
     private static string? SocketPath(string address)
     {
