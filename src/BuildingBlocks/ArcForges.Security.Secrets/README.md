@@ -76,7 +76,7 @@ name to the run's name list before creating it, deletes only listed names and ve
 evidence, never retried), and fails the run at 4 entries at once, 32 store calls, 10 s per call or 5 minutes. The
 Windows Credential Manager tests run on disposable hosted Windows runners (`.github/workflows/os-secret-store-tier.yml`:
 external pull requests, `merge_group`, manual dispatch and weekly); locally only through `eng/os_secret_store_tier.py`
-with the explicit opt-in. The Linux Secret Service tests run only in the isolated `ArcForgesTest` WSL distribution.
+with the explicit opt-in. The Linux Secret Service tests run only on the isolated Linux secret-store test host, reached through the Linux MCP server (ArcForges-Design AD-0019 §6).
 
 ## Linux backends and the node's credential store (AF-DP-02)
 
@@ -131,7 +131,7 @@ Obligations of the consumer (the node):
 Tests run on a real Linux file system and, for the Secret Service, against a private `dbus-daemon` and an
 unlocked private `gnome-keyring-daemon` that the test starts in a new temporary directory and stops
 afterwards; they never reach the user's session bus or keyring. The Secret Service tests belong to the OS
-secret-store tier: they run only with `ARCFORGES_OS_SECRET_STORE_TESTS=1` in the `ArcForgesTest` WSL distribution
+secret-store tier: they run only with `ARCFORGES_OS_SECRET_STORE_TESTS=1` on the isolated Linux secret-store test host
 and skip, with the reason, when `dbus-daemon`, `gnome-keyring-daemon`, `secret-tool` or `dbus-send` is not
 installed there (user installs, H-11). The file fallback tests and the selection over a bus address that does
 not exist run on every Linux test run. `tests/SecretStoreSelectionAotTests` is the Native AOT probe of the selection.

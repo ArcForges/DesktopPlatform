@@ -10,7 +10,7 @@ namespace ArcForges.Security.Secrets.Tests;
 /// exist, and the test tripwire (<see cref="OsSecretStoreGuard"/>) refuses anything else (OsSecretStoreGuardTests). The tests
 /// against a real Secret Service (a private dbus-daemon and gnome-keyring-daemon) and the selection without any session bus belong
 /// to the OS secret-store integration tier (tests/OsSecretStoreTests), which runs only with ARCFORGES_OS_SECRET_STORE_TESTS=1 in the
-/// isolated ArcForgesTest distribution.
+/// isolated Linux secret-store test host (ArcForges-Design AD-0019 section 6).
 /// </summary>
 public sealed class LinuxSecretStoreSelectionTests : IDisposable
 {

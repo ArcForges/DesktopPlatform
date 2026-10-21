@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import stat
 import sys
 import types
 import unittest
@@ -121,16 +122,46 @@ class TierRunnerRunsOnlyOnTheExplicitOptIn(unittest.TestCase):
                 self.assertEqual(os_secret_store_tier.NOT_RUN, code)
                 self.assertTrue(message.startswith("NOT RUN"), message)
 
-    def test_linux_runs_only_in_the_isolated_distribution(self):
-        for distribution in (None, "Debian", "arcforgestest"):
+    def test_linux_runs_only_on_the_isolated_test_host(self):
+        # A WSL distribution name no longer admits the tier (AD-0019 section 6); only the isolated host's marker does.
+        for distribution in (None, "Debian", "ArcForgesTest"):
             environ = {OPT_IN: "1"} | ({"WSL_DISTRO_NAME": distribution} if distribution else {})
             with self.subTest(distribution=distribution):
                 code, message = os_secret_store_tier.refusal(environ, "linux")
                 self.assertEqual(1, code)
-                self.assertIn("ArcForgesTest", message)
-        self.assertIsNone(os_secret_store_tier.refusal({OPT_IN: "1", "WSL_DISTRO_NAME": "ArcForgesTest"}, "linux"))
+                self.assertIn(str(os_secret_store_tier.ISOLATED_HOST_MARKER), message)
+        self.assertIsNone(os_secret_store_tier.refusal({OPT_IN: "1"}, "linux", isolated=True))
+        self.assertEqual(os_secret_store_tier.NOT_RUN, os_secret_store_tier.refusal({}, "linux", isolated=True)[0])
         self.assertIsNone(os_secret_store_tier.refusal({OPT_IN: "1"}, "win32"))
         self.assertEqual(1, os_secret_store_tier.refusal({OPT_IN: "1"}, "darwin")[0])
+
+    def test_the_marker_counts_only_as_a_root_owned_regular_file_in_a_root_owned_directory(self):
+        marker = Path("/etc/arcforges/isolated-secret-store-test-host")
+        directory, regular, link = stat.S_IFDIR | 0o755, stat.S_IFREG | 0o644, stat.S_IFLNK | 0o777
+
+        def check(entries, euid=1000):
+            def lstat(path):
+                if str(path) not in entries:
+                    raise FileNotFoundError(path)
+                mode, uid = entries[str(path)]
+                return types.SimpleNamespace(st_mode=mode, st_uid=uid)
+            return os_secret_store_tier.isolated_host(marker, lstat=lstat, geteuid=lambda: euid)
+
+        good = {"/etc/arcforges": (directory, 0), str(marker): (regular, 0)}
+        self.assertTrue(check(good))
+        for name, entries, euid in (
+                ("missing marker", {"/etc/arcforges": (directory, 0)}, 1000),
+                ("missing directory", {}, 1000),
+                ("run as root", good, 0),
+                ("symbolic link", good | {str(marker): (link, 0)}, 1000),
+                ("a directory", good | {str(marker): (directory, 0)}, 1000),
+                ("not owned by root", good | {str(marker): (regular, 1000)}, 1000),
+                ("group-writable", good | {str(marker): (regular | stat.S_IWGRP, 0)}, 1000),
+                ("world-writable", good | {str(marker): (regular | stat.S_IWOTH, 0)}, 1000),
+                ("directory not owned by root", good | {"/etc/arcforges": (directory, 1000)}, 1000),
+                ("directory writable by others", good | {"/etc/arcforges": (directory | stat.S_IWOTH, 0)}, 1000)):
+            with self.subTest(name):
+                self.assertFalse(check(entries, euid))
 
     def test_the_runner_runs_exactly_the_tier_project(self):
         self.assertEqual(["dotnet", "test", "--project", TIER_PROJECT, "-c", "Release", "--no-build"],

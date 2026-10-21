@@ -10,7 +10,7 @@ namespace ArcForges.Tests.OsSecretStoreTests;
 /// <summary>
 /// The Linux Secret Service backend and its selection against a real, private GNOME Keyring (the OS secret-store tier; formerly the
 /// local opt-in ARCFORGES_LOCAL_OS_SECRET_STORE tests of ArcForges.Security.Secrets.Tests). They run only in the isolated
-/// ArcForgesTest WSL distribution with ARCFORGES_OS_SECRET_STORE_TESTS=1, never in the development distribution, and are skipped
+/// Linux secret-store test host (its marker file, ArcForges-Design AD-0019 section 6) with ARCFORGES_OS_SECRET_STORE_TESTS=1, never in the verification account or a WSL distribution, and are skipped
 /// with the reason when the Secret Service provider (gnome-keyring) or its tools are not installed there. Every test starts its own
 /// dbus-daemon and gnome-keyring-daemon in a new temporary directory, so even there the user's session bus and keyring are never
 /// contacted; each store call is counted by the tier fixture, and entry names come from its name list.
@@ -122,7 +122,7 @@ public sealed class SecretServiceTierTests(OsSecretStoreTier tier) : IDisposable
     public void AKeyringWithoutADefaultCollectionIsUnavailableSoTheFallbackIsSelectedAndNoCollectionIsCreated()
     {
         PrivateSecretServiceKeyring.RequireTools("dbus-daemon", "gnome-keyring-daemon", "dbus-send");
-        // gnome-keyring started without --unlock in a fresh home: the headless state of a WSL session without a login keyring.
+        // gnome-keyring started without --unlock in a fresh home: the headless state of a session without a login keyring.
         using var keyring = PrivateSecretServiceKeyring.Start(tier, withKeyring: true, unlock: false);
 
         var selection = tier.Call("select", () => OsSecretStore.SelectForCurrentPlatform(DataRoot, keyring.Options));
