@@ -60,6 +60,7 @@ The owner's (`deku2026`) PRs are verified by the repository's pre-push hook, not
 - **Prerequisites** (installs are the user's): on Windows, the .NET SDK selected by `global.json` (the user-local SDK root first on `PATH`), Python 3.14, PowerShell 7, Visual Studio with the MSVC toolset recorded in `eng/provenance/artifact-profiles/native-win-x64-r4.json` and a Windows SDK, CMake 4.3.3, Ninja 1.13.1, sccache, and `C:\vcpkg` (or `VCPKG_ROOT`) at the commit pinned in `eng/packaging/native.py`, never changed to pass the check; on the Linux host, the same .NET SDK, Python 3.14 with `venv` (`python` on PATH), Clang and lld, CMake, and Docker with the pinned gitleaks image; network access to NuGet, PyPI and GitHub.
 - **Failures.** A failed, timed-out or unrunnable step, or a missing leg record, rejects the push and prints the step, the last log lines and the log path (`<git common dir>/arcforges-verify/logs/`). Read the log, fix the cause, push again.
 - AI agents must never use `git push --no-verify` to bypass required validation.
+- Only `python eng/verify.py import` brings in another machine's leg, and only the record that `python eng/verify.py run` wrote on that machine at the exact commit: writing, editing or reusing a pass record by hand is circumventing the hooks.
 - They must also never disable, remove, modify, or otherwise circumvent the hooks merely to allow a push.
 - If validation fails, investigate and fix the underlying issue.
 - If a required local test cannot run, do not silently skip it or claim successful verification.
