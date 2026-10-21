@@ -53,13 +53,12 @@ dotnet test --project src/DesktopHelpers/ArcForges.ContentSandbox/Tests/ArcForge
 Publishing needs the Visual Studio C++ tools on the path of the shell; on a machine where `findvcvarsall.bat` cannot find `vswhere.exe`, put
 `%ProgramFiles(x86)%\Microsoft Visual Studio\Installer` on `PATH` for that shell. The results are evidence for that machine, that Windows build and that fixture only.
 
-On Linux (`LinuxOsIsolationTests`), once, on a Linux-native file system (ext4; never a Windows mount such as `/mnt/c`). Locally this is
-WSL2 Debian (P2-024), with the pinned .NET SDK in `~/.dotnet` and clang and lld for the Native AOT link. From PowerShell, clone the branch
-being recorded into the Debian home directory and open a Debian shell:
+On Linux (`LinuxOsIsolationTests`), once, on a Linux-native file system (ext4; never a Windows mount such as `/mnt/c`): a native Linux
+host with the pinned .NET SDK and clang and lld for the Native AOT link (local WSL is not a development dependency; ArcForges-Design
+AD-0018). Clone the branch being recorded into the home directory and open a shell there:
 
-```powershell
-wsl.exe -d Debian -- git clone --no-local --branch <branch> /mnt/c/<path of the DesktopPlatform clone> ~/arcforges/DesktopPlatform
-wsl.exe -d Debian
+```bash
+git clone --branch <branch> https://github.com/ArcForges/DesktopPlatform.git ~/arcforges/DesktopPlatform
 ```
 
 Then, in that shell:

@@ -31,7 +31,7 @@ dotnet publish tests/SecretStoreSelectionAotTests/SecretStoreSelectionAotTests.c
 artifacts\af-dp-02\win-x64\SecretStoreSelectionAotTests.exe
 ```
 
-Linux (WSL2 Debian):
+Linux:
 
 ```sh
 dotnet publish tests/SecretStoreSelectionAotTests/SecretStoreSelectionAotTests.csproj -c Release -r linux-x64 -o artifacts/af-dp-02/linux-x64

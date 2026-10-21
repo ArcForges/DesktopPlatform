@@ -82,7 +82,7 @@ Windows:
   ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
   ```
 
-Linux (WSL2 Debian, `wsl.exe -d Debian` from PowerShell; work on the Linux-native file system, never under `/mnt/c`):
+Linux (a native Linux host; work on the Linux-native file system, never under a Windows mount such as `/mnt/c`):
 
 - The owning uid (A) is the distribution's normal user.
 - The second uid (B) is a non-root user that is not in the `sudo` group. Create it once:
@@ -175,7 +175,7 @@ In each console that serves as A, also set the temporary folder:
 $env:TMP = 'C:\ArcForgesWrongUser\tmp'; $env:TEMP = $env:TMP
 ```
 
-Linux. Open each terminal with `wsl.exe -d Debian` and paste:
+Linux. Open each terminal on the Linux host and paste:
 
 ```bash
 AFWU=/opt/arcforges-wrong-user
@@ -214,7 +214,7 @@ README Validation section summarises it. Nothing is recorded as proven from memo
 procedure: src/BuildingBlocks/ArcForges.LocalRpc/Tests/wrong-user-procedure.md section <W1..W5|U1> [<route>/<transport>]
 date (UTC):
 commit: <40-hex>, clean
-host: <Windows edition and build (cmd /c ver)> | <WSL2 Debian PRETTY_NAME, uname -r>
+host: <Windows edition and build (cmd /c ver)> | <Linux PRETTY_NAME, uname -r>
 runtime: Microsoft.NETCore.App <version>, Microsoft.AspNetCore.App <version> (<dotnet path>)
 owning account: <name> <SID or uid>, administrator check False | uid not 0
 second account: <name> <SID or uid>, not an administrator, not elevated | not root, not in sudo

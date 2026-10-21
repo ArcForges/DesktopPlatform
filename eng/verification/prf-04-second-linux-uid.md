@@ -20,8 +20,8 @@ Both procedures can share the same second uid.
 
 ## 1. Host and uids
 
-Run on Linux. On this workstation that is WSL2 Debian: open each terminal from
-PowerShell with `wsl.exe -d Debian`. Work on the Linux-native file system, never
+Run on a native Linux host (local WSL is not a development dependency; ArcForges-Design
+AD-0018). Work on the Linux-native file system, never
 under `/mnt/c`.
 
 - The owning uid (A) is the distribution's normal user, and it is not root.
