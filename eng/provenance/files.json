@@ -1038,7 +1038,8 @@
     ".github/workflows/os-secret-store-tier.yml",
     "eng/os_secret_store_tier.py",
     "eng/test_os_secret_store_guard.py",
-    "eng/policy/dependency-reviews/os-secret-store-guard-r1.json"
+    "eng/policy/dependency-reviews/os-secret-store-guard-r1.json",
+    "eng/test_native_handoff.py"
   ],
   "reused": {
     "LICENSE": "canonical-agpl-legal-r1",

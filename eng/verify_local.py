@@ -5,15 +5,17 @@ job of .github/workflows/pr-gate.yml, native-abi.yml or package-validation.yml (
 
   python eng/verify_local.py native          Windows: native-abi.yml `native-win-x64` from vcpkg install to the NativeAbi tests
   python eng/verify_local.py stage           Windows: native-abi.yml, stage the audited native runtime packages
-  python eng/verify_local.py handoff SHA     Windows: the native-stage and native-licence artifact hand-off to the WSL clone
-  python eng/verify_local.py hooks           WSL: pr-gate.yml `repository-hooks` (hash-pinned pre-commit closure)
-  python eng/verify_local.py managed-tests   WSL: package-validation.yml `pack`, the test suites of "Build and test"
-  python eng/verify_local.py architecture    WSL: `pack`, the architecture gate, invariant accounting and reason registry
-  python eng/verify_local.py pack            WSL: `pack`, the version check and "Pack explicit release allowlist"
-  python eng/verify_local.py packaging-tests WSL: `pack`, "Verify rejection of invalid versions and altered candidates"
+  python eng/verify_local.py handoff SHA     Windows: pack the native-stage and native-licence artifacts for the Linux leg
+  python eng/verify_local.py handoff-import SHA
+                                             Linux: check and unpack that hand-off into the Linux verification clone
+  python eng/verify_local.py hooks           Linux: pr-gate.yml `repository-hooks` (hash-pinned pre-commit closure)
+  python eng/verify_local.py managed-tests   Linux: package-validation.yml `pack`, the test suites of "Build and test"
+  python eng/verify_local.py architecture    Linux: `pack`, the architecture gate, invariant accounting and reason registry
+  python eng/verify_local.py pack            Linux: `pack`, the version check and "Pack explicit release allowlist"
+  python eng/verify_local.py packaging-tests Linux: `pack`, "Verify rejection of invalid versions and altered candidates"
 
 Only the GitHub-bound parts differ, each named where it happens: run ids and artifact uploads have local equivalents
-(the local identity RUN/ATTEMPT below, and copies between the two verification checkouts), and the hosted secret-scan
+(the local identity RUN/ATTEMPT below, and a checked hand-off archive between the two legs' machines), and the hosted secret-scan
 receipt (RP-09) cannot be produced locally by design (eng/architecture_evidence.py refuses local RP-09 evidence), so the
 architecture gate accepts exactly that one finding and nothing else; the secret scan itself runs in the hook.
 """
@@ -22,12 +24,14 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import hashlib
+import io
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -37,7 +41,13 @@ RUN, ATTEMPT = "1", "1"  # the local CI identity: hosted runs use GITHUB_RUN_ID 
 VERSION = f"1.0.0-ci.{RUN}.{ATTEMPT}"  # pr-gate.yml allocates 1.0.0-ci.<run id>.<attempt> for a PR
 RESULTS = ROOT / "artifacts/evidence/test-results"
 WORKFLOW = ROOT / ".github/workflows/package-validation.yml"
-WSL_CLONE = "$HOME/.cache/arcforges-verify/DesktopPlatform"  # eng/verify.py's WSL clone of this repository
+# Where the Linux leg finds the Windows leg's native hand-off (ARCFORGES_VERIFY_HANDOFF_DIR overrides it), and its name.
+HANDOFF_DIR = Path(os.environ.get("ARCFORGES_VERIFY_HANDOFF_DIR") or Path.home() / ".cache/arcforges-verify/handoff")
+HANDOFF_FORMAT = "desktopplatform-native-handoff/1"
+
+
+def handoff_name(sha: str) -> str:
+    return f"DesktopPlatform-native-{sha}.tar.gz"
 PORTS = ["opencolorio[core]", "openimageio[core]", "openexr[core]", "imath[core]"]
 TRIPLET = "x64-windows-static-md"
 PRESET = "win-x64-shim-static"
@@ -210,37 +220,102 @@ def command_stage(_: argparse.Namespace) -> None:
     run(["python", "eng/packaging/native.py", "stage", "--vcpkg-root", str(vcpkg)], env=env)
 
 
-def wsl_path(path: Path) -> str:
-    resolved = str(path.resolve())
-    return "/mnt/" + resolved[0].lower() + resolved[2:].replace("\\", "/")
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for block in iter(lambda: stream.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def command_handoff(args: argparse.Namespace) -> None:
     """The hosted hand-off is two artifacts: the native stage (`native-stage-*`, downloaded by `pack` into
     artifacts/native-packages) and the native licence evidence (`native-licence-policy-*`: artifacts/evidence/licence-ide.json
-    and artifacts/cmake/**/licence-boundary.json, downloaded into artifacts/evidence/native-architecture). Here both
-    are copied from this verification worktree into the WSL clone, after checking that both are at the verified commit."""
+    and artifacts/cmake/**/licence-boundary.json, downloaded into artifacts/evidence/native-architecture). Here, on the
+    Windows leg, both are packed at the paths `pack` reads them from into one archive under the clone's verification state,
+    with a manifest of the commit and of every file's SHA-256, after checking that the worktree is at the verified commit.
+    The archive is carried to the Linux host (the Linux leg runs on another machine) and `handoff-import` checks it there;
+    both steps print its SHA-256, so the two legs' logs show it was the same archive."""
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     if head != args.sha:
         raise Failure(f"the Windows verification worktree is at {head}, not {args.sha}")
     reports = sorted((ROOT / "artifacts/cmake").rglob("licence-boundary.json"))
-    if not (ROOT / "artifacts/native-packages/native-artifact.json").is_file() or not reports:
+    stage = ROOT / "artifacts/native-packages"
+    if not (stage / "native-artifact.json").is_file() or not reports:
         raise Failure("the native stage or its licence evidence is missing; the native steps did not complete")
-    source = wsl_path(ROOT)
-    copies = " ".join(f"mkdir -p \"$e/{r.parent.relative_to(ROOT / 'artifacts').as_posix()}\"; "
-                      f"cp \"$s/{r.relative_to(ROOT).as_posix()}\" \"$e/{r.relative_to(ROOT / 'artifacts').as_posix()}\";"
-                      for r in reports)
-    script = (f"set -euo pipefail; d=\"{WSL_CLONE}\"; s='{source}'; "
-              f"test \"$(git -C \"$d\" rev-parse HEAD)\" = {args.sha}; "
-              "rm -rf \"$d/artifacts/native-packages\" \"$d/artifacts/evidence/native-architecture\"; "
-              "mkdir -p \"$d/artifacts\"; cp -r \"$s/artifacts/native-packages\" \"$d/artifacts/native-packages\"; "
-              "e=\"$d/artifacts/evidence/native-architecture\"; mkdir -p \"$e/evidence\"; "
-              "cp \"$s/artifacts/evidence/licence-ide.json\" \"$e/evidence/licence-ide.json\"; "
-              f"{copies} find \"$e\" \"$d/artifacts/native-packages\" -type f | wc -l")
-    run(["wsl.exe", "-d", "Debian", "--exec", "bash", "-lc", script])
+    evidence = "artifacts/evidence/native-architecture"
+    members = [(f"artifacts/native-packages/{path.relative_to(stage).as_posix()}", path)
+               for path in sorted(stage.rglob("*")) if path.is_file()]
+    members.append((f"{evidence}/evidence/licence-ide.json", ROOT / "artifacts/evidence/licence-ide.json"))
+    members += [(f"{evidence}/{report.relative_to(ROOT / 'artifacts').as_posix()}", report) for report in reports]
+    manifest = {"format": HANDOFF_FORMAT, "commit": args.sha,
+                "files": {name: sha256_file(path) for name, path in members}}
+    common = Path(subprocess.check_output(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=ROOT,
+                                          text=True).strip())
+    target = common / "arcforges-verify" / "handoff" / handoff_name(args.sha)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    partial = target.with_name(target.name + ".part")
+    with tarfile.open(partial, "w:gz", format=tarfile.PAX_FORMAT) as archive:
+        data = json.dumps(manifest, indent=2, sort_keys=True).encode("utf-8")
+        info = tarfile.TarInfo("handoff.json")
+        info.size, info.mode = len(data), 0o644
+        archive.addfile(info, io.BytesIO(data))
+        for name, path in members:
+            archive.add(path, arcname=name, recursive=False)
+    partial.replace(target)
+    print(f"native hand-off for {args.sha}: {len(members)} files, {target.stat().st_size} bytes, "
+          f"sha256 {sha256_file(target)}\n{target}\ncarry it to the Linux host's {HANDOFF_DIR.as_posix()} "
+          "(or ARCFORGES_VERIFY_HANDOFF_DIR) before its leg runs", flush=True)
 
 
-# ---------------------------------------------------------------------------------------------------------------- WSL
+def command_handoff_import(args: argparse.Namespace) -> None:
+    """The Linux leg's half of the hand-off: the archive the Windows leg packed at this commit, checked before anything
+    is unpacked: its manifest names this commit, holds only the hand-off paths, and every file matches its SHA-256. A
+    missing or mismatched archive fails the step (and with it the leg); nothing from an earlier commit is reused."""
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    if head != args.sha:
+        raise Failure(f"the Linux verification clone is at {head}, not {args.sha}")
+    source = HANDOFF_DIR / handoff_name(args.sha)
+    if not source.is_file():
+        raise Failure(f"{source} is missing: run the Windows leg of {args.sha} first (its `native-handoff` step packs "
+                      "the native stage) and copy the archive it names here")
+    print(f"native hand-off {source}: sha256 {sha256_file(source)}", flush=True)
+    allowed = ("artifacts/native-packages/", "artifacts/evidence/native-architecture/")
+    with tarfile.open(source, "r:gz") as archive:
+        entries = archive.getmembers()
+        manifest_entry = next((entry for entry in entries if entry.name == "handoff.json" and entry.isfile()), None)
+        if manifest_entry is None:
+            raise Failure(f"{source} has no handoff.json")
+        manifest = json.loads(archive.extractfile(manifest_entry).read().decode("utf-8"))
+        if manifest.get("format") != HANDOFF_FORMAT or manifest.get("commit") != args.sha:
+            raise Failure(f"{source} is not the native hand-off of {args.sha} (manifest {manifest.get('format')}, "
+                          f"commit {manifest.get('commit')})")
+        files = manifest.get("files", {})
+        names = [entry.name for entry in entries if entry is not manifest_entry]
+        bad = [entry.name for entry in entries if entry is not manifest_entry and (
+            not entry.isfile() or entry.name.startswith("/") or ".." in Path(entry.name).parts
+            or not entry.name.startswith(allowed))]
+        if bad or sorted(names) != sorted(files):
+            raise Failure(f"{source} holds entries outside its manifest or the hand-off paths: "
+                          f"{bad or sorted(set(names) ^ set(files))}")
+        contents = {}
+        for entry in entries:
+            if entry is manifest_entry:
+                continue
+            data = archive.extractfile(entry).read()
+            if hashlib.sha256(data).hexdigest() != files[entry.name]:
+                raise Failure(f"{entry.name} in {source} does not match its SHA-256 in the manifest")
+            contents[entry.name] = data
+    for prefix in allowed:
+        shutil.rmtree(ROOT / prefix, ignore_errors=True)
+    for name, data in contents.items():
+        destination = ROOT / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(data)
+    print(f"unpacked {len(contents)} files of the native hand-off of {args.sha} into {ROOT / 'artifacts'}", flush=True)
+
+
+# -------------------------------------------------------------------------------------------------------------- Linux
 
 def command_hooks(_: argparse.Namespace) -> None:
     """repository-hooks: the hash-pinned pre-commit closure in a virtual environment of its own (a dependency restore,
@@ -384,6 +459,7 @@ def main() -> int:
     for name in ("native", "stage", "hooks", "architecture", "pack", "packaging-tests"):
         sub.add_parser(name)
     sub.add_parser("handoff").add_argument("sha")
+    sub.add_parser("handoff-import").add_argument("sha")
     tests = sub.add_parser("managed-tests")
     tests.add_argument("--jobs", type=int, default=1)
     tests.add_argument("--timing-sensitive", action="store_true", help="only the timing-sensitive projects")
@@ -391,7 +467,8 @@ def main() -> int:
     if os.environ.pop(OS_SECRET_STORE_OPT_IN, None) is not None:
         print(f"removed {OS_SECRET_STORE_OPT_IN} from the environment: every suite here is routine and never reaches a real OS "
               "secret store (only eng/os_secret_store_tier.py runs the tier)", flush=True)
-    commands = {"native": command_native, "stage": command_stage, "handoff": command_handoff, "hooks": command_hooks,
+    commands = {"native": command_native, "stage": command_stage, "handoff": command_handoff,
+                "handoff-import": command_handoff_import, "hooks": command_hooks,
                 "managed-tests": command_managed_tests, "architecture": command_architecture, "pack": command_pack,
                 "packaging-tests": command_packaging_tests}
     try:

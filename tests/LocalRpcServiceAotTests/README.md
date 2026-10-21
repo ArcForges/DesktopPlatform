@@ -22,7 +22,7 @@ dotnet publish tests/LocalRpcServiceAotTests/LocalRpcServiceAotTests.csproj -c R
 artifacts\af-dp-01\win-x64\LocalRpcServiceAotTests.exe
 ```
 
-Linux (WSL2 Debian):
+Linux:
 
 ```sh
 dotnet publish tests/LocalRpcServiceAotTests/LocalRpcServiceAotTests.csproj -c Release -r linux-x64 -o artifacts/af-dp-01/linux-x64
