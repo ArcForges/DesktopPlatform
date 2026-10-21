@@ -464,6 +464,11 @@ def main() -> int:
     tests.add_argument("--jobs", type=int, default=1)
     tests.add_argument("--timing-sensitive", action="store_true", help="only the timing-sensitive projects")
     args = parser.parse_args()
+    # Captured tool output (run(capture=True), the test projects') is printed into the step log, which eng/verify.py
+    # writes and reads as UTF-8; a redirected stdout on Windows would use the ANSI code page (cp1252), where non-ASCII
+    # compiler output raises UnicodeEncodeError and fails the step.
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8", errors="replace")
     if os.environ.pop(OS_SECRET_STORE_OPT_IN, None) is not None:
         print(f"removed {OS_SECRET_STORE_OPT_IN} from the environment: every suite here is routine and never reaches a real OS "
               "secret store (only eng/os_secret_store_tier.py runs the tier)", flush=True)
