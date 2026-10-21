@@ -675,7 +675,9 @@ public sealed class LocalRpcServiceModeTests
         Assert.Equal(TimeSpan.FromHours(6), harness.Server.GetServiceSnapshot().LongestInactivity);
 
         await cancel.CancelAsync();
-        await ServiceHarness.WaitUntilAsync(() => harness.Server.GetServiceSnapshot().StreamsActive == 0, "the stream to end", ct);
+        // The stream is counted as ended before the connection's idle clock restarts, so wait for the clock too: time advanced
+        // in between would be added to the limit, and the idle connection would outlive the test.
+        await ServiceHarness.WaitUntilAsync(() => harness.Server.GetServiceSnapshot().StreamsActive == 0 && time.ArmedTimers == 1, "the stream to end and the idle clock to start", ct);
         time.Advance(TimeSpan.FromMinutes(9));
         await Task.Delay(100, ct);
         Assert.Equal(1, harness.Server.GetBoundsSnapshot().Peers);
