@@ -22,7 +22,8 @@ public sealed class LocalRpcPeerLimitTests
         var time = new ManualTimeProvider();
         await using var harness = await BoundsHarness.StartAsync(new LocalRpcLimits { MaxConnections = 1 }, time, cancellationToken: ct);
         await using var silent = harness.NewClientStream();
-        await BoundsHarness.WaitUntilAsync(() => harness.Server.GetBoundsSnapshot().Peers == 1, "the silent peer to be accepted", ct);
+        // The listener publishes the peer before it starts the handshake clock; time advanced in between would add to the limit.
+        await BoundsHarness.WaitUntilAsync(() => harness.Server.GetBoundsSnapshot().Peers == 1 && time.ArmedTimers == 1, "the silent peer to be accepted and its handshake clock started", ct);
         var closed = silent.ReadAsync(new byte[1], ct).AsTask();
         await using var channel = harness.NewChannel();
         var client = new ProbeClient(channel.CallInvoker);
@@ -49,7 +50,8 @@ public sealed class LocalRpcPeerLimitTests
         await using var harness = await BoundsHarness.StartAsync(new LocalRpcLimits { HandshakeTimeout = TimeSpan.FromSeconds(3) }, time, cancellationToken: ct);
         await using var raw = harness.NewClientStream();
         await raw.WriteAsync(RawFrames.Preface, ct);
-        await BoundsHarness.WaitUntilAsync(() => harness.Server.GetBoundsSnapshot().Peers == 1, "the stalled peer to be accepted", ct);
+        // The listener publishes the peer before it starts the handshake clock; time advanced in between would add to the limit.
+        await BoundsHarness.WaitUntilAsync(() => harness.Server.GetBoundsSnapshot().Peers == 1 && time.ArmedTimers == 1, "the stalled peer to be accepted and its handshake clock started", ct);
         var drained = RawFrames.ReadUntilClosedAsync(raw, Patience, ct);
 
         time.Advance(TimeSpan.FromSeconds(2));

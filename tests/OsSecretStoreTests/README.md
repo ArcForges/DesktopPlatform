@@ -45,14 +45,15 @@ switch `ArcForges.Security.Secrets.DenyOsStores` that every test project sets) r
   $env:ARCFORGES_OS_SECRET_STORE_TESTS = '1'; python eng/os_secret_store_tier.py; Remove-Item Env:ARCFORGES_OS_SECRET_STORE_TESTS
   ```
 
-- **Linux Secret Service:** only in the isolated `ArcForgesTest` WSL distribution (never the development distribution `Debian` or a
+- **Linux Secret Service:** only on the isolated Linux secret-store test host, reached through the Linux MCP server and marked by the
+  root-owned file `/etc/arcforges/isolated-secret-store-test-host` (ArcForges-Design AD-0019 §6; never the verification account, a WSL distribution or a
   user's session keyring), on explicit opt-in. Each test starts its own `dbus-daemon` and unlocked `gnome-keyring-daemon` in a new
-  temporary directory, so even there no session bus or keyring of the user is contacted. The provider and tools are user installs in
-  `ArcForgesTest` (`gnome-keyring`, `dbus-daemon`, `libsecret-tools` for `secret-tool`, `dbus-send`; acceptance register H-11);
+  temporary directory, so even there no session bus or keyring of the user is contacted. The provider and tools are user installs on
+  that host (`gnome-keyring`, `dbus-daemon`, `libsecret-tools` for `secret-tool`, `dbus-send`; acceptance register H-11);
   without them the tests are skipped with the reason, never reported as passed. With the .NET SDK of `global.json` installed there:
 
   ```sh
-  wsl -d ArcForgesTest --cd <checkout> -- env ARCFORGES_OS_SECRET_STORE_TESTS=1 python3 eng/os_secret_store_tier.py
+  ARCFORGES_OS_SECRET_STORE_TESTS=1 python3 eng/os_secret_store_tier.py
   ```
 
-The runner refuses to run without the opt-in (exit code 3, "NOT RUN") and, on Linux, outside `ArcForgesTest`.
+The runner refuses to run without the opt-in (exit code 3, "NOT RUN") and, on Linux, on a host without the root-owned marker.

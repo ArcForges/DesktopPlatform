@@ -50,7 +50,10 @@ public sealed class OsSecretStoreTier : IDisposable
     public const string WindowsTierReason =
         "OS secret-store tier: runs only on Windows with ARCFORGES_OS_SECRET_STORE_TESTS=1 (the hosted tier job or eng/os_secret_store_tier.py).";
     public const string LinuxTierReason =
-        "OS secret-store tier: runs only on Linux in the isolated ArcForgesTest WSL distribution with ARCFORGES_OS_SECRET_STORE_TESTS=1 (eng/os_secret_store_tier.py).";
+        "OS secret-store tier: runs only on Linux on the isolated secret-store test host (marker " + IsolatedHostMarker + ") with ARCFORGES_OS_SECRET_STORE_TESTS=1 (eng/os_secret_store_tier.py).";
+
+    /// <summary>The marker file that the isolated Linux secret-store test host's provisioning creates (ArcForges-Design AD-0019 section 6).</summary>
+    public const string IsolatedHostMarker = "/etc/arcforges/isolated-secret-store-test-host";
 
     public static readonly TimeSpan CallTimeout = TimeSpan.FromSeconds(10);
     public static readonly TimeSpan TierTimeout = TimeSpan.FromMinutes(5);
@@ -78,9 +81,10 @@ public sealed class OsSecretStoreTier : IDisposable
     /// <summary>The Windows Credential Manager tests run.</summary>
     public static bool WindowsTier => OperatingSystem.IsWindows() && OptedIn;
 
-    /// <summary>The Linux Secret Service tests run: never in the development distribution or a user's session keyring.</summary>
-    public static bool LinuxTier => OperatingSystem.IsLinux() && OptedIn
-        && Environment.GetEnvironmentVariable("WSL_DISTRO_NAME") == "ArcForgesTest";
+    /// <summary>The Linux Secret Service tests run: only on the isolated test host, never in the verification account, a WSL distribution
+    /// or a user's session keyring. The runner (eng/os_secret_store_tier.py) also checks that the marker and its directory are owned by root
+    /// and writable by no one else, and that it is not run as root.</summary>
+    public static bool LinuxTier => OperatingSystem.IsLinux() && OptedIn && File.Exists(IsolatedHostMarker);
 
     /// <summary>The fresh random run id that every entry name of this run is derived from.</summary>
     public string RunId { get; }
