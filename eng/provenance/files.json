@@ -1039,7 +1039,8 @@
     "eng/os_secret_store_tier.py",
     "eng/test_os_secret_store_guard.py",
     "eng/policy/dependency-reviews/os-secret-store-guard-r1.json",
-    "eng/test_native_evidence.py"
+    "eng/test_native_evidence.py",
+    "tests/tooling/test_verify_install.py"
   ],
   "reused": {
     "LICENSE": "canonical-agpl-legal-r1",
