@@ -84,7 +84,9 @@ class ExternalDependencyGuards(unittest.TestCase):
 
     def test_catalogue_separates_external_and_owned_identities(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
+            # Resolved like packages.ROOT: catalogue() resolves each project before comparing it with ROOT, and a
+            # temporary directory can be an 8.3 short path on Windows (hosted runners: C:\Users\RUNNER~1\...).
+            root = Path(temporary).resolve()
             (root / "eng/packaging").mkdir(parents=True)
             (root / "consumer.csproj").write_text("<Project />", encoding="utf-8")
             entry = self.entry()
