@@ -68,7 +68,7 @@ def check_sources(value: dict, name: str, sbom: dict) -> None:
             "; expected " + json.dumps(required, sort_keys=True) + "; observed " + json.dumps(actual, sort_keys=True))
 
 
-# Local pre-push verification only (eng/verify_local.py, Env.md section 6): the user's existing vcpkg builds the ports with whatever
+# Host verification only (eng/verify_local.py, Env.md section 6): the user's existing vcpkg builds the ports with whatever
 # CMake it finds, and a local version difference is not a build failure. With this variable set to `vcpkgCMake=<version>`, the
 # upstream build records may name that CMake instead of the reviewed one; every other check stays. The stage records it in its
 # SBOM as `localToolchain`, so such bytes never pass a verification without the variable, and the variable is refused under

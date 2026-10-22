@@ -7,7 +7,7 @@ namespace ArcForges.Tests.ArchitectureTests;
 
 /// <summary>
 /// The repository check of the OS secret-store test guard (ArcForges-Design 16-testing-strategy section 1, guard item 3; AD-0016
-/// amendment of 2026-10-17). It runs in the pre-push hook and in external-PR CI with the other architecture tests.
+/// amendment of 2026-10-17). It runs in the host verification and in external-PR CI with the other architecture tests.
 /// </summary>
 public sealed partial class OsSecretStoreTierPolicyTests
 {

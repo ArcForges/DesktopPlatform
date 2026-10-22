@@ -15,6 +15,10 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 POSIX = os.name != "nt"
+HOOK = "#!/bin/sh\nset -eu\ngit diff --cached --check\n"
+# The pre-push hook an earlier eng/verify.py installed.
+RETIRED = ('#!/bin/sh\ntop=$(git rev-parse --show-toplevel) || exit 1\n'
+           'exec python "$top/eng/verify.py" pre-push "$@"\n')
 
 
 def load_verify():
@@ -42,11 +46,12 @@ class InstallTests(unittest.TestCase):
         subprocess.run(["git", "init", "--quiet", str(self.clone)], check=True, env=self.env)
         (self.clone / "eng").mkdir()
         shutil.copy2(ROOT / "eng" / "verify.py", self.clone / "eng" / "verify.py")
-        shutil.copytree(ROOT / ".githooks", self.clone / ".githooks")
+        (self.clone / ".githooks").mkdir()
         # A checkout without the executable bit (core.fileMode false, an archive, a Windows checkout) must not matter.
-        for hook in (self.clone / ".githooks").iterdir():
-            hook.chmod(0o644)
-        self.hook = self.clone / ".git" / "hooks" / "pre-push"
+        (self.clone / ".githooks" / "pre-commit").write_text(HOOK, encoding="utf-8", newline="\n")
+        (self.clone / ".githooks" / "pre-commit").chmod(0o644)
+        self.hooks = self.clone / ".git" / "hooks"
+        self.hook = self.hooks / "pre-commit"
 
     def install(self) -> subprocess.CompletedProcess:
         return subprocess.run([sys.executable, str(self.clone / "eng" / "verify.py"), "install"], cwd=self.clone,
@@ -54,10 +59,34 @@ class InstallTests(unittest.TestCase):
 
     def assert_installed(self, result: subprocess.CompletedProcess) -> None:
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(self.hook.read_bytes(), (ROOT / ".githooks" / "pre-push").read_bytes().replace(b"\r\n", b"\n"))
+        self.assertEqual(self.hook.read_text(encoding="utf-8"), HOOK)
 
-    def test_installs_the_hook(self) -> None:
+    def test_installs_the_hooks(self) -> None:
         self.assert_installed(self.install())
+
+    def test_removes_the_retired_pre_push_verification_hook(self) -> None:
+        self.hooks.mkdir(exist_ok=True)
+        (self.hooks / "pre-push").write_text(RETIRED, encoding="utf-8")
+        result = self.install()
+        self.assert_installed(result)
+        self.assertFalse((self.hooks / "pre-push").exists(), result.stdout)
+        self.assertIn("removed the retired pre-push verification hook", result.stdout)
+
+    def test_keeps_a_pre_push_hook_it_did_not_install(self) -> None:
+        self.hooks.mkdir(exist_ok=True)
+        own = "#!/bin/sh\necho mine\n"
+        (self.hooks / "pre-push").write_text(own, encoding="utf-8")
+        self.assert_installed(self.install())
+        self.assertEqual((self.hooks / "pre-push").read_text(encoding="utf-8"), own)
+
+    def test_a_clone_without_hooks_installs_nothing_and_still_retires_the_old_hook(self) -> None:
+        shutil.rmtree(self.clone / ".githooks")
+        self.hooks.mkdir(exist_ok=True)
+        (self.hooks / "pre-push").write_text(RETIRED, encoding="utf-8")
+        result = self.install()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse((self.hooks / "pre-push").exists())
+        self.assertFalse(self.hook.exists())
 
     @unittest.skipUnless(POSIX, "Windows has no executable bit; git for Windows runs the hook regardless")
     def test_installed_hook_is_executable(self) -> None:
@@ -68,10 +97,9 @@ class InstallTests(unittest.TestCase):
 
     @unittest.skipUnless(POSIX, "Windows has no executable bit; git for Windows runs the hook regardless")
     def test_reinstall_makes_an_existing_non_executable_hook_executable(self) -> None:
-        # A clone installed by the earlier script holds the hook with mode 0644, which git ignores; installing again
-        # (write_bytes keeps an existing file's mode) must repair it.
-        self.hook.parent.mkdir(exist_ok=True)
-        self.hook.write_bytes((ROOT / ".githooks" / "pre-push").read_bytes())
+        # write_bytes keeps an existing file's mode, so a hook left at 0644 must be repaired by installing again.
+        self.hooks.mkdir(exist_ok=True)
+        self.hook.write_text(HOOK, encoding="utf-8")
         self.hook.chmod(0o644)
         self.assert_installed(self.install())
         self.assertTrue(os.access(self.hook, os.X_OK))

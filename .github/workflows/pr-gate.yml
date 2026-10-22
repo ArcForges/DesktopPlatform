@@ -17,8 +17,8 @@ permissions:
 concurrency:
   group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-# Owner PRs (deku2026) are verified by the local pre-push hook (AGENTS.md, Local verification), so every job skips for
-# them; external PRs and the publication candidate (workflow_call from publish-nuget.yml on main pushes) run all gates.
+# Every PR is verified after the push on the Windows and Linux hosts (eng/verify.py run-and-report, AGENTS.md,
+# Verification after the push), whose statuses main requires, so every job skips for owner (deku2026) PRs; external PRs and the publication candidate (workflow_call from publish-nuget.yml on main pushes) run all gates.
 jobs:
   allocate-version:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}

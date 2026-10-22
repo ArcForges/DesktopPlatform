@@ -69,7 +69,7 @@ section 1, AD-0016 amendment of 2026-10-17). `OsSecretStoreGuard` is the runtime
 - `OsSecretStoreGuard.ThrowIfDenied(store)` lets a consumer guard another user store (for example a CNG user key) the
   same way. Release builds never set the switch, so production behaviour is unchanged.
 
-The tier is `tests/OsSecretStoreTests` (trait `env=os-secret-store`), which no routine suite, pre-push step or other
+The tier is `tests/OsSecretStoreTests` (trait `env=os-secret-store`), which no routine suite, host verification step or other
 workflow selects. It runs minimal and sequential tests through a fixture that names each entry `ArcForges.Secrets.v1.`
 plus the uppercase SHA-256 hex of `arcforges.os-secret-store-test.v1|<run id>|<n>` (fresh random run id), writes that
 name to the run's name list before creating it, deletes only listed names and verifies their absence (a failed check is

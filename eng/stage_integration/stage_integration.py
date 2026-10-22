@@ -80,7 +80,7 @@ def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
 
 
-# AD-0016: validation jobs skip only for the owner's pull requests, which the owner's local pre-push verification runs instead; every
+# AD-0016: validation jobs skip only for the owner's pull requests, which the owner's host verification after the push runs instead; every
 # other pull request still runs the gate. A gate condition is therefore also allowed when it is that owner exclusion, alone or joined
 # by `&&` to terms that never apply to a pull request (the push and schedule exclusions) or to `always()`, written with or without
 # `${{ }}`. Nothing else is, so a gate cannot be narrowed to some pull requests through this rule.

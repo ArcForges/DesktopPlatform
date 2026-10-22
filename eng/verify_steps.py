@@ -3,8 +3,8 @@
 
 The full profile is every job of .github/workflows/pr-gate.yml with its called native-abi.yml and
 package-validation.yml (the PR gate, which is also the publication candidate), each on the host the hosted job used, in
-two legs on two native machines (eng/verify.py; AGENTS.md): the Windows leg on the Windows 11 workstation, the Linux leg
-on a native Linux machine. Each leg builds and verifies its own responsibilities from the commit alone; nothing a leg
+two legs on two native machines after the push, reported as the commit statuses arcforges/windows and arcforges/linux
+(eng/verify.py; AGENTS.md): the Windows leg on the Windows 11 workstation, the Linux leg on a native Linux machine. Each leg builds and verifies its own responsibilities from the commit alone; nothing a leg
 produces is carried to the other machine.
 - lane `win` (Windows, in <main checkout>/.worktree/_verify): the `native-win-x64` job (`native`: the IDE licence
   evaluation, vcpkg install of the pinned ports from the existing C:\\vcpkg into the checkout's installed root, the
@@ -65,13 +65,13 @@ tracked file, Markdown included, and the design policy verifies the generated do
 import os
 
 # The single opt-in of the OS secret-store integration tier (ArcForges-Design 16-testing-strategy section 1). Only the tier's runner
-# (eng/os_secret_store_tier.py) and its hosted job set it; the pre-push verification refuses to run at all while it is present, so
+# (eng/os_secret_store_tier.py) and its hosted job set it; the host verification refuses to run at all while it is present, so
 # a stray value can never reach a routine suite (eng/verify_local.py also removes it from every suite it starts).
 OS_SECRET_STORE_OPT_IN = "ARCFORGES_OS_SECRET_STORE_TESTS"
 if OS_SECRET_STORE_OPT_IN in os.environ:
     raise SystemExit(
         f"arcforges-verify: FAIL {OS_SECRET_STORE_OPT_IN} is set in this environment. It is the opt-in of the OS secret-store "
-        "integration tier, which only that tier's runner or hosted job sets, and the pre-push verification refuses to run with it "
+        "integration tier, which only that tier's runner or hosted job sets, and the host verification refuses to run with it "
         f"(routine suites never reach a real OS secret store). Remove it (PowerShell: Remove-Item Env:{OS_SECRET_STORE_OPT_IN}; "
         f"bash: unset {OS_SECRET_STORE_OPT_IN}) and run again.")
 
@@ -82,7 +82,7 @@ _VSWHERE = os.path.join(os.environ.get("ProgramFiles(x86)", "C:\\Program Files (
                         "Microsoft Visual Studio", "Installer", "vswhere.exe")
 _VCPKG = os.environ.get("VCPKG_ROOT") or "C:\\vcpkg"
 
-# Tool versions that key a reusable pass (the python running eng/verify.py is added by the core).
+# Tool versions recorded in each leg's summary (the python running eng/verify.py is added by the core).
 FINGERPRINT = {
     "win": {
         "dotnet-sdks": ["dotnet", "--list-sdks"],
