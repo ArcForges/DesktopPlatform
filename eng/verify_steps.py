@@ -4,46 +4,53 @@
 The full profile is every job of .github/workflows/pr-gate.yml with its called native-abi.yml and
 package-validation.yml (the PR gate, which is also the publication candidate), each on the host the hosted job used, in
 two legs on two native machines (eng/verify.py; AGENTS.md): the Windows leg on the Windows 11 workstation, the Linux leg
-on a native Linux machine:
+on a native Linux machine. Each leg builds and verifies its own responsibilities from the commit alone; nothing a leg
+produces is carried to the other machine.
 - lane `win` (Windows, in <main checkout>/.worktree/_verify): the `native-win-x64` job (`native`: the IDE licence
   evaluation, vcpkg install of the pinned ports from the existing C:\\vcpkg into the checkout's installed root, the
   shim-static CMake preset with sccache in the reviewed MSVC toolset's developer environment, CTest, the NativeAbi
   layout tests and the sccache proof; `native-stage`: the audited native runtime packages), after the locked restore
-  the NativeAbi tests need; then the win-x64 Native AOT compile probes of `package-validation.yml`.
-- lane `linux` (Linux, in ~/.cache/arcforges-verify/DesktopPlatform): the clone identity, the `licence-policy`,
-  `runtime-policy` and `reconciliation-policy` jobs, then the `pack` job up to its tests (locked restore, format,
-  accounting unittest, the OS secret-store guard unittest, Release build, every test suite but the architecture gate and the timing-sensitive LocalRpc
-  suite, four test projects at a time), then the linux-x64 Native AOT compile probes. Everything that runs dotnet in
-  the clone is in this lane: concurrent restores or builds of shared projects in one checkout would race.
+  the NativeAbi tests need; then the win-x64 Native AOT compile probes of `package-validation.yml`; then the `pack` job
+  (windows-latest) up to its tests: the naming evidence its architecture gate binds (hosted: the `runtime-policy`
+  artifact; see below), the Release build and every test suite but the architecture gate and the timing-sensitive
+  LocalRpc suite, four test projects at a time.
+- lane `linux` (Linux, in ~/.cache/arcforges-verify/DesktopPlatform): the clone identity, the locked restore, the
+  `licence-policy`, `runtime-policy` and `reconciliation-policy` jobs, then the rest of the `linux-platform` job of
+  `package-validation.yml` (format, accounting unittest, the OS secret-store guard unittest, Release build, every test
+  suite of `pack` but the architecture gate and the timing-sensitive LocalRpc suite, four test projects at a time), then
+  the linux-x64 Native AOT compile probes.
+  Everything that runs dotnet in the clone is in this lane: concurrent restores or builds of shared projects in one
+  checkout would race.
 - lane `linux-policy`: the Python-only jobs that read neither the clone identity nor build outputs: `design-policy`,
   `reference-policy`, `provenance-policy`, `stage-integration` and `repository-hooks`, and the unittest of the native
-  hand-off between the legs (`handoff-tests`, local tooling with no hosted job).
+  evidence layout of the Windows leg (`native-evidence-tests`, local tooling with no hosted job).
 - lane `scan`: the secret scan (pinned gitleaks image digest, .gitleaks.toml) over the pushed range ({range}), in
   Docker without network and with a read-only mount of the clone; `actionlint` only when .github/workflows/** changed.
-- after every lane of a leg (its exclusive phase): on Windows, `native-handoff` packs the native stage and its licence
-  evidence into an archive with a manifest of the commit and every file's SHA-256 (hosted: artifacts `native-stage-*`
-  and `native-licence-policy-*`). The legs run on two machines, so the Windows leg runs first and its archive is
-  carried to the Linux host. On Linux: the LocalRpc suite alone (a 400 ms stream lifetime and a fixed 500 ms settle
-  window: its flow-control test failed under a concurrent native build and passed alone), `native-handoff-import`, which
-  fails unless that archive is there for this exact commit with every file matching the manifest, and unpacks it where
-  the hosted artifacts go, then the rest of `pack`: the architecture gate, invariant accounting and the reason registry;
-  the pack itself; the packaging unittest against the packed candidate. Both hand-off steps print the archive's
-  SHA-256.
+- after every lane of a leg (its exclusive phase): on both legs the LocalRpc suite alone (a 400 ms stream lifetime and a
+  fixed 500 ms settle window: its flow-control test failed under a concurrent native build and passed alone); on Windows
+  then the rest of `pack`, which needs the native stage and its licence evidence that this leg produced: the
+  architecture gate, invariant accounting and the reason registry; the pack itself; the packaging unittest against the
+  packed candidate.
 
 Differences from the hosted jobs (eng/verify_local.py names each where it happens):
 - GitHub run identity: the candidate version is 1.0.0-ci.1.1 and accounting uses run 1, attempt 1 (hosted: the run id
   and attempt); `allocate-version` is the same `packages.py version` check of that version.
-- Artifacts are not uploaded; the native hand-off is an archive bound to the commit and checked by digest on the Linux
-  host (eng/verify_local.py handoff and handoff-import).
+- Artifacts are not uploaded or downloaded. Where a hosted job downloads another job's artifact, the local step uses
+  the same file produced on its own leg: `pack` reads the native stage and the native licence evidence that the
+  Windows leg's native steps wrote, and the Windows leg evaluates the naming evidence of `runtime-policy` itself
+  (`win-naming-evidence`; the Linux leg runs the whole `runtime-policy` job as before).
 - The secret scan covers the pushed range, not the full history: history before it was scanned when it was pushed.
   The hosted secret-scan receipt (RP-09) cannot be produced locally by design, so the architecture gate accepts that
   one finding and nothing else; `architecture_evidence.py secret` is not run.
 - Not reproduced: GitHub dependency review (a GitHub service; external PRs keep it; locked restores with NuGet audit
   cover vulnerable packages locally) and CodeQL (deep-check.yml's weekly schedule, unchanged).
-- The clone has the identity of a checkout of ArcForges/DesktopPlatform (`clone-identity`): its `origin` URL, which the
-  runtime-ownership and reconciliation checks require, and `origin/main` at the merge base, which the provenance audits
-  of `native.py stage` and `packages.py pack` compare against (hosted: the checkout and the PR base). Nothing is fetched
-  from that URL. The provenance step passes the merge base as `--base` (hosted: the PR base from the event).
+- The Linux clone has the identity of a checkout of ArcForges/DesktopPlatform (`clone-identity`): its `origin` URL,
+  which the runtime-ownership and reconciliation checks require, and `origin/main` at the merge base, which the
+  provenance audit compares against (hosted: the checkout and the PR base). Nothing is fetched from that URL. The
+  provenance step passes the merge base as `--base` (hosted: the PR base from the event). The Windows worktree is a
+  worktree of the workstation's clone of this repository, whose `origin` is this repository and whose refs the leg
+  never moves: `pack` fails unless that clone's origin/main is the merge base, which its provenance audit compares
+  against.
 - vcpkg binary caching uses the user's default archive cache (hosted: actions/cache), sccache the user's default cache
   through a server on a port of its own that the step stops; vcpkg is the existing C:\\vcpkg at the pinned commit
   (Env.md section 6). vcpkg builds the ports with the first suitable CMake it finds; when that is not the reviewed one
@@ -196,7 +203,13 @@ STEPS = [
     win("win-native-stage", ["python", "eng/verify_local.py", "stage"], 600),
     # package-validation.yml, the win-x64 Native AOT compile probes
     *[aot_win(name, project) for name, project, rids in AOT_PROBES if RID_WIN in rids],
-    # pr-gate.yml licence-policy, runtime-policy and reconciliation-policy; package-validation.yml pack, up to its tests
+    # package-validation.yml pack (windows-latest), up to its tests: the naming evidence its architecture gate binds
+    # (hosted: the runtime-policy job's artifact), the Release build and the test suites
+    win("win-naming-evidence", ["python", "eng/verify_local.py", "naming"], 900),
+    win("win-build", ["dotnet", "build", "DesktopPlatform.slnx", "-c", "Release", "--no-restore",
+                      "-p:EmitCompilerGeneratedFiles=true", *VERSION_PROPERTIES.split()], 1200),
+    win("win-managed-tests", ["python", "eng/verify_local.py", "managed-tests", "--jobs", str(TEST_JOBS)], 1800),
+    # pr-gate.yml licence-policy, runtime-policy and reconciliation-policy; package-validation.yml linux-platform
     linux("clone-identity", "set -e; git config remote.origin.url https://github.com/ArcForges/DesktopPlatform.git; "
         "git update-ref refs/remotes/origin/main {base}", 60),
     linux("linux-restore", "dotnet restore DesktopPlatform.slnx --locked-mode", 600),
@@ -229,17 +242,18 @@ STEPS = [
         + "; python eng/stage_integration/stage_integration.py verify --report artifacts/evidence/stage-integration.json",
         600, lane="linux-policy"),
     linux("repository-hooks", "python eng/verify_local.py hooks", 900, lane="linux-policy"),
-    # The local verification's own hand-off between its two legs (no hosted job: hosted CI hands over artifacts)
-    linux("handoff-tests", unittest("test_native_handoff.py"), 300, lane="linux-policy"),
+    # The local verification's own layout of the native evidence on the Windows leg (no hosted job: hosted CI downloads
+    # the artifact)
+    linux("native-evidence-tests", unittest("test_native_evidence.py"), 300, lane="linux-policy"),
     # pr-gate.yml secret-scan (over the pushed range) and actionlint (when a workflow changed)
     linux("secret-scan", SECRET_SCAN, 600, lane="scan"),
     linux("actionlint", ACTIONLINT, 300, lane="actionlint", when=workflows_changed),
-    # After every lane of a leg: on Windows the native hand-off archive; on Linux the timing-sensitive test projects alone,
-    # the checked hand-off, then the rest of pack
-    win("native-handoff", ["python", "eng/verify_local.py", "handoff", "{sha}"], 600, exclusive=True),
+    # After every lane of a leg: on each leg the timing-sensitive test projects alone; on Windows then the rest of pack,
+    # from the native stage and licence evidence this leg produced
     linux("timing-sensitive-tests", "python eng/verify_local.py managed-tests --timing-sensitive", 900, exclusive=True),
-    linux("native-handoff-import", "python eng/verify_local.py handoff-import {sha}", 300, exclusive=True),
-    linux("architecture-gate", "python eng/verify_local.py architecture", 900, exclusive=True),
-    linux("pack", "python eng/verify_local.py pack", 1200, exclusive=True),
-    linux("packaging-tests", "python eng/verify_local.py packaging-tests", 600, exclusive=True),
+    win("win-timing-sensitive-tests", ["python", "eng/verify_local.py", "managed-tests", "--timing-sensitive"], 900,
+        exclusive=True),
+    win("architecture-gate", ["python", "eng/verify_local.py", "architecture"], 900, exclusive=True),
+    win("pack", ["python", "eng/verify_local.py", "pack", "--base", "{base}"], 1200, exclusive=True),
+    win("packaging-tests", ["python", "eng/verify_local.py", "packaging-tests"], 600, exclusive=True),
 ]

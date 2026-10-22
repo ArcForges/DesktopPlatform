@@ -167,8 +167,40 @@ jobs:
       - run: dotnet restore tests/ReleaseArtifactTests/Realtime/RealtimeAotProbe.csproj --locked-mode
       - name: Publish the realtime probe with Native AOT (compile only)
         run: dotnet publish tests/ReleaseArtifactTests/Realtime/RealtimeAotProbe.csproj -c Release -r ${{ matrix.rid }} --no-restore
-  pack:
+  # The Linux build and tests: the same as the local Linux leg, which needs nothing from the Windows jobs.
+  linux-platform:
+    name: Linux build and platform tests
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: .python-version
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - run: dotnet restore DesktopPlatform.slnx --locked-mode
+      - run: dotnet format DesktopPlatform.slnx --verify-no-changes --no-restore
+      - name: Test fail-closed invariant accounting
+        run: python -m unittest discover -s eng/accounting -p 'test_*.py' -v
+      - name: Test the OS secret-store guard of the test scripts
+        run: python -m unittest discover -s eng -p 'test_os_secret_store_guard.py' -v
+      - name: Build the platform on Linux
+        env:
+          PACKAGE_VERSION: ${{ inputs.version }}
+        run: dotnet build DesktopPlatform.slnx -c Release --no-restore -p:EmitCompilerGeneratedFiles=true "-p:PackageVersion=$PACKAGE_VERSION" "-p:Version=$PACKAGE_VERSION"
+      # Every suite of "Build and test platform ownership" below (read from that step) but the architecture gate, which
+      # needs the Windows native evidence and runs in `pack`; the timing-sensitive LocalRpc suite runs alone.
+      - name: Test platform ownership on Linux
+        run: |
+          python eng/verify_local.py managed-tests --jobs 4
+          python eng/verify_local.py managed-tests --timing-sensitive
+  # The native-dependent end of the gate, on Windows like the native stage it packs: the architecture gate (with the
+  # native licence evidence), invariant accounting, the candidate and its packaging tests.
+  pack:
+    runs-on: windows-latest
     outputs:
       version: ${{ steps.version.outputs.value }}
       artifact_name: ${{ steps.version.outputs.artifact_name }}
@@ -220,11 +252,6 @@ jobs:
         with:
           name: native-licence-policy-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/native-architecture
-      - run: dotnet format DesktopPlatform.slnx --verify-no-changes --no-restore
-      - name: Test fail-closed invariant accounting
-        run: python -m unittest discover -s eng/accounting -p 'test_*.py' -v
-      - name: Test the OS secret-store guard of the test scripts
-        run: python -m unittest discover -s eng -p 'test_os_secret_store_guard.py' -v
       - name: Build and test platform ownership
         env:
           PACKAGE_VERSION: ${{ steps.version.outputs.value }}
@@ -295,7 +322,8 @@ jobs:
       - name: Pack explicit release allowlist and verify immutable manifest
         env:
           PACKAGE_VERSION: ${{ steps.version.outputs.value }}
-        run: python eng/packaging/packages.py pack --version "$PACKAGE_VERSION"
+        shell: pwsh
+        run: python eng/packaging/packages.py pack --version "$env:PACKAGE_VERSION"
       - name: Verify rejection of invalid versions and altered candidates
         run: python -m unittest discover -s eng/packaging -p 'test_*.py' -v
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

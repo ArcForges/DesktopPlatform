@@ -4,8 +4,9 @@ Use an isolated `.worktree/` branch and the [README verification commands](READM
 Shared mechanism changes belong here; product rules and business RPC schemas belong to their owners.
 Keep C# 14, C++20, explicit source provenance, committed dependency locks and warnings-as-errors.
 
-PR CI compiles/stages Windows native outputs, builds/packages the managed solution on Linux,
-and runs targeted offline architecture/policy tests, formatting, dependency review and secret scanning.
+PR CI compiles/stages Windows native outputs and builds, tests and packages the managed solution on Windows next
+to that stage; Linux builds and tests the platform independently. It runs targeted offline architecture/policy tests,
+formatting, dependency review and secret scanning.
 Weekly/manual Deep check retains C# CodeQL only. The separate OS secret-store tier (minimal, sequential
 Credential Manager tests on a hosted Windows runner: external PRs, merge_group, dispatch, weekly) is the only
 suite that reaches a real OS secret store. No macOS, native runtime, installed-consumer,

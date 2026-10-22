@@ -63,6 +63,8 @@ jobs:
         with:
           name: ${{ needs.candidate.outputs.artifact_name }}
           path: artifacts/packages
+      # The candidate was packed on Windows next to the native stage (package-validation.yml `pack`); its checks are
+      # content-based, so this job re-verifies the same bytes on Linux before authenticating.
       - name: Recheck source identity, allowlist, contents and hashes before authentication
         env:
           PACKAGE_VERSION: ${{ needs.candidate.outputs.version }}
