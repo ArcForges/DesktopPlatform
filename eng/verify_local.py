@@ -227,12 +227,16 @@ def native_evidence() -> list[str]:
     """Puts the native licence evidence of `native` where `pack` reads it, as the download of `native-licence-policy-*`
     lays it out (upload-artifact keeps the paths below their common directory, artifacts/): evidence/licence-ide.json and
     cmake/<preset>/licence-boundary.json. The files are this leg's own, so nothing is carried between machines; a
-    missing report, or one of another commit, fails here instead of as a missing native graph in the gate."""
+    missing report, or one of another commit (or a dirty IDE evaluation), fails here instead of in the gate."""
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     ide = ROOT / "artifacts/evidence/licence-ide.json"
     reports = sorted((ROOT / "artifacts/cmake").rglob("licence-boundary.json"))
     if not ide.is_file() or not reports:
         raise Failure("the native licence evidence is missing; `win-native` did not complete")
+    rows = json.loads(ide.read_text(encoding="utf-8")).get("repositories") or [{}]
+    if [(row.get("repository"), row.get("commit"), row.get("dirty")) for row in rows] != [("DesktopPlatform", head, False)]:
+        raise Failure(f"artifacts/evidence/licence-ide.json is not the clean IDE licence evaluation of {head}: "
+                      f"{[(row.get('repository'), row.get('commit'), row.get('dirty')) for row in rows]}")
     for report in reports:
         commit = json.loads(report.read_text(encoding="utf-8")).get("commit")
         if commit != head:
@@ -380,7 +384,15 @@ def command_architecture(_: argparse.Namespace) -> None:
     run(["python", "src/BuildingBlocks/ArcForges.Foundation/Errors/generate_registry.py", "--check"])
 
 
-def command_pack(_: argparse.Namespace) -> None:
+def command_pack(args: argparse.Namespace) -> None:
+    # The provenance audit of `packages.py pack` compares against this clone's origin/main (hosted: the checkout of the
+    # PR). The Linux leg pins origin/main of its own clone to the merge base; the Windows leg runs in a worktree of the
+    # workstation's clone, whose refs it never moves, so it requires that origin/main is the merge base instead.
+    main = subprocess.check_output(["git", "rev-parse", "origin/main"], cwd=ROOT, text=True).strip()
+    if main != args.base:
+        raise Failure(f"origin/main of this clone is {main}, not the merge base {args.base}: the pack's provenance audit "
+                      "would compare against another commit. Rebase the branch onto origin/main (or fetch so that "
+                      "origin/main is its merge base) and verify again")
     run(["python", "eng/packaging/packages.py", "version", "--version", VERSION])
     # packages.py refuses to overwrite a candidate (hosted CI starts from an empty checkout); the previous one goes.
     shutil.rmtree(ROOT / "artifacts/packages", ignore_errors=True)
@@ -396,8 +408,9 @@ def command_packaging_tests(_: argparse.Namespace) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("native", "stage", "naming", "hooks", "architecture", "pack", "packaging-tests"):
+    for name in ("native", "stage", "naming", "hooks", "architecture", "packaging-tests"):
         sub.add_parser(name)
+    sub.add_parser("pack").add_argument("--base", required=True, help="the merge base ({base} of eng/verify_steps.py)")
     tests = sub.add_parser("managed-tests")
     tests.add_argument("--jobs", type=int, default=1)
     tests.add_argument("--timing-sensitive", action="store_true", help="only the timing-sensitive projects")

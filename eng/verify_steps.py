@@ -48,7 +48,9 @@ Differences from the hosted jobs (eng/verify_local.py names each where it happen
   which the runtime-ownership and reconciliation checks require, and `origin/main` at the merge base, which the
   provenance audit compares against (hosted: the checkout and the PR base). Nothing is fetched from that URL. The
   provenance step passes the merge base as `--base` (hosted: the PR base from the event). The Windows worktree is a
-  worktree of the workstation's clone of this repository, whose `origin` is this repository.
+  worktree of the workstation's clone of this repository, whose `origin` is this repository and whose refs the leg
+  never moves: `pack` fails unless that clone's origin/main is the merge base, which its provenance audit compares
+  against.
 - vcpkg binary caching uses the user's default archive cache (hosted: actions/cache), sccache the user's default cache
   through a server on a port of its own that the step stops; vcpkg is the existing C:\\vcpkg at the pinned commit
   (Env.md section 6). vcpkg builds the ports with the first suitable CMake it finds; when that is not the reviewed one
@@ -252,6 +254,6 @@ STEPS = [
     win("win-timing-sensitive-tests", ["python", "eng/verify_local.py", "managed-tests", "--timing-sensitive"], 900,
         exclusive=True),
     win("architecture-gate", ["python", "eng/verify_local.py", "architecture"], 900, exclusive=True),
-    win("pack", ["python", "eng/verify_local.py", "pack"], 1200, exclusive=True),
+    win("pack", ["python", "eng/verify_local.py", "pack", "--base", "{base}"], 1200, exclusive=True),
     win("packaging-tests", ["python", "eng/verify_local.py", "packaging-tests"], 600, exclusive=True),
 ]

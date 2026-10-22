@@ -30,7 +30,9 @@ class NativeEvidence(unittest.TestCase):
         git(self.root, "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "t")
         self.sha = git(self.root, "rev-parse", "HEAD")
         (self.root / "artifacts/evidence").mkdir(parents=True)
-        (self.root / "artifacts/evidence/licence-ide.json").write_text('{"ide": true}', encoding="utf-8")
+        self.ide = self.root / "artifacts/evidence/licence-ide.json"
+        self.ide.write_text(json.dumps({"result": "passed", "repositories": [
+            {"repository": "DesktopPlatform", "commit": self.sha, "dirty": False}]}), encoding="utf-8")
         self.report = self.root / "artifacts/cmake/win-x64/shim-static/licence-boundary.json"
         self.report.parent.mkdir(parents=True)
         self.report.write_text(json.dumps({"commit": self.sha, "result": "passed"}), encoding="utf-8")
@@ -50,7 +52,7 @@ class NativeEvidence(unittest.TestCase):
         copied = self.collect()
         target = self.root / "artifacts/evidence/native-architecture"
         self.assertEqual(["evidence/licence-ide.json", "cmake/win-x64/shim-static/licence-boundary.json"], copied)
-        self.assertEqual('{"ide": true}', (target / "evidence/licence-ide.json").read_text(encoding="utf-8"))
+        self.assertEqual(self.ide.read_bytes(), (target / "evidence/licence-ide.json").read_bytes())
         self.assertEqual(self.report.read_bytes(), (target / "cmake/win-x64/shim-static/licence-boundary.json").read_bytes())
         self.assertFalse(stale.exists(), "evidence of an earlier configure must not reach the gate")
 
@@ -63,6 +65,14 @@ class NativeEvidence(unittest.TestCase):
         self.report.write_text(json.dumps({"commit": "0" * 40}), encoding="utf-8")
         with self.assertRaisesRegex(verify_local.Failure, "is the configure receipt of 0{40}, not"):
             self.collect()
+        self.assertFalse((self.root / "artifacts/evidence/native-architecture").exists())
+
+    def test_an_ide_evaluation_of_another_commit_or_a_dirty_tree_is_refused(self) -> None:
+        for row in ({"repository": "DesktopPlatform", "commit": "0" * 40, "dirty": False},
+                    {"repository": "DesktopPlatform", "commit": self.sha, "dirty": True}):
+            self.ide.write_text(json.dumps({"result": "passed", "repositories": [row]}), encoding="utf-8")
+            with self.assertRaisesRegex(verify_local.Failure, "is not the clean IDE licence evaluation of"):
+                self.collect()
         self.assertFalse((self.root / "artifacts/evidence/native-architecture").exists())
 
 
