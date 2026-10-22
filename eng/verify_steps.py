@@ -4,8 +4,9 @@
 The full profile is every job of .github/workflows/pr-gate.yml with its called native-abi.yml and
 package-validation.yml (the PR gate, which is also the publication candidate), each on the host the hosted job used, in
 two legs on two native machines after the push, reported as the commit statuses arcforges/windows and arcforges/linux
-(eng/verify.py; AGENTS.md): the Windows leg on the Windows 11 workstation, the Linux leg on a native Linux machine. Each leg builds and verifies its own responsibilities from the commit alone; nothing a leg
-produces is carried to the other machine.
+(eng/verify.py; AGENTS.md): the Windows leg on the Windows 11 workstation, the Linux leg on a native Linux machine.
+Each leg builds and verifies its own responsibilities from the commit alone; nothing a leg produces is carried to the
+other machine.
 - lane `win` (Windows, in <main checkout>/.worktree/_verify): the `native-win-x64` job (`native`: the IDE licence
   evaluation, vcpkg install of the pinned ports from the existing C:\\vcpkg into the checkout's installed root, the
   shim-static CMake preset with sccache in the reviewed MSVC toolset's developer environment, CTest, the NativeAbi
@@ -24,7 +25,7 @@ produces is carried to the other machine.
 - lane `linux-policy`: the Python-only jobs that read neither the clone identity nor build outputs: `design-policy`,
   `reference-policy`, `provenance-policy`, `stage-integration` and `repository-hooks`, and the unittest of the native
   evidence layout of the Windows leg (`native-evidence-tests`, local tooling with no hosted job).
-- lane `scan`: the secret scan (pinned gitleaks image digest, .gitleaks.toml) over the pushed range ({range}), in
+- lane `scan`: the secret scan (pinned gitleaks image digest, .gitleaks.toml) over the commits since the merge base ({range}), in
   Docker without network and with a read-only mount of the clone; `actionlint` only when .github/workflows/** changed.
 - after every lane of a leg (its exclusive phase): on both legs the LocalRpc suite alone (a 400 ms stream lifetime and a
   fixed 500 ms settle window: its flow-control test failed under a concurrent native build and passed alone); on Windows
@@ -39,7 +40,8 @@ Differences from the hosted jobs (eng/verify_local.py names each where it happen
   the same file produced on its own leg: `pack` reads the native stage and the native licence evidence that the
   Windows leg's native steps wrote, and the Windows leg evaluates the naming evidence of `runtime-policy` itself
   (`win-naming-evidence`; the Linux leg runs the whole `runtime-policy` job as before).
-- The secret scan covers the pushed range, not the full history: history before it was scanned when it was pushed.
+- The secret scan covers the commits since the merge base, not the full history: history before it is main, scanned
+  when its own PRs were verified.
   The hosted secret-scan receipt (RP-09) cannot be produced locally by design, so the architecture gate accepts that
   one finding and nothing else; `architecture_evidence.py secret` is not run.
 - Not reproduced: GitHub dependency review (a GitHub service; external PRs keep it; locked restores with NuGet audit
@@ -126,7 +128,7 @@ AOT_PROBES = [
     ("realtime", "tests/ReleaseArtifactTests/Realtime/RealtimeAotProbe.csproj", (RID_LINUX, RID_WIN)),
 ]
 
-# pr-gate.yml's secret scan (same pinned image digest, config and redaction), over the pushed range, without network
+# pr-gate.yml's secret scan (same pinned image digest, config and redaction), over the commits since the merge base, without network
 # and with a read-only mount of the verification clone.
 SECRET_SCAN = (
     "docker run --rm --network none -v \"$PWD:/repo:ro\" "
@@ -245,7 +247,7 @@ STEPS = [
     # The local verification's own layout of the native evidence on the Windows leg (no hosted job: hosted CI downloads
     # the artifact)
     linux("native-evidence-tests", unittest("test_native_evidence.py"), 300, lane="linux-policy"),
-    # pr-gate.yml secret-scan (over the pushed range) and actionlint (when a workflow changed)
+    # pr-gate.yml secret-scan (over the commits since the merge base) and actionlint (when a workflow changed)
     linux("secret-scan", SECRET_SCAN, 600, lane="scan"),
     linux("actionlint", ACTIONLINT, 300, lane="actionlint", when=workflows_changed),
     # After every lane of a leg: on each leg the timing-sensitive test projects alone; on Windows then the rest of pack,

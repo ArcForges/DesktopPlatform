@@ -15,7 +15,7 @@ workflow declarations. It never clones a repository and never reads source code.
 | SI-06 | Cloud has no desktop native or UI asset in its closure |
 | SI-07 | Mobile imports no AGPL implementation |
 | SI-08 | exactly one Harness owner |
-| SI-09 | each repository's own policy host runs in a pull-request workflow (no `paths`/`branches`/`types` filter), unconditionally, except for the AD-0016 owner exclusion (`!(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026')`, alone or with `always()` and the push and schedule exclusions, the push exclusion not in a workflow that a push-triggered workflow calls, where it would drop a publication candidate's gates: every other pull request still runs the gate, and the owner's pushes run it in the local pre-push verification); print-only text does not count and `; true`, `|| echo`, `set +e` suppression is refused |
+| SI-09 | each repository's own policy host runs in a pull-request workflow (no `paths`/`branches`/`types` filter), unconditionally, except for the AD-0016 owner exclusion (`!(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026')`, alone or with `always()` and the push and schedule exclusions, the push exclusion not in a workflow that a push-triggered workflow calls, where it would drop a publication candidate's gates: every other pull request still runs the gate, and the owner's pull requests run it in the host verification after the push); print-only text does not count and `; true`, `|| echo`, `set +e` suppression is refused |
 | SI-10 | the snapshot is complete, pinned, bound to the policy hash and not older than 45 days |
 | SI-11 | exception data is owned and unexpired |
 
