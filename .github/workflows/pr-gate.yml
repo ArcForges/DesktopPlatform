@@ -80,7 +80,7 @@ jobs:
         env:
           SECRET_SCAN_OUTCOME: ${{ steps.secret_scan.outcome }}
         run: python eng/architecture_evidence.py secret --output artifacts/evidence/secret-architecture.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: architecture-secret-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/secret-architecture.json
@@ -117,7 +117,7 @@ jobs:
         run: python -m unittest discover -s eng -p test_build_identity.py -v
       - name: Verify exports against an isolated immutable Design checkout
         run: python eng/design_policy.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: design-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
@@ -153,7 +153,7 @@ jobs:
         run: python -m unittest discover -s eng -p test_licence_boundary.py -v
       - name: Verify actual managed build declarations
         run: python eng/licence_boundary.py --evaluate-managed --report artifacts/evidence/licence-managed.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: licence-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
@@ -176,7 +176,7 @@ jobs:
         run: python -m unittest discover -s eng -p test_reference_baselines.py -v
       - name: Resolve all immutable Design and reference commits
         run: python eng/reference_baselines.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: reference-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
@@ -207,13 +207,13 @@ jobs:
         run: python -m unittest discover -s eng -p test_architecture_evidence.py -v
       - name: Reuse canonical naming result and exercise every forbidden-term fixture
         run: python eng/architecture_evidence.py naming --runtime-report artifacts/evidence/runtime-ownership.json --assets artifacts/naming-assets --output artifacts/evidence/naming-architecture.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: architecture-naming-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/naming-architecture.json
           if-no-files-found: error
           retention-days: 30
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: runtime-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
@@ -237,7 +237,7 @@ jobs:
         run: python -m unittest discover -s eng -p test_reconciliation.py -v
       - name: Verify historical and current immutable project trees
         run: python eng/reconciliation.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: reconciliation-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
@@ -266,7 +266,7 @@ jobs:
           if ($LASTEXITCODE) { throw 'Source provenance check failed.' }
           python eng/native_provenance.py
           if ($LASTEXITCODE) { throw 'Native provenance registration failed.' }
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: provenance-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
@@ -303,7 +303,7 @@ jobs:
         run: python -m unittest discover -s eng/stage_integration -p 'test_*.py' -v
       - name: Verify the committed published-metadata snapshot of the seven repositories
         run: python eng/stage_integration/stage_integration.py verify --report artifacts/evidence/stage-integration.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: stage-integration-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
