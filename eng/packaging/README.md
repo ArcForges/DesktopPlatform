@@ -17,9 +17,10 @@ Windows release. See [scope and validation evidence](../../docs/native-package-r
 ## Local and PR candidates
 
 Use existing native dependencies and build/stage the Windows CMake profiles as described in
-[native producer builds](../../deploy/README.md). CI builds/stages native binaries on Windows,
-then performs locked managed build, architecture tests and one package production pass on Linux.
-Source, licence, provenance and security checks precede publication. No macOS outputs are produced.
+[native producer builds](../../deploy/README.md). CI builds/stages native binaries on Windows
+and, on Windows next to that stage, performs the locked managed build, architecture tests and one
+package production pass; Linux builds and tests the platform independently. Source, licence,
+provenance and security checks precede publication. No macOS outputs are produced.
 
 ```powershell
 dotnet restore DesktopPlatform.slnx --locked-mode

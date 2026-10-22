@@ -5,33 +5,31 @@ job of .github/workflows/pr-gate.yml, native-abi.yml or package-validation.yml (
 
   python eng/verify_local.py native          Windows: native-abi.yml `native-win-x64` from vcpkg install to the NativeAbi tests
   python eng/verify_local.py stage           Windows: native-abi.yml, stage the audited native runtime packages
-  python eng/verify_local.py handoff SHA     Windows: pack the native-stage and native-licence artifacts for the Linux leg
-  python eng/verify_local.py handoff-import SHA
-                                             Linux: check and unpack that hand-off into the Linux verification clone
+  python eng/verify_local.py naming          Windows: the `runtime-policy` naming evidence that `pack` binds
+  python eng/verify_local.py managed-tests   both: the test suites of `pack` "Build and test" (Windows) and of
+                                             `linux-platform` (Linux), which runs this command itself
+  python eng/verify_local.py architecture    Windows: `pack`, the architecture gate, invariant accounting and reason registry
+  python eng/verify_local.py pack            Windows: `pack`, the version check and "Pack explicit release allowlist"
+  python eng/verify_local.py packaging-tests Windows: `pack`, "Verify rejection of invalid versions and altered candidates"
   python eng/verify_local.py hooks           Linux: pr-gate.yml `repository-hooks` (hash-pinned pre-commit closure)
-  python eng/verify_local.py managed-tests   Linux: package-validation.yml `pack`, the test suites of "Build and test"
-  python eng/verify_local.py architecture    Linux: `pack`, the architecture gate, invariant accounting and reason registry
-  python eng/verify_local.py pack            Linux: `pack`, the version check and "Pack explicit release allowlist"
-  python eng/verify_local.py packaging-tests Linux: `pack`, "Verify rejection of invalid versions and altered candidates"
 
-Only the GitHub-bound parts differ, each named where it happens: run ids and artifact uploads have local equivalents
-(the local identity RUN/ATTEMPT below, and a checked hand-off archive between the two legs' machines), and the hosted secret-scan
-receipt (RP-09) cannot be produced locally by design (eng/architecture_evidence.py refuses local RP-09 evidence), so the
-architecture gate accepts exactly that one finding and nothing else; the secret scan itself runs in the hook.
+Only the GitHub-bound parts differ, each named where it happens: run ids and artifacts have local equivalents (the local
+identity RUN/ATTEMPT below, and the same files produced on the leg's own machine where a hosted job downloads another
+job's artifact), and the hosted secret-scan receipt (RP-09) cannot be produced locally by design
+(eng/architecture_evidence.py refuses local RP-09 evidence), so the architecture gate accepts exactly that one finding
+and nothing else; the secret scan itself runs in the hook. Nothing is carried between the two legs' machines.
 """
 from __future__ import annotations
 
 import argparse
 import concurrent.futures
 import hashlib
-import io
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
-import tarfile
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -41,13 +39,9 @@ RUN, ATTEMPT = "1", "1"  # the local CI identity: hosted runs use GITHUB_RUN_ID 
 VERSION = f"1.0.0-ci.{RUN}.{ATTEMPT}"  # pr-gate.yml allocates 1.0.0-ci.<run id>.<attempt> for a PR
 RESULTS = ROOT / "artifacts/evidence/test-results"
 WORKFLOW = ROOT / ".github/workflows/package-validation.yml"
-# Where the Linux leg finds the Windows leg's native hand-off (ARCFORGES_VERIFY_HANDOFF_DIR overrides it), and its name.
-HANDOFF_DIR = Path(os.environ.get("ARCFORGES_VERIFY_HANDOFF_DIR") or Path.home() / ".cache/arcforges-verify/handoff")
-HANDOFF_FORMAT = "desktopplatform-native-handoff/1"
-
-
-def handoff_name(sha: str) -> str:
-    return f"DesktopPlatform-native-{sha}.tar.gz"
+# Where `pack` reads the native licence evidence: native-abi.yml uploads artifacts/evidence/licence-ide.json and
+# artifacts/cmake/**/licence-boundary.json as `native-licence-policy-*`, which `pack` downloads here.
+NATIVE_EVIDENCE = ROOT / "artifacts/evidence/native-architecture"
 PORTS = ["opencolorio[core]", "openimageio[core]", "openexr[core]", "imath[core]"]
 TRIPLET = "x64-windows-static-md"
 PRESET = "win-x64-shim-static"
@@ -153,11 +147,11 @@ def vcpkg_toolchain(expected: str) -> dict[str, str]:
 
 
 def staged_toolchain() -> dict[str, str]:
-    """The allowance a handed-off native stage was produced with (its SBOMs' localToolchain), for the steps that verify it."""
+    """The allowance this leg's native stage was produced with (its SBOMs' localToolchain), for the steps that verify it."""
     recorded = {json.dumps(json.loads(path.read_text(encoding="utf-8")).get("localToolchain"), sort_keys=True)
                 for path in (ROOT / "artifacts/native-packages").glob("*/sbom.json")}
     if not recorded:
-        raise Failure("artifacts/native-packages has no native stage; `native-handoff` did not complete")
+        raise Failure("artifacts/native-packages has no native stage; `win-native-stage` did not complete")
     if len(recorded) != 1:
         raise Failure(f"the native stage packages record different toolchains: {recorded}")
     local = json.loads(next(iter(recorded)))
@@ -220,99 +214,39 @@ def command_stage(_: argparse.Namespace) -> None:
     run(["python", "eng/packaging/native.py", "stage", "--vcpkg-root", str(vcpkg)], env=env)
 
 
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with open(path, "rb") as stream:
-        for block in iter(lambda: stream.read(1 << 20), b""):
-            digest.update(block)
-    return digest.hexdigest()
+def command_naming(_: argparse.Namespace) -> None:
+    """The naming evidence that `pack` binds (RP-01, RP-08): the hosted `runtime-policy` job evaluates it and `pack`
+    downloads its artifact; the Windows leg evaluates it itself with the same two commands, for this commit. The Linux
+    leg still runs the whole `runtime-policy` job."""
+    run(["python", "eng/runtime_ownership.py", "--evaluate-managed", "--naming-assets", "artifacts/naming-assets"])
+    run(["python", "eng/architecture_evidence.py", "naming", "--runtime-report", "artifacts/evidence/runtime-ownership.json",
+         "--assets", "artifacts/naming-assets", "--output", "artifacts/evidence/naming-architecture.json"])
 
 
-def command_handoff(args: argparse.Namespace) -> None:
-    """The hosted hand-off is two artifacts: the native stage (`native-stage-*`, downloaded by `pack` into
-    artifacts/native-packages) and the native licence evidence (`native-licence-policy-*`: artifacts/evidence/licence-ide.json
-    and artifacts/cmake/**/licence-boundary.json, downloaded into artifacts/evidence/native-architecture). Here, on the
-    Windows leg, both are packed at the paths `pack` reads them from into one archive under the clone's verification state,
-    with a manifest of the commit and of every file's SHA-256, after checking that the worktree is at the verified commit.
-    The archive is carried to the Linux host (the Linux leg runs on another machine) and `handoff-import` checks it there;
-    both steps print its SHA-256, so the two legs' logs show it was the same archive."""
+def native_evidence() -> list[str]:
+    """Puts the native licence evidence of `native` where `pack` reads it, as the download of `native-licence-policy-*`
+    lays it out (upload-artifact keeps the paths below their common directory, artifacts/): evidence/licence-ide.json and
+    cmake/<preset>/licence-boundary.json. The files are this leg's own, so nothing is carried between machines; a
+    missing report, or one of another commit, fails here instead of as a missing native graph in the gate."""
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    if head != args.sha:
-        raise Failure(f"the Windows verification worktree is at {head}, not {args.sha}")
+    ide = ROOT / "artifacts/evidence/licence-ide.json"
     reports = sorted((ROOT / "artifacts/cmake").rglob("licence-boundary.json"))
-    stage = ROOT / "artifacts/native-packages"
-    if not (stage / "native-artifact.json").is_file() or not reports:
-        raise Failure("the native stage or its licence evidence is missing; the native steps did not complete")
-    evidence = "artifacts/evidence/native-architecture"
-    members = [(f"artifacts/native-packages/{path.relative_to(stage).as_posix()}", path)
-               for path in sorted(stage.rglob("*")) if path.is_file()]
-    members.append((f"{evidence}/evidence/licence-ide.json", ROOT / "artifacts/evidence/licence-ide.json"))
-    members += [(f"{evidence}/{report.relative_to(ROOT / 'artifacts').as_posix()}", report) for report in reports]
-    manifest = {"format": HANDOFF_FORMAT, "commit": args.sha,
-                "files": {name: sha256_file(path) for name, path in members}}
-    common = Path(subprocess.check_output(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=ROOT,
-                                          text=True).strip())
-    target = common / "arcforges-verify" / "handoff" / handoff_name(args.sha)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    partial = target.with_name(target.name + ".part")
-    with tarfile.open(partial, "w:gz", format=tarfile.PAX_FORMAT) as archive:
-        data = json.dumps(manifest, indent=2, sort_keys=True).encode("utf-8")
-        info = tarfile.TarInfo("handoff.json")
-        info.size, info.mode = len(data), 0o644
-        archive.addfile(info, io.BytesIO(data))
-        for name, path in members:
-            archive.add(path, arcname=name, recursive=False)
-    partial.replace(target)
-    print(f"native hand-off for {args.sha}: {len(members)} files, {target.stat().st_size} bytes, "
-          f"sha256 {sha256_file(target)}\n{target}\ncarry it to the Linux host's {HANDOFF_DIR.as_posix()} "
-          "(or ARCFORGES_VERIFY_HANDOFF_DIR) before its leg runs", flush=True)
-
-
-def command_handoff_import(args: argparse.Namespace) -> None:
-    """The Linux leg's half of the hand-off: the archive the Windows leg packed at this commit, checked before anything
-    is unpacked: its manifest names this commit, holds only the hand-off paths, and every file matches its SHA-256. A
-    missing or mismatched archive fails the step (and with it the leg); nothing from an earlier commit is reused."""
-    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    if head != args.sha:
-        raise Failure(f"the Linux verification clone is at {head}, not {args.sha}")
-    source = HANDOFF_DIR / handoff_name(args.sha)
-    if not source.is_file():
-        raise Failure(f"{source} is missing: run the Windows leg of {args.sha} first (its `native-handoff` step packs "
-                      "the native stage) and copy the archive it names here")
-    print(f"native hand-off {source}: sha256 {sha256_file(source)}", flush=True)
-    allowed = ("artifacts/native-packages/", "artifacts/evidence/native-architecture/")
-    with tarfile.open(source, "r:gz") as archive:
-        entries = archive.getmembers()
-        manifest_entry = next((entry for entry in entries if entry.name == "handoff.json" and entry.isfile()), None)
-        if manifest_entry is None:
-            raise Failure(f"{source} has no handoff.json")
-        manifest = json.loads(archive.extractfile(manifest_entry).read().decode("utf-8"))
-        if manifest.get("format") != HANDOFF_FORMAT or manifest.get("commit") != args.sha:
-            raise Failure(f"{source} is not the native hand-off of {args.sha} (manifest {manifest.get('format')}, "
-                          f"commit {manifest.get('commit')})")
-        files = manifest.get("files", {})
-        names = [entry.name for entry in entries if entry is not manifest_entry]
-        bad = [entry.name for entry in entries if entry is not manifest_entry and (
-            not entry.isfile() or entry.name.startswith("/") or ".." in Path(entry.name).parts
-            or not entry.name.startswith(allowed))]
-        if bad or sorted(names) != sorted(files):
-            raise Failure(f"{source} holds entries outside its manifest or the hand-off paths: "
-                          f"{bad or sorted(set(names) ^ set(files))}")
-        contents = {}
-        for entry in entries:
-            if entry is manifest_entry:
-                continue
-            data = archive.extractfile(entry).read()
-            if hashlib.sha256(data).hexdigest() != files[entry.name]:
-                raise Failure(f"{entry.name} in {source} does not match its SHA-256 in the manifest")
-            contents[entry.name] = data
-    for prefix in allowed:
-        shutil.rmtree(ROOT / prefix, ignore_errors=True)
-    for name, data in contents.items():
-        destination = ROOT / name
+    if not ide.is_file() or not reports:
+        raise Failure("the native licence evidence is missing; `win-native` did not complete")
+    for report in reports:
+        commit = json.loads(report.read_text(encoding="utf-8")).get("commit")
+        if commit != head:
+            raise Failure(f"{report.relative_to(ROOT).as_posix()} is the configure receipt of {commit}, not {head}")
+    shutil.rmtree(NATIVE_EVIDENCE, ignore_errors=True)
+    copied = []
+    for source in [ide, *reports]:
+        relative = source.relative_to(ROOT / "artifacts").as_posix()
+        destination = NATIVE_EVIDENCE / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_bytes(data)
-    print(f"unpacked {len(contents)} files of the native hand-off of {args.sha} into {ROOT / 'artifacts'}", flush=True)
+        shutil.copyfile(source, destination)
+        copied.append(relative)
+    print(f"native licence evidence of {head}: {', '.join(copied)}", flush=True)
+    return copied
 
 
 # -------------------------------------------------------------------------------------------------------------- Linux
@@ -332,6 +266,8 @@ def command_hooks(_: argparse.Namespace) -> None:
         (venv / ".complete").write_text(key, encoding="utf-8")
     run([str(venv / "bin/pre-commit"), "run", "--all-files", "--show-diff-on-failure", "--color=never"])
 
+
+# ---------------------------------------------------------------------------------------------------------- Both legs
 
 def suites() -> list[tuple[str | None, str]]:
     """The test projects of the hosted "Build and test platform ownership" step, in its order, with the TRX name of
@@ -373,8 +309,9 @@ def test_suite(name: str | None, project: str) -> tuple[str, int, float, str]:
 
 def command_managed_tests(args: argparse.Namespace) -> None:
     """Every suite of the hosted step except the architecture gate, which needs the native evidence of the Windows
-    lane and runs in `architecture`, and except the timing-sensitive ones, which `--timing-sensitive` runs alone. Test
-    projects run concurrently (bounded by --jobs); each one's output is printed whole when it ends."""
+    leg and runs in `architecture` there, and except the timing-sensitive ones, which `--timing-sensitive` runs alone.
+    Test projects run concurrently (bounded by --jobs); each one's output is printed whole when it ends. The same on both
+    legs, and the test step of the hosted `linux-platform` job."""
     RESULTS.mkdir(parents=True, exist_ok=True)
     selected = [suite for suite in suites() if suite != ARCHITECTURE and (suite[1] in TIMING_SENSITIVE) == args.timing_sensitive]
     if args.timing_sensitive and len(selected) != len(TIMING_SENSITIVE):
@@ -395,6 +332,8 @@ def command_managed_tests(args: argparse.Namespace) -> None:
         raise Failure("Platform validation failed: " + ", ".join(failures))
 
 
+# ---------------------------------------------------------- Windows: the rest of `pack`, from this leg's native stage
+
 def trx_failures(path: Path) -> list[str]:
     tree = ET.parse(path)
     names = {}
@@ -408,10 +347,11 @@ def trx_failures(path: Path) -> list[str]:
 
 
 def command_architecture(_: argparse.Namespace) -> None:
+    native_evidence()
     evidence = ROOT / "artifacts/evidence"
     gates = evidence / "architecture-gates.json"
     gates.unlink(missing_ok=True)
-    # "Require successful external gates": the naming receipt of `runtime-policy` (this clone) and no secret receipt,
+    # "Require successful external gates": the naming receipt (`naming`, this worktree) and no secret receipt,
     # which only the hosted secret-scan job can issue; the result must be exactly that.
     combine = subprocess.run(["python", "eng/architecture_evidence.py", "combine", "--naming",
                               str(evidence / "naming-architecture.json"), "--output", str(gates)], cwd=ROOT)
@@ -456,10 +396,8 @@ def command_packaging_tests(_: argparse.Namespace) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("native", "stage", "hooks", "architecture", "pack", "packaging-tests"):
+    for name in ("native", "stage", "naming", "hooks", "architecture", "pack", "packaging-tests"):
         sub.add_parser(name)
-    sub.add_parser("handoff").add_argument("sha")
-    sub.add_parser("handoff-import").add_argument("sha")
     tests = sub.add_parser("managed-tests")
     tests.add_argument("--jobs", type=int, default=1)
     tests.add_argument("--timing-sensitive", action="store_true", help="only the timing-sensitive projects")
@@ -472,8 +410,7 @@ def main() -> int:
     if os.environ.pop(OS_SECRET_STORE_OPT_IN, None) is not None:
         print(f"removed {OS_SECRET_STORE_OPT_IN} from the environment: every suite here is routine and never reaches a real OS "
               "secret store (only eng/os_secret_store_tier.py runs the tier)", flush=True)
-    commands = {"native": command_native, "stage": command_stage, "handoff": command_handoff,
-                "handoff-import": command_handoff_import, "hooks": command_hooks,
+    commands = {"native": command_native, "stage": command_stage, "naming": command_naming, "hooks": command_hooks,
                 "managed-tests": command_managed_tests, "architecture": command_architecture, "pack": command_pack,
                 "packaging-tests": command_packaging_tests}
     try:
