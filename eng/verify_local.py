@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-only
-"""The multi-command steps of the local pre-push verification (eng/verify_steps.py), each the local form of a hosted
+"""The multi-command steps of the host verification (eng/verify_steps.py), each the local form of a hosted
 job of .github/workflows/pr-gate.yml, native-abi.yml or package-validation.yml (keep them in step):
 
   python eng/verify_local.py native          Windows: native-abi.yml `native-win-x64` from vcpkg install to the NativeAbi tests
@@ -17,7 +17,7 @@ Only the GitHub-bound parts differ, each named where it happens: run ids and art
 identity RUN/ATTEMPT below, and the same files produced on the leg's own machine where a hosted job downloads another
 job's artifact), and the hosted secret-scan receipt (RP-09) cannot be produced locally by design
 (eng/architecture_evidence.py refuses local RP-09 evidence), so the architecture gate accepts exactly that one finding
-and nothing else; the secret scan itself runs in the hook. Nothing is carried between the two legs' machines.
+and nothing else; the secret scan itself runs in the host verification. Nothing is carried between the two legs' machines.
 """
 from __future__ import annotations
 

@@ -99,11 +99,12 @@ Re-running a historical workflow uses its original commit and can still execute 
 The [OS secret-store tier](.github/workflows/os-secret-store-tier.yml) runs the minimal, sequential Windows
 Credential Manager tests of `tests/OsSecretStoreTests` alone on a disposable hosted runner for external PRs,
 `merge_group`, manual dispatch and weekly ([tier rules](tests/OsSecretStoreTests/README.md)); no routine suite or
-pre-push step reaches a real OS secret store, and every test project sets the test tripwire.
+host verification step reaches a real OS secret store, and every test project sets the test tripwire.
 The PR gate's native job compiles and stages the Windows native libraries and runs the selected CTest
 and NativeAbi layout tests. Isolated package consumers are local opt-in only; no macOS or hosted runtime
-testing is permitted. The owner's PRs run the whole PR gate locally before the push (`python eng/verify.py`,
-see [AGENTS.md](AGENTS.md#local-verification-ad-0016)); external PRs run it on GitHub.
+testing is permitted. Every PR's head runs the whole PR gate on the owner's Windows and Linux hosts after the push
+(`python eng/verify.py run-and-report`, whose `arcforges/windows` and `arcforges/linux` statuses `main` requires;
+see [AGENTS.md](AGENTS.md#verification-after-the-push-ad-0020)); external PRs also run it on GitHub.
 
 ## Packages and Contracts
 

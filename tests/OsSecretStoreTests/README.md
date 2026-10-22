@@ -11,7 +11,7 @@ switch `ArcForges.Security.Secrets.DenyOsStores` that every test project sets) r
 
 - **One opt-in.** Nothing runs without `ARCFORGES_OS_SECRET_STORE_TESTS=1`; the tests are then reported as skipped with that reason.
   Only the hosted tier job (on its test step) and `eng/os_secret_store_tier.py` (with the user's explicit opt-in) run them.
-- **Separate.** Every test class carries `[Trait("env", "os-secret-store")]`. No default suite, no pre-push step and no other
+- **Separate.** Every test class carries `[Trait("env", "os-secret-store")]`. No default suite, no host verification step and no other
   workflow selects this project; `tests/ArchitectureTests` (`OsSecretStoreTierPolicyTests`) fails if one does.
 - **Minimal and sequential.** One test at a time in one process (parallelization off, one collection). Each test does only what its
   contract needs: write and overwrite a uniquely named entry, read it, delete it; a missing entry; the backend unavailable (Linux).
