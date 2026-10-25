@@ -51,7 +51,7 @@ public sealed class LocalRpcServiceOsChecks
         for (var instance = 0; instance < 3; instance++)
         {
             var accepted = source.AcceptAsync(ct).AsTask();
-            await using var client = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly, TokenImpersonationLevel.Anonymous);
+            await using var client = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous, TokenImpersonationLevel.Anonymous);
             await client.ConnectAsync(ct);
             await using var stream = await accepted.WaitAsync(ServiceHarness.Patience, ct);
             var security = Assert.IsType<NamedPipeServerStream>(stream).GetAccessControl();

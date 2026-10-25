@@ -264,9 +264,10 @@ Cleanup: step 5 removes the pipe. Record: S5, section W1.
 
 ## W2. PLT.09 foreign-pipe client ownership
 
-The library client opens a pipe with `CurrentUserOnly`. The runtime then requires the server end to be owned by the
-current user. Here B owns a pipe that grants A access. The raw connect is admitted, so only the ownership check can
-refuse the client.
+The library client checks the connected server end's owner against the current token's user SID before sending bytes. It does not
+use `CurrentUserOnly`, whose runtime check compares the token's default owner (potentially BUILTIN\Administrators when elevated).
+A different user or group owner is refused. Here B owns a pipe that grants A access. The raw connect is admitted, so only the
+ownership check can refuse the client.
 
 Set-up and staging: S1 to S3 (Windows). Consoles A1, B1 and B2.
 
@@ -326,7 +327,7 @@ Cleanup: B1 runs `Remove-Item -Recurse C:\ArcForgesWrongUser\roots\rt-w3`, and A
 ## W4. PLT.10 launch endpoint denial (Named Pipe; Unix socket)
 
 The serving helper creates a launch authority with a root under A's temporary folder, issues one launch, and serves its
-endpoint with a launch-authorized server. On Windows, the Named Pipe is `afl-<32 hex>`, created with `CurrentUserOnly`.
+endpoint with a launch-authorized server. On Windows, the Named Pipe is `afl-<32 hex>`, created with an explicit user-SID owner and protected user-only DACL.
 The Unix socket is `<tmp>\afwu-*\rt\<12 hex>\s`, inside the library's protected owner-only launch directories. Run the
 steps once with `<transport>` = `named-pipe` and once with `unix-socket`.
 

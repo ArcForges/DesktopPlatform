@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using System.Net.Sockets;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
@@ -112,24 +113,31 @@ public sealed class LocalRpcClientChannel : IAsyncDisposable
         bounded.CancelAfter(timeout);
         return endpoint.Transport switch
         {
-            LocalRpcTransport.NamedPipe => await ConnectNamedPipeAsync(endpoint.Address, bounded.Token).ConfigureAwait(false),
+            LocalRpcTransport.NamedPipe when OperatingSystem.IsWindows() => await ConnectNamedPipeAsync(endpoint.Address, bounded.Token).ConfigureAwait(false),
             LocalRpcTransport.UnixDomainSocket => await ConnectUnixSocketAsync(endpoint.Address, bounded.Token).ConfigureAwait(false),
             _ => throw new InvalidOperationException("A local RPC endpoint names exactly one private stream transport."),
         };
     }
 
-    private static async ValueTask<Stream> ConnectNamedPipeAsync(string name, CancellationToken cancellationToken)
+    [SupportedOSPlatform("windows")]
+    internal static async ValueTask<Stream> ConnectNamedPipeAsync(string name, CancellationToken cancellationToken)
     {
-        // CurrentUserOnly makes the runtime verify that the server end is owned by this user after connecting.
+        // CurrentUserOnly compares the token's default owner, which can be BUILTIN\Administrators when elevated.
+        // Compare the connected server end with the token's user SID instead, before handing any stream to HTTP/2.
         var pipe = new NamedPipeClientStream(
             ".",
             name,
             PipeDirection.InOut,
-            PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly,
+            PipeOptions.Asynchronous,
             TokenImpersonationLevel.Anonymous);
         try
         {
             await pipe.ConnectAsync(cancellationToken).ConfigureAwait(false);
+            if (!IsOwnedByCurrentUser(pipe))
+            {
+                throw new UnauthorizedAccessException("The server pipe is not owned by this token's user SID.");
+            }
+
             return pipe;
         }
         catch
@@ -138,6 +146,19 @@ public sealed class LocalRpcClientChannel : IAsyncDisposable
             throw;
         }
     }
+
+    [SupportedOSPlatform("windows")]
+    private static bool IsOwnedByCurrentUser(PipeStream pipe)
+    {
+        var owner = pipe.GetAccessControl().GetOwner(typeof(SecurityIdentifier)) as SecurityIdentifier;
+        using var identity = WindowsIdentity.GetCurrent();
+        return OwnerIsUser(owner, identity.User);
+    }
+
+    /// <summary>A group owner, a different user or a missing SID never proves ownership by this user.</summary>
+    [SupportedOSPlatform("windows")]
+    internal static bool OwnerIsUser(SecurityIdentifier? owner, SecurityIdentifier? user) =>
+        owner is not null && user is not null && owner == user;
 
     [SuppressMessage("Reliability", "CA2000", Justification = "Ownership of the connected socket passes to the returned stream; failures dispose it.")]
     private static async ValueTask<Stream> ConnectUnixSocketAsync(string path, CancellationToken cancellationToken)

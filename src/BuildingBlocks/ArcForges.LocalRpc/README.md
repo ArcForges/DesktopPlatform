@@ -450,9 +450,11 @@ minutes and needs `ARCFORGES_LOCALRPC_LONG_STREAM=1` as well. `tests/LocalRpcSer
 
 ## OS user boundary
 
-A Named Pipe is created with `CurrentUserOnly` (a DACL granting only the current user); the first instance also
-uses `FirstPipeInstance`, so binding fails when the name already has an instance, and the client requires the
-server end to be owned by the current user. The pipe is not created with the reject-remote-clients flag and a
+A parent-child Named Pipe is created with an explicit owner and protected DACL for the token's user SID; the first instance also
+uses `FirstPipeInstance`, so binding fails when the name already has an instance. The client checks the connected server end's owner
+against its token's user SID before sending any bytes, including when the token's default owner is BUILTIN\Administrators. Another
+user, a group owner or a missing SID is refused. This does not grant a service-mode server access to an otherwise unidentifiable peer.
+The parent-child pipe is not created with the reject-remote-clients flag and a
 client reaches it through `\\127.0.0.1\pipe\<name>` as well; it is limited to the current account by its DACL and
 is not claimed to be network-isolated. A Unix socket is bound only in a directory with no group or other
 permission bits, is never created over an existing file, is set to mode 0600 and is removed when the listener is

@@ -2,6 +2,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using System.Net.Sockets;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace ArcForges.LocalRpc;
 
@@ -141,12 +143,30 @@ internal sealed class NamedPipeAcceptSource : IStreamAcceptSource
         ? LocalRpcWindowsNative.CreateServicePipe(_name, first)
         : CreatePlainInstance(first);
 
-    private NamedPipeServerStream CreatePlainInstance(bool first) => new(
-        _name,
-        PipeDirection.InOut,
-        NamedPipeServerStream.MaxAllowedServerInstances,
-        PipeTransmissionMode.Byte,
-        PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly | (first ? PipeOptions.FirstPipeInstance : PipeOptions.None));
+    private NamedPipeServerStream CreatePlainInstance(bool first)
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            throw new PlatformNotSupportedException("Named Pipes are the Windows transport.");
+        }
+
+        // Parent-child listeners use the same user-SID owner rule as service listeners and the client, even in an elevated token.
+        using var identity = WindowsIdentity.GetCurrent();
+        var user = identity.User ?? throw new InvalidOperationException("The current token has no user SID.");
+        var security = new PipeSecurity();
+        security.SetOwner(user);
+        security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+        security.AddAccessRule(new PipeAccessRule(user, PipeAccessRights.FullControl, AccessControlType.Allow));
+        return NamedPipeServerStreamAcl.Create(
+            _name,
+            PipeDirection.InOut,
+            NamedPipeServerStream.MaxAllowedServerInstances,
+            PipeTransmissionMode.Byte,
+            PipeOptions.Asynchronous | (first ? PipeOptions.FirstPipeInstance : PipeOptions.None),
+            0,
+            0,
+            security);
+    }
 }
 
 /// <summary>
