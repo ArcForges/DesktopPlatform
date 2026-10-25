@@ -420,7 +420,7 @@ internal static class WrongUserHelperProcess
 
     /// <summary>
     /// Classifies a failed library-client call. It is a refusal exactly when the chain holds the library's connect failure wrapping
-    /// an <see cref="UnauthorizedAccessException"/> (the runtime's CurrentUserOnly ownership check, or the endpoint's access list);
+    /// an <see cref="UnauthorizedAccessException"/> (the library's user-SID ownership check, or the endpoint's access list);
     /// any other connect failure proves nothing; a failure after the stream opened means the ownership check passed.
     /// </summary>
     internal static WrongUserOutcome ClassifyClientFailure(Exception exception)

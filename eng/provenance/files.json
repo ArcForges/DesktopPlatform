@@ -1002,6 +1002,7 @@
     "src/BuildingBlocks/ArcForges.LocalRpc/LocalRpcWindowsNative.cs",
     "src/BuildingBlocks/ArcForges.LocalRpc/Tests/LocalRpcServiceModeTests.cs",
     "src/BuildingBlocks/ArcForges.LocalRpc/Tests/LocalRpcServiceOsChecks.cs",
+    "src/BuildingBlocks/ArcForges.LocalRpc/Tests/LocalRpcPipeOwnershipTests.cs",
     "src/BuildingBlocks/ArcForges.LocalRpc/Tests/ServiceModeFixtures.cs",
     "tests/LocalRpcServiceAotTests/LocalRpcServiceAotTests.csproj",
     "tests/LocalRpcServiceAotTests/Program.cs",

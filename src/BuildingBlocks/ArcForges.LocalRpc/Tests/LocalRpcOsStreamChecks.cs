@@ -94,7 +94,7 @@ public sealed class LocalRpcOsStreamChecks
         var name = "af-os-acl-" + Guid.NewGuid().ToString("N");
         await using var source = NamedPipeAcceptSource.Bind(name);
         var accepted = source.AcceptAsync(ct).AsTask();
-        await using var client = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly, TokenImpersonationLevel.Anonymous);
+        await using var client = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous, TokenImpersonationLevel.Anonymous);
         await client.ConnectAsync(ct);
         await using var stream = await accepted.WaitAsync(Patience, ct);
 
@@ -343,7 +343,7 @@ public sealed class LocalRpcOsStreamChecks
     {
         if (endpoint.Transport == LocalRpcTransport.NamedPipe)
         {
-            var pipe = new NamedPipeClientStream(".", endpoint.Address, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly, TokenImpersonationLevel.Anonymous);
+            var pipe = new NamedPipeClientStream(".", endpoint.Address, PipeDirection.InOut, PipeOptions.Asynchronous, TokenImpersonationLevel.Anonymous);
             await pipe.ConnectAsync(ct);
             return pipe;
         }
