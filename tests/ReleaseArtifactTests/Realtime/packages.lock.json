@@ -46,9 +46,9 @@
       },
       "Grpc.Net.Client.Web": {
         "type": "Direct",
-        "requested": "[2.84.0, )",
-        "resolved": "2.84.0",
-        "contentHash": "6KB6IFGx+KfGMaN06nATBVgvgsOEVf12/nJHvdAPsY2mULmWCSn4moFUT8UnCnQ19C3tpGbc2CnB1/e0hVUmaA=="
+        "requested": "[2.85.0, )",
+        "resolved": "2.85.0",
+        "contentHash": "jHYy1eNACnFoZeyecg3e+GcCgwp/ce3uh35B10B+Ha9zKgzuzED160ONxdJXGWvU+R6Pv2vwmxYcQB6pLNSveQ=="
       },
       "Microsoft.CodeAnalysis.NetAnalyzers": {
         "type": "Direct",
