@@ -90,3 +90,14 @@ regexes = [
   '''^\n?    "tests/OsSecretStoreTests/ArcForges[.]Tests[.]OsSecretStoreTests[.]csproj": "839dfa0b55f7ae2b2ad060ad0238e20b57c069bd1480f72220e398ccc4fdeeff",$''',
   '''^\n?      "tests/OsSecretStoreTests/ArcForges[.]Tests[.]OsSecretStoreTests[.]csproj": "839dfa0b55f7ae2b2ad060ad0238e20b57c069bd1480f72220e398ccc4fdeeff",$'''
 ]
+
+[[allowlists]]
+description = "Exact unchanged OS secret-store project metadata in the ENV compiler-policy bootstrap receipt"
+paths = ['''^eng/policy/dependency-reviews/afv2-env-01-csharp15-bootstrap-r1[.]json$''']
+regexTarget = "line"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexes = [
+  '''^\n?      "src/BuildingBlocks/ArcForges[.]Security[.]Secrets/ArcForges[.]Security[.]Secrets[.]csproj": "e4effc73ea98bf170cf384c55e43c34d30cbe4e67cd9abd5e81dae170fcf880e",$''',
+  '''^\n?      "tests/OsSecretStoreTests/ArcForges[.]Tests[.]OsSecretStoreTests[.]csproj": "839dfa0b55f7ae2b2ad060ad0238e20b57c069bd1480f72220e398ccc4fdeeff",$'''
+]

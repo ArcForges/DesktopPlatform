@@ -5,6 +5,7 @@ Runs without SDK, network or build output. Only the files GOV.30 writes are scan
 host detection, immutable dependency-review, provenance and patch records are history or shared code and are not
 owned here. The only exempt occurrences are the two current.json candidate rows pinned to the Design receipt.
 """
+import copy
 import importlib.util
 import json
 from pathlib import Path
@@ -38,6 +39,9 @@ LOCKS = tuple(path for path in OWNED if path.endswith('packages.lock.json'))
 # current.json keeps the ArcScope 0.1.0-ci.8.1 candidate nativeRuns as immutable history (coordinator adjudication, 2026-10-08).
 HISTORY = 'eng/policy/reconciliation/current.json'
 HISTORY_EXEMPT = {('ArcScope', 'osx-arm64'), ('ArcScope', 'osx-x64')}
+RID_REVIEW_HISTORY = tuple('eng/policy/dependency-reviews/' + name + '.json' for name in (
+    'os-secret-store-guard-r1', 'af-dp-02-r1', 'af-dp-01-r1', 'plt-46-r1', 'nat-11-r1', 'gov-30-r1',
+))
 
 
 class DesktopRidResidueTests(unittest.TestCase):
@@ -69,18 +73,59 @@ class DesktopRidResidueTests(unittest.TestCase):
     def test_dependency_policy_has_no_osx_admission_and_names_the_successor(self):
         policy = json.loads(self.read('eng/policy/dependency-policy.json'))
         self.assertEqual([key for key in policy['nugetClosure'] if OSX.search(key)], [])
-        self.assertEqual(policy['reviewReceipt'], 'eng/policy/dependency-reviews/os-secret-store-guard-r1.json')
-        guard = json.loads(self.read(policy['reviewReceipt']))
-        self.assertEqual(guard['review']['previousReceipt'], 'eng/policy/dependency-reviews/af-dp-02-r1.json')
-        newest = json.loads(self.read(guard['review']['previousReceipt']))
-        self.assertEqual(newest['review']['previousReceipt'], 'eng/policy/dependency-reviews/af-dp-01-r1.json')
-        latest = json.loads(self.read(newest['review']['previousReceipt']))
-        self.assertEqual(latest['review']['previousReceipt'], 'eng/policy/dependency-reviews/plt-46-r1.json')
-        successor = json.loads(self.read(latest['review']['previousReceipt']))
-        self.assertEqual(successor['review']['previousReceipt'], 'eng/policy/dependency-reviews/nat-11-r1.json')
-        predecessor = json.loads(self.read(successor['review']['previousReceipt']))
-        self.assertEqual(predecessor['review']['previousReceipt'], 'eng/policy/dependency-reviews/gov-30-r1.json')
-        self.assertTrue((ROOT / policy['reviewReceipt']).is_file())
+        self.assert_review_successor_chain(policy, self.review_receipts())
+
+    def review_receipts(self):
+        return {path.relative_to(ROOT).as_posix(): json.loads(path.read_text(encoding='utf-8'))
+                for path in (ROOT / 'eng/policy/dependency-reviews').glob('*.json')}
+
+    def assert_review_successor_chain(self, policy, receipts):
+        # New admissions may extend the chain; the pinned RID-removal/guard ancestry remains exact.
+        predecessors = dict(zip(RID_REVIEW_HISTORY, RID_REVIEW_HISTORY[1:]))
+        current = policy['reviewReceipt']
+        seen = set()
+        while current != RID_REVIEW_HISTORY[-1]:
+            self.assertNotIn(current, seen, 'Cycle in dependency-review predecessor chain')
+            self.assertIn(current, receipts, 'Missing dependency-review predecessor receipt')
+            seen.add(current)
+            previous = receipts[current]['review'].get('previousReceipt')
+            if current in predecessors:
+                self.assertEqual(previous, predecessors[current], 'Changed historical RID-review predecessor')
+            current = previous
+        self.assertIn(current, receipts)
+        self.assertTrue(set(RID_REVIEW_HISTORY[:-1]) <= seen, 'Active review bypasses RID-removal/guard ancestry')
+
+    def test_dependency_review_accepts_a_later_successor(self):
+        policy = json.loads(self.read('eng/policy/dependency-policy.json'))
+        receipts = self.review_receipts()
+        successor = 'eng/policy/dependency-reviews/future-rid-history-test-r1.json'
+        receipts[successor] = {'review': {'previousReceipt': policy['reviewReceipt']}}
+        policy['reviewReceipt'] = successor
+        self.assert_review_successor_chain(policy, receipts)
+
+    def test_dependency_review_rejects_missing_bypassed_or_cyclic_history(self):
+        policy = json.loads(self.read('eng/policy/dependency-policy.json'))
+        receipts = self.review_receipts()
+        for mode in ('missing', 'bypassed-guard', 'changed-history', 'cycle'):
+            changed = copy.deepcopy(receipts)
+            if mode == 'missing':
+                del changed[RID_REVIEW_HISTORY[1]]
+            elif mode == 'bypassed-guard':
+                changed[policy['reviewReceipt']]['review']['previousReceipt'] = RID_REVIEW_HISTORY[1]
+            elif mode == 'changed-history':
+                changed[RID_REVIEW_HISTORY[0]]['review']['previousReceipt'] = RID_REVIEW_HISTORY[2]
+            else:
+                changed[policy['reviewReceipt']]['review']['previousReceipt'] = policy['reviewReceipt']
+            with self.subTest(mode=mode), self.assertRaises(AssertionError):
+                self.assert_review_successor_chain(policy, changed)
+
+    def test_dependency_review_rejects_rollback_before_the_guard(self):
+        policy = json.loads(self.read('eng/policy/dependency-policy.json'))
+        receipts = self.review_receipts()
+        for historical in RID_REVIEW_HISTORY[1:]:
+            policy['reviewReceipt'] = historical
+            with self.subTest(receipt=historical), self.assertRaises(AssertionError):
+                self.assert_review_successor_chain(policy, receipts)
 
     def test_directory_inventory_has_no_osx_row_and_its_count_matches(self):
         rows = json.loads(self.read('eng/policy/reconciliation/directories.json'))

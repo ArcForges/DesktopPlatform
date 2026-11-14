@@ -2,6 +2,7 @@
 """Synthetic resolver independence and real Git identity rejection tests."""
 import copy
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -9,6 +10,68 @@ import unittest
 from unittest.mock import patch
 
 import build_identity as identity
+
+
+class CompilerPolicyTests(unittest.TestCase):
+    """Real MSBuild evaluation of declared policy inputs; no restore, package or native execution."""
+
+    def evaluate(self, language='14', sdk='10.0.400', **overrides):
+        with tempfile.TemporaryDirectory(prefix='arcforges-compiler-policy-') as temporary:
+            root = Path(temporary)
+            policy = Path(__file__).resolve().parents[1] / 'src/Build/ArcForges.Build.Policy/build'
+            settings = {'LangVersion': language, 'NETCoreSdkVersion': sdk, 'Nullable': 'enable',
+                        'Deterministic': 'true', 'TreatWarningsAsErrors': 'true',
+                        'RestorePackagesWithLockFile': 'true'}
+            # SDK is a declared policy-input vector here. Actual SDK/C# compilation is distinct
+            # author/native evidence; this target deliberately performs no SDK resolution.
+            properties = ''.join(f'<{key}>{value}</{key}>' for key, value in settings.items())
+            override_properties = ''.join(f'<{key}>{value}</{key}>' for key, value in overrides.items())
+            project = root / 'PolicyFixture.csproj'
+            project.write_text(f'''<Project>
+  <PropertyGroup>{properties}</PropertyGroup>
+  <Import Project="{policy / 'ArcForges.Build.Policy.props'}" />
+  <PropertyGroup>{override_properties}</PropertyGroup>
+  <Import Project="{policy / 'ArcForges.Build.Policy.targets'}" />
+</Project>''', encoding='utf-8')
+            environment = {key: value for key, value in os.environ.items()
+                           if not key.startswith('GITHUB_') and key not in {'CI', 'MSBuildSDKsPath'}}
+            return subprocess.run(['dotnet', 'msbuild', str(project), '-nologo',
+                                   '-target:ArcForgesVerifyCompilerPolicy'], cwd=root,
+                                  capture_output=True, text=True, env=environment, timeout=30)
+
+    def test_explicit_supported_compiler_versions_are_accepted(self):
+        for language, sdk in [('14', '10.0.400'), ('14', '11.0.100'), ('15', '11.0.100'), ('15', '11.0.101')]:
+            with self.subTest(language=language, sdk=sdk):
+                result = self.evaluate(language, sdk)
+                self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+    def test_existing_consumer_default_remains_csharp14(self):
+        result = self.evaluate(language='')
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+    def test_csharp15_requires_a_stable_supported_sdk(self):
+        for sdk in ['', '10.0.403', '11.0.99', '11.0.100-preview.1', 'latest', 'unknown']:
+            with self.subTest(sdk=sdk):
+                result = self.evaluate('15', sdk)
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn('AFP004', result.stdout + result.stderr)
+
+    def test_unknown_and_floating_language_versions_are_refused(self):
+        for language in ['13', '16', 'latest', 'preview']:
+            with self.subTest(language=language):
+                result = self.evaluate(language, '11.0.100')
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn('AFP004', result.stdout + result.stderr)
+
+    def test_csharp15_cannot_weaken_existing_compiler_or_lock_guards(self):
+        for overrides, diagnostic in [({'Nullable': 'disable'}, 'AFP004'),
+                                      ({'Deterministic': 'false'}, 'AFP004'),
+                                      ({'TreatWarningsAsErrors': 'false'}, 'AFP004'),
+                                      ({'RestorePackagesWithLockFile': 'false'}, 'AFP005')]:
+            with self.subTest(overrides=overrides):
+                result = self.evaluate('15', '11.0.100', **overrides)
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn(diagnostic, result.stdout + result.stderr)
 
 
 class BuildIdentityTests(unittest.TestCase):

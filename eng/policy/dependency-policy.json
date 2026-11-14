@@ -171,11 +171,11 @@
     "eng/verification/probe-evidence/packages.lock.json": "ebaf3ff575a65e6b3a68a661fa19ea987f1abcf901846b80060d2c6ae3afbd02",
     "global.json": "d17cfeed29d17cb8e75b56e26767c591ab560a2d7204f28bcb3ec3f47bb4263e",
     "native/windows/ArcForges.Native.props": "a3d1e3c574b15b3c428f8b7db98476d120aa276dc566e86a1ade42e910516224",
-    "src/Build/ArcForges.Build.Policy/ArcForges.Build.Policy.csproj": "8514894388ac30b13550b223dfb94d37d37dbf79816766685e6438ea8aac01da",
+    "src/Build/ArcForges.Build.Policy/ArcForges.Build.Policy.csproj": "e195d2a10f670d423b3906d85493b2ef0745092006b7004788604e5b03d21be9",
     "src/Build/ArcForges.Build.Policy/Architecture/ArchitecturePolicy.props": "b49df8103b7251e16412b236bcb2e4a9b665365b3f1b034840a4801653fdeb96",
     "src/Build/ArcForges.Build.Policy/build/ArcForges.Build.Metadata.targets": "c0d516a0c0b956689ddfc78ff061d6f3add7a9fe22b4b05baa31bbfed1aca985",
     "src/Build/ArcForges.Build.Policy/build/ArcForges.Build.Policy.props": "5310beac8a834ebff477d2d86d2d8937b2f635aa741294225c99a111d8b72600",
-    "src/Build/ArcForges.Build.Policy/build/ArcForges.Build.Policy.targets": "8c15dc21c5bf599b458e41ea126d2a22157d70f32c81512d25d7f886c504e34e",
+    "src/Build/ArcForges.Build.Policy/build/ArcForges.Build.Policy.targets": "d4929d4489ea61acbbb212dcf5e420ec1585e5b56b7fffe0fb368ee08fba0bfa",
     "src/Build/ArcForges.Build.Policy/packages.lock.json": "09f91faca7c23b7ef4c0a4a6a4afa1f5d4e17e2e3dcbd9aca08ff12aec384059",
     "src/BuildingBlocks/ArcForges.Application.Abstractions/ArcForges.Application.Abstractions.csproj": "270f378987937ebeb8d457ba332d56a8fb0f50a734386402f5358a430db3ebf6",
     "src/BuildingBlocks/ArcForges.Application.Abstractions/packages.lock.json": "35787730aacd19510564fce9726ad522b0cea67a7f2380dadaf9bbb0d9bda2fc",
@@ -780,19 +780,20 @@
   "nativeGate": "eng/native_provenance.py",
   "sourceGate": "eng/check_provenance.py",
   "review": {
-    "owner": "OS secret-store guard author (claude-opus-5-5, delegated worker; branch chore/os-secret-store-guard)",
-    "reviewer": "Independent exact-head reviewer (claude-opus-5-5, separate session from the author) recorded on the ArcForges/DesktopPlatform pull request of branch chore/os-secret-store-guard",
-    "reviewedOn": "2026-10-17",
-    "baselineCommit": "25576c293481cc2038a22182e3f41a5019f88eb6",
-    "maintenanceAssessment": "No third-party coordinate is added, removed or changed: the NuGet closure stays at 59 coordinates and the Python closure at 10. The change implements the OS secret-store test guard of ArcForges-Design main d06ed76 (docs/architecture/16-testing-strategy.md section 1, docs/reuse/desktopplatform-refactor.md section 2, AD-0016 amendment of 2026-10-17, L-26). Bound inputs that change: Directory.Build.targets (every test project, and no packable project, gets the runtime configuration option ArcForges.Security.Secrets.DenyOsStores=true); Directory.Packages.props (the ArcForges.Contracts.Foundation 1.0.0-ci.216.1 pin for the new tier project, the same pin ArcForges.Security.Secrets and its other consumers already use); the ArcForges.Security.Secrets project file (InternalsVisibleTo for the tier test assembly; references, framework, package identity and pack items unchanged); the new non-packable test project tests/OsSecretStoreTests (xunit.v3, Microsoft.NET.Test.Sdk and xunit.runner.visualstudio at their admitted versions, one project reference) and its lock file, which contains only already admitted coordinates. No version, lock or build setting of any other project changes.",
+    "owner": "OpenAI Codex /root/base01_worker, author of the AFV2-ENV-01 producer bootstrap",
+    "reviewer": "OpenAI Codex /root/merge_review, independent nonauthor source/licence/dependency review on 2026-11-14; exact-head native gates and ordinary cohort publication remain separate requirements",
+    "decision": "approved",
+    "reviewedOn": "2026-11-14",
+    "baselineCommit": "e02ebe455d4fe2c06b19dabc0f3179a43ab21aa6",
+    "maintenanceAssessment": "Narrow producer bootstrap under AD-0023 / AFV2-ENV-01. No third-party coordinate, lock, framework or default SDK changes: retain the actual 59-coordinate NuGet and 10-coordinate Python closures and global.json SDK10.0.400. The build-only package keeps default C#14 and admits explicitly selected C#15 only with numeric stable SDK>=11.0.100. Existing central-version, nullable, deterministic, warnings-as-errors, AOT/trim escalation and lock guards remain. The two bound source inputs change compiler-policy logic and package description only. Package README and existing source-policy tests change; there is no new project or runtime API. This intermediate publication is not complete latest-stable or aggregate parity acceptance. Independent nonauthor review approved the complete nine-file bootstrap: all 287 actual input hashes matched, 59 NuGet and 10 Python entries were unchanged, and all 52 historical receipts retained their bytes after line-ending normalization. The review separately verified the compiler/lock guards and exact new-receipt false-positive constraints; no pushed-head native or publication success is claimed.",
     "upgradeChecks": {
-      "compilation": "Windows 11 x64 (10.0.26300) with the pinned SDK 10.0.400: dotnet restore DesktopPlatform.slnx --locked-mode and dotnet build DesktopPlatform.slnx -c Release --no-restore (0 warnings, 0 errors, warnings as errors). The pre-push verification (python eng/verify.py run) repeats the locked restore, format check and Release build on Windows and WSL2 Debian; its PASS line is recorded in the pull request.",
-      "aot-trim": "ArcForges.Security.Secrets stays IsAotCompatible with the trim and AOT analyzers at 0 warnings; the guard reads one AppContext switch and one environment variable, without reflection. tests/SecretStoreSelectionAotTests still publishes with Native AOT (the pre-push win-x64 and linux-x64 probes).",
-      "compatibility": "Additive public API: OsSecretStoreGuard (DenyOsStoresSwitch, OptInVariable, IsDenied, ThrowIfDenied) and OsSecretStoreDeniedException (an InvalidOperationException). WindowsCredentialManagerSecretStore gains an explicit parameterless constructor (same signature as before). Production behaviour is unchanged: the adapters refuse only in a process whose runtime configuration sets the switch (test projects), and release builds never set it. In such a process the Windows adapter and the Secret Service on the user's session bus throw OsSecretStoreDeniedException before any OS call unless ARCFORGES_OS_SECRET_STORE_TESTS=1; selection propagates the refusal and never falls back to the file store. Consumer test projects that construct the real adapters must move those tests to their OS secret-store tier (ArcForges admits this version).",
-      "licence-provenance": "No dependency licence changes. The new files are first-party AGPL-3.0-only and inventoried in eng/provenance/files.json; the tier project is declared in the licence-boundary, runtime-ownership, architecture-projects and reconciliation records; this receipt is inventoried.",
-      "security-sbom": "The NuGet and Python closures are unchanged, so the SBOM inputs are unchanged. NuGetAudit (mode all) reported no advisory during the locked restore. The guard narrows access: routine tests can no longer reach the user's Credential Manager or session Secret Service. No new native binding.",
-      "runtime-performance-migration": "No migration and no stored data change. The real-store tests moved from local opt-in (ARCFORGES_LOCAL_OS_SECRET_STORE) to the OS secret-store tier (hosted Windows runner; ArcForgesTest for Linux), with at most 4 entries, 32 calls, 10 s per call and 5 minutes per run. The tripwire costs one switch and one environment read per adapter call.",
-      "framework-runtime-posture": "No framework, SDK or runtime change; global.json remains on the .NET SDK 10.0.400."
+      "compilation": "AUTHOR EVIDENCE ONLY: native Windows deku, existing Scoop dotnet-sdk/current/dotnet.exe resolved SDK11.0.100 and MSBuildToolsPath sdk/11.0.100. An isolated package-free net11.0 source-policy fixture restored from an empty-source NuGet.config with its own central policy, then dotnet build -c Release --no-restore passed for LangVersion15 and LangVersion14 with 0 warnings/errors. The repository's complete pinned-SDK10.0.400 build/native gates are still required after push and are not claimed here.",
+      "aot-trim": "The changed package contains build inputs and packaged architecture-policy source, no runtime assembly or native dependency; no AOT/trim switch, analyzer, project reference or runtime code changes. Existing full Windows/Linux AOT probes remain mandatory and have not been rerun by this draft author.",
+      "compatibility": "Native Windows python -m unittest discover -s eng -p test_build_identity.py -v: 11 tests passed (6 existing identity tests and 5 compiler-policy groups). Real MSBuild target evaluation tests declared input vectors for C#14 default, 14/15 supported SDKs, old/missing/prerelease SDK rejection, unknown/latest/preview language rejection, and unchanged nullable/deterministic/warnings/lock rejection. These input-vector tests do not claim actual SDK resolution; actual SDK11 compilation is separate evidence above. Independent nonauthor review passed the five compiler-policy groups and additionally confirmed numeric LangVersion14.0/15.0 compatibility, rejection of preview/prefixed/build-suffixed/old SDK values for C#15, and CI RestoreLockedMode=false rejection with AFP005 while true passed.",
+      "licence-provenance": "All edits are existing first-party AGPL-3.0-only build policy/documentation/test inputs; the new receipt is added to the firstParty inventory. No external legal/source/artifact record, native profile, published byte, applied migration or historical dependency receipt changes. Required source/native provenance gates remain unchanged.",
+      "security-sbom": "NuGet/Python content hashes and admitted closure entries are unchanged. The new receipt mirrors the existing known non-secret Security.Secrets and OS-store test project input hashes; .gitleaks.toml adds only that exact receipt path plus the two exact six-space full metadata lines for generic-api-key. No generic directory/hash/rule ignore is added. Native Windows test_dependency_policy.py passed 32 tests, including exact-path/line/rule positive controls and changed-value/unknown-path negative controls. No actual scanner result is claimed. Full ordinary security gates remain required. Independent review confirmed the new allowlist is restricted to this exact receipt path, the two existing full project-hash lines and generic-api-key only; its positive/negative test passed. Actual pinned gitleaks scanning remains required in the full Linux verification and is not replaced by this review.",
+      "runtime-performance-migration": "Build-time policy compatibility only: no shipped runtime code, stored data, process containment, filesystem behavior or migration changes. No new runtime performance claim or acceptance deferral is introduced.",
+      "framework-runtime-posture": "Repository global.json and target frameworks remain on their actual existing SDK10.0.400/net10 posture for this intermediate bootstrap. C#15 consumers must select stable SDK>=11.0.100 themselves; the new policy neither installs nor silently selects a toolchain. Full ENV-01 latest-version/parity work and producer/consumer cohort admission remain unfinished."
     },
     "inputHashes": {
       ".python-version": "922fe0c3de073b01988e23348ea184456161678c5e329e6f34be89be24383f93",
@@ -964,11 +965,11 @@
       "eng/verification/probe-evidence/packages.lock.json": "ebaf3ff575a65e6b3a68a661fa19ea987f1abcf901846b80060d2c6ae3afbd02",
       "global.json": "d17cfeed29d17cb8e75b56e26767c591ab560a2d7204f28bcb3ec3f47bb4263e",
       "native/windows/ArcForges.Native.props": "a3d1e3c574b15b3c428f8b7db98476d120aa276dc566e86a1ade42e910516224",
-      "src/Build/ArcForges.Build.Policy/ArcForges.Build.Policy.csproj": "8514894388ac30b13550b223dfb94d37d37dbf79816766685e6438ea8aac01da",
+      "src/Build/ArcForges.Build.Policy/ArcForges.Build.Policy.csproj": "e195d2a10f670d423b3906d85493b2ef0745092006b7004788604e5b03d21be9",
       "src/Build/ArcForges.Build.Policy/Architecture/ArchitecturePolicy.props": "b49df8103b7251e16412b236bcb2e4a9b665365b3f1b034840a4801653fdeb96",
       "src/Build/ArcForges.Build.Policy/build/ArcForges.Build.Metadata.targets": "c0d516a0c0b956689ddfc78ff061d6f3add7a9fe22b4b05baa31bbfed1aca985",
       "src/Build/ArcForges.Build.Policy/build/ArcForges.Build.Policy.props": "5310beac8a834ebff477d2d86d2d8937b2f635aa741294225c99a111d8b72600",
-      "src/Build/ArcForges.Build.Policy/build/ArcForges.Build.Policy.targets": "8c15dc21c5bf599b458e41ea126d2a22157d70f32c81512d25d7f886c504e34e",
+      "src/Build/ArcForges.Build.Policy/build/ArcForges.Build.Policy.targets": "d4929d4489ea61acbbb212dcf5e420ec1585e5b56b7fffe0fb368ee08fba0bfa",
       "src/Build/ArcForges.Build.Policy/packages.lock.json": "09f91faca7c23b7ef4c0a4a6a4afa1f5d4e17e2e3dcbd9aca08ff12aec384059",
       "src/BuildingBlocks/ArcForges.Application.Abstractions/ArcForges.Application.Abstractions.csproj": "270f378987937ebeb8d457ba332d56a8fb0f50a734386402f5358a430db3ebf6",
       "src/BuildingBlocks/ArcForges.Application.Abstractions/packages.lock.json": "35787730aacd19510564fce9726ad522b0cea67a7f2380dadaf9bbb0d9bda2fc",
@@ -1086,9 +1087,9 @@
     "frameworkVersions": {
       "dotnetSdk": "10.0.400"
     },
-    "previousReceipt": "eng/policy/dependency-reviews/af-dp-02-r1.json"
+    "previousReceipt": "eng/policy/dependency-reviews/os-secret-store-guard-r1.json"
   },
-  "reviewReceipt": "eng/policy/dependency-reviews/os-secret-store-guard-r1.json",
+  "reviewReceipt": "eng/policy/dependency-reviews/afv2-env-01-csharp15-bootstrap-r1.json",
   "pythonClosure": {
     "pre-commit/4.6.0": {
       "hashes": [

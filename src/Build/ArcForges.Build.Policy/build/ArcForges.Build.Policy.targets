@@ -18,8 +18,12 @@
   </Target>
   <Target Name="ArcForgesVerifyCompilerPolicy" BeforeTargets="PrepareForBuild"
           Condition="'$(MSBuildProjectExtension)' == '.csproj'">
-    <Error Code="AFP004" Condition="'$(LangVersion)' != '14' Or '$(Nullable)' != 'enable' Or '$(Deterministic)' != 'true' Or '$(TreatWarningsAsErrors)' != 'true'"
-           Text="ArcForges requires C# 14, nullable enabled, deterministic compilation and warnings-as-errors." />
+    <PropertyGroup>
+      <_ArcForgesCSharp15SdkSupported>false</_ArcForgesCSharp15SdkSupported>
+      <_ArcForgesCSharp15SdkSupported Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(NETCoreSdkVersion)', '^\d+\.\d+\.\d+$'))">$([MSBuild]::VersionGreaterThanOrEquals('$(NETCoreSdkVersion)', '11.0.100'))</_ArcForgesCSharp15SdkSupported>
+    </PropertyGroup>
+    <Error Code="AFP004" Condition="('$(LangVersion)' != '14' And '$(LangVersion)' != '15') Or ('$(LangVersion)' == '15' And '$(_ArcForgesCSharp15SdkSupported)' != 'true') Or '$(Nullable)' != 'enable' Or '$(Deterministic)' != 'true' Or '$(TreatWarningsAsErrors)' != 'true'"
+           Text="ArcForges requires C# 14 or C# 15 (stable .NET SDK 11.0.100 or newer), nullable enabled, deterministic compilation and warnings-as-errors." />
     <Error Code="AFP005" Condition="'$(RestorePackagesWithLockFile)' != 'true' Or ('$(CI)' == 'true' And '$(RestoreLockedMode)' != 'true')"
            Text="Commit per-project package locks and restore locked in CI." />
   </Target>
