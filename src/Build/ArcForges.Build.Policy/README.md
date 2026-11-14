@@ -1,8 +1,13 @@
 # ArcForges.Build.Policy
 
-Portable MSBuild defaults and enforcement for C# 14 repositories: nullable, deterministic builds,
+Portable MSBuild defaults and enforcement for C# 14 and C# 15 repositories: nullable, deterministic builds,
 warnings-as-errors, package locks, central package versions and AOT/trim warning escalation.
 This build-only AGPL-3.0-only package contains no runtime assembly or native dependency.
+
+The default remains C# 14 for existing consumers. A consumer can explicitly select `LangVersion=15`
+with a stable .NET SDK of at least 11.0.100. Unknown language versions and floating `latest`/`preview`
+aliases are refused; C# 15 is also refused when the SDK version is missing, prerelease or too old.
+Each consumer pins its actual SDK in `global.json`; this policy does not install or select that SDK.
 
 Declare the exact version in your repository's `Directory.Packages.props` and reference the package
 with `PrivateAssets="all"`. Each repository owns its `global.json`, target frameworks, runtime/AOT host
