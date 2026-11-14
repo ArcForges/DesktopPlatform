@@ -23,7 +23,7 @@
     <PackageVersion Update="ArcForges.Contracts.Foundation" Version="1.0.0-ci.270.1" Condition="'$(MSBuildProjectName)' == 'RealtimeAotProbe'" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.83.0" />
-    <PackageVersion Include="Grpc.Net.Client" Version="2.84.0" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.85.0" />
     <PackageVersion Include="Grpc.Net.Client.Web" Version="2.84.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.401" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
