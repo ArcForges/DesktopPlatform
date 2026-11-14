@@ -49,7 +49,7 @@
         "type": "Project",
         "dependencies": {
           "ArcForges.Contracts.LocalRpc.Platform": "[1.0.0-ci.216.1, )",
-          "ArcForges.Contracts.LocalRpc.Sandbox": "[1.0.0-ci.216.1, )",
+          "ArcForges.Contracts.LocalRpc.Sandbox": "[1.0.0-ci.450.1, )",
           "ArcForges.LocalRpc": "[1.0.0, )"
         }
       },
@@ -88,11 +88,11 @@
       },
       "ArcForges.Contracts.LocalRpc.Sandbox": {
         "type": "CentralTransitive",
-        "requested": "[1.0.0-ci.216.1, )",
-        "resolved": "1.0.0-ci.216.1",
-        "contentHash": "u0NGE5MZvolG4Bc2t2nPKiccsP8fKcIPQcnAFCSmMBgL1+q6KwHgr9mlFF1FDyW7Seu9JVINWYOsK38RH5hfkg==",
+        "requested": "[1.0.0-ci.450.1, )",
+        "resolved": "1.0.0-ci.450.1",
+        "contentHash": "a1WD8arFooLSNXkH7Ddq2KvjuhWezbqxrpzsEzaewKJntEd6m4CnRAf91WV7Hhv/RPt+P3w19izfoh/FeBWUPg==",
         "dependencies": {
-          "ArcForges.Contracts.Foundation": "1.0.0-ci.216.1",
+          "ArcForges.Contracts.Foundation": "1.0.0-ci.450.1",
           "Google.Protobuf": "3.36.1",
           "Grpc.Core.Api": "2.84.0"
         }
