@@ -41,7 +41,7 @@
         "type": "Project",
         "dependencies": {
           "ArcForges.Security": "[1.0.0, )",
-          "Tmds.DBus.Protocol": "[0.94.1, )"
+          "Tmds.DBus.Protocol": "[0.95.2, )"
         }
       },
       "ArcForges.Contracts.Foundation": {
@@ -55,9 +55,9 @@
       },
       "Tmds.DBus.Protocol": {
         "type": "CentralTransitive",
-        "requested": "[0.94.1, )",
-        "resolved": "0.94.1",
-        "contentHash": "11YMr7FnAbL83bQmVxlhbIKHvSLxjO81D12Ej0QMSGXMDTxNA9MTOa4MQxx43nv5el/efuPHwzyrj6a5ha2gug=="
+        "requested": "[0.95.2, )",
+        "resolved": "0.95.2",
+        "contentHash": "4zlJSYYZGCKnF5xE1L5VEm5YsfjLTz5jlWBgvBxHA7yk8Lnys/6WWpeD+CWmNm4QmawR+x0xIbGGZNcMxcy8nQ=="
       }
     },
     "net10.0/linux-x64": {
