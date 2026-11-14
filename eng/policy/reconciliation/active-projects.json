@@ -32,7 +32,7 @@
     },
     {
       "path": "src/Build/ArcForges.Build.Policy/ArcForges.Build.Policy.csproj",
-      "blob": "6a73e46863d2f68fa722611f3f7afed83950f2b8"
+      "blob": "e2275ea844c9a2367f48f0af1211399591646158"
     },
     {
       "path": "src/BuildingBlocks/ArcForges.Application.Abstractions/ArcForges.Application.Abstractions.csproj",
