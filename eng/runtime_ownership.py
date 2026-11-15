@@ -202,7 +202,12 @@ def managed_inputs(root, project, files):
     return result
 
 
-def check_managed(root, project, selected_role, files):
+def check_managed(root, project, selected_role, files, *, owner):
+    require(owner in RUNTIMES, 'unknown managed source owner')
+    # Only DesktopPlatform is the current checkout. The sibling owners remain
+    # the frozen source corpus selected by runtime-ownership.json.
+    expected_framework = {'DesktopPlatform': 'net11.0', 'Contracts': 'net10.0',
+                          'ArcScope': 'net10.0', 'Cloud': 'net10.0'}.get(owner)
     rows = managed_inputs(root, project, files)
     packaged_cli = project == CONTRACT_CLI
     if packaged_cli:
@@ -222,7 +227,7 @@ def check_managed(root, project, selected_role, files):
     framework = False
     for relative, element, conditional in rows:
         if (selected_role in {'aot-host', 'aot-library'} or packaged_cli) and element.tag in {'TargetFramework', 'TargetFrameworks'}:
-            require(element.tag == 'TargetFramework' and (element.text or '').strip() == 'net10.0' and not conditional,
+            require(element.tag == 'TargetFramework' and (element.text or '').strip() == expected_framework and not conditional,
                     'unregistered managed framework: ' + project)
             framework = True
         if selected_role == 'aot-host' and element.tag == 'IsAotCompatible':
@@ -320,7 +325,7 @@ def audit(root, row):
     managed = []
     for project in row['projects']:
         if project['path'].endswith(('.csproj', '.esproj')):
-            managed.append(check_managed(root, project['path'], project['role'], set(files)))
+            managed.append(check_managed(root, project['path'], project['role'], set(files), owner=owner))
     check_runtime_configuration(root, owner, files)
     require(before == {'commit': inventory.git(root, 'rev-parse', 'HEAD'), 'dirty': bool(inventory.git(root, 'status', '--porcelain'))}, 'source state changed during audit')
     return {'repository': owner, **before, 'files': len(files), 'projects': len(row['projects']),

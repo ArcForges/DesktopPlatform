@@ -173,7 +173,7 @@ public sealed record ObservabilityContext
     private static bool IsCiBuild(string value)
     {
         int separator = value.IndexOf('.', StringComparison.Ordinal);
-        return separator > 0 && separator == value.LastIndexOf('.')
+        return separator > 0 && separator == value.LastIndexOf('.', StringComparison.Ordinal)
             && IsPositiveDecimal(value.AsSpan(0, separator)) && IsPositiveDecimal(value.AsSpan(separator + 1));
     }
 

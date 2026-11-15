@@ -147,7 +147,7 @@ internal static partial class ProbeOptionsParser
         }
 
         string path = uri.AbsolutePath;
-        if (!path.EndsWith('/'))
+        if (!path.EndsWith('/', StringComparison.Ordinal))
         {
             path += "/";
         }

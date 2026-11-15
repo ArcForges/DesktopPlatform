@@ -209,7 +209,7 @@ public sealed class LocalRpcCommand
     private static bool IsOperation(string operation)
     {
         var slash = operation.IndexOf('/', StringComparison.Ordinal);
-        if (slash <= 0 || slash != operation.LastIndexOf('/'))
+        if (slash <= 0 || slash != operation.LastIndexOf('/', StringComparison.Ordinal))
         {
             return false;
         }

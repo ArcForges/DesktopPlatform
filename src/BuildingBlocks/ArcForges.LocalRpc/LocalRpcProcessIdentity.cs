@@ -118,7 +118,7 @@ internal static class ProcessStart
     {
         state = default;
         startTicks = 0;
-        var close = stat.LastIndexOf(')');
+        var close = stat.LastIndexOf(')', StringComparison.Ordinal);
         if (close < 0 || close + 2 >= stat.Length)
         {
             return false;

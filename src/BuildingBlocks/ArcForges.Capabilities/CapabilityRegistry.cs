@@ -247,7 +247,7 @@ public sealed class CapabilityRegistry
 
     private static CapabilityRegistration Create(Spec spec)
     {
-        var methodSeparator = spec.OperationId.LastIndexOf('.');
+        var methodSeparator = spec.OperationId.LastIndexOf('.', StringComparison.Ordinal);
         var method = spec.Method ?? spec.OperationId[(methodSeparator + 1)..];
         var requestSchema = $"{spec.Package}.{spec.Service}{method}Request";
         var responseSchema = $"{spec.Package}.{spec.Service}{method}Response";

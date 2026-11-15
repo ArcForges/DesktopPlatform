@@ -373,7 +373,7 @@ internal sealed class SecretServiceSession : IDisposable
             (Notification<(bool Dismissed, VariantValue Result)> notification) =>
             {
                 if (notification.HasValue) completion.TrySetResult(notification.Value);
-                else if (notification.Exception is not null) completion.TrySetException(notification.Exception);
+                else if (notification.IsCompletion) completion.TrySetException(notification.CompletionReason);
             }, ObserverFlags.None, emitOnCapturedContext: false)
             .AsTask().WaitAsync(_options.CallTimeout, cancellationToken).ConfigureAwait(false);
         await _connection.CallMethodAsync(PromptMessage(prompt)).WaitAsync(_options.CallTimeout, cancellationToken).ConfigureAwait(false);

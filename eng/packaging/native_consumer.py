@@ -81,7 +81,7 @@ def consume(directory, version, commit):
         project = consumer / "Consumer.csproj"
         project.write_text('''<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType><TargetFramework>net11.0</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier><PublishAot>true</PublishAot>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup><ItemGroup>
@@ -134,7 +134,7 @@ internal static unsafe partial int {family}(uint* major, uint* minor);
         env["CI"] = "true"
         packages.run("dotnet", "restore", str(project), "--locked-mode", "--configfile", str(config), cwd=consumer, env=env)
         packages.run("dotnet", "build", str(project), "-c", "Release", "--no-restore", "-p:PublishAot=false", cwd=consumer, env=env)
-        result = execute(consumer / "bin/Release/net10.0/win-x64/Consumer.exe", root, env)
+        result = execute(consumer / "bin/Release/net11.0/win-x64/Consumer.exe", root, env)
         packages.require("dynamic-code=True" in result.stdout, "The ordinary consumer did not enable JIT execution.")
         published = consumer / "publish"
         packages.run("dotnet", "publish", str(project), "-c", "Release", "--no-restore", "-o", str(published), cwd=consumer, env=env)

@@ -79,9 +79,10 @@ Source reuse and the existing native artifact closure are enforced by the
 [provenance records and review process](docs/provenance.md). Linux policy CI
 checks the real inventory, immutable history and failure tests before packaging.
 
-Install the .NET SDK selected by `global.json` and Python 3.11 or newer. No Mobile/Web workloads are needed.
+Install SDK 11.0.100 selected by `global.json` and Python 3.15.2 selected by `.python-version`. No Mobile/Web workloads are needed.
 
 ```powershell
+python eng/check_toolchain.py
 dotnet restore DesktopPlatform.slnx --locked-mode
 dotnet build DesktopPlatform.slnx -c Release --no-restore
 dotnet test --project tests/ArchitectureTests/ArcForges.Tests.ArchitectureTests.csproj -c Release --no-build
@@ -146,7 +147,15 @@ historical dispositions and planned directory owners to exact source and candida
 
 ## Pinned Python tooling and local native reuse
 
-Python-running CI jobs select `.python-version`. Install the reviewed hook tooling with `python -m pip install --require-hashes -r eng/requirements-ci.txt`; all transitive tools are exact and hash-verified. After downloading that closure to a wheel directory, `pip install --no-index --find-links <directory> --require-hashes -r eng/requirements-ci.txt` verifies an offline repeat. Dependency updates review the complete closure and hashes.
+Python-running CI jobs select `.python-version`. `eng/check_toolchain.py` checks the invoking and PATH Python, the selected SDK and effective MSBuild root, and records normalized lockfile hashes. Python-only jobs use `--tools python`; every managed job also checks `dotnet`. Install the reviewed hook tooling in a virtual environment with the same commands used in CI:
+
+```text
+python -m pip install --require-hashes -r eng/requirements-ci-installer.txt
+python -m pip install --require-hashes --build-constraint eng/requirements-ci-build.txt -r eng/requirements-ci.txt
+python -m pip check
+```
+
+The three locks cover the installer, isolated source-build dependencies and hook runtime closure. PyYAML currently builds from its hash-verified source archive on Python 3.15; the build constraint pins its build dependencies without disabling isolation. `eng/verify_local.py hooks` uses this same configuration. Dependency updates review all three locks and their complete hashes together.
 
 For ordinary local native compilation, reuse the already installed vcpkg and suitable installed dependencies. Pass the existing installed-root to the build or use ignored local configuration; do not reinstall vcpkg or rebuild working dependencies just for a patch-version difference. The admitted CI candidate still uses the committed producer baseline and provenance. Local compatibility results record the actual tools and do not attest arbitrary local binaries as the publishable candidate.
 

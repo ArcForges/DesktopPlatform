@@ -123,7 +123,7 @@ internal static class RealtimeChannel
             throw new ArgumentException("The base address must not carry user information, a query or a fragment.", nameof(address));
         }
 
-        string path = address.AbsolutePath.EndsWith('/') ? address.AbsolutePath : address.AbsolutePath + "/";
+        string path = address.AbsolutePath.EndsWith('/', StringComparison.Ordinal) ? address.AbsolutePath : address.AbsolutePath + "/";
         return new UriBuilder(address) { Path = path }.Uri;
     }
 

@@ -259,14 +259,20 @@ def command_hooks(_: argparse.Namespace) -> None:
     """repository-hooks: the hash-pinned pre-commit closure in a virtual environment of its own (a dependency restore,
     keyed by the requirements file), then the hooks over every file."""
     requirements = ROOT / "eng/requirements-ci.txt"
-    key = hashlib.sha256(requirements.read_bytes()).hexdigest()[:16]
+    build_constraints = ROOT / "eng/requirements-ci-build.txt"
+    installer = ROOT / "eng/requirements-ci-installer.txt"
+    key = hashlib.sha256(requirements.read_bytes() + build_constraints.read_bytes() + installer.read_bytes()
+                         + sys.version.encode()).hexdigest()[:16]
     venv = Path.home() / ".cache/arcforges-verify/venvs" / f"desktopplatform-precommit-{key}"
     python = venv / "bin/python"
     if not (venv / ".complete").is_file():
         shutil.rmtree(venv, ignore_errors=True)
         run([sys.executable, "-m", "venv", str(venv)])
         run([str(python), "-m", "pip", "install", "--disable-pip-version-check", "--require-hashes", "-r",
-             str(requirements)])
+             str(installer)])
+        run([str(python), "-m", "pip", "install", "--disable-pip-version-check", "--require-hashes",
+             "--build-constraint", str(build_constraints), "-r", str(requirements)])
+        run([str(python), "-m", "pip", "check"])
         (venv / ".complete").write_text(key, encoding="utf-8")
     run([str(venv / "bin/pre-commit"), "run", "--all-files", "--show-diff-on-failure", "--color=never"])
 

@@ -50,6 +50,6 @@ public sealed class PublicBoundaryContractTests
         string directory = AppContext.BaseDirectory;
         var framework = new DirectoryInfo(directory);
         string hostRoot = framework.Parent!.Parent!.Parent!.FullName;
-        return names.Select(name => Path.Combine(hostRoot, name, "Release", "net10.0", name + ".dll"));
+        return names.Select(name => Path.Combine(hostRoot, name, "Release", "net11.0", name + ".dll"));
     }
 }

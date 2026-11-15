@@ -8,7 +8,7 @@
   <Import Project="..\..\..\..\eng\build\desktop-aot.props" />
   <Import Project="..\..\..\..\eng\build\desktop-rids.props" />
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <AssemblyName>ArcForges.ContentSandbox.HostileFixture</AssemblyName>
     <RootNamespace>ArcForges.ContentSandbox.HostileFixture</RootNamespace>
     <OutputType>Exe</OutputType>
