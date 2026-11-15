@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 using System.Diagnostics;
+using System.Text.Json;
 using ArcForges.Contracts.Foundation.Values;
 using Xunit;
 
@@ -28,14 +29,7 @@ public sealed class IdentityCompileNegativeTests
                 }
                 """);
             var host = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
-            var sdkQuery = new ProcessStartInfo(host) { RedirectStandardOutput = true, UseShellExecute = false };
-            sdkQuery.ArgumentList.Add("--list-sdks");
-            using var sdkProcess = Process.Start(sdkQuery)!;
-            var sdkLines = sdkProcess.StandardOutput.ReadToEnd().Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            sdkProcess.WaitForExit();
-            var sdk = sdkLines.Last(line => line.StartsWith("10.", StringComparison.Ordinal)).Trim();
-            var bracket = sdk.IndexOf('[', StringComparison.Ordinal);
-            var sdkPath = Path.Combine(sdk[(bracket + 1)..^1], sdk[..bracket].Trim());
+            var compilerPath = CompileTestSdk.Resolve(host);
             var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
                 .Append(Path.Combine(AppContext.BaseDirectory, "ArcForges.Contracts.Foundation.dll"))
                 .Append(Path.Combine(AppContext.BaseDirectory, "ArcForges.Foundation.dll")).Distinct(StringComparer.OrdinalIgnoreCase);
@@ -50,7 +44,7 @@ public sealed class IdentityCompileNegativeTests
                 RedirectStandardError = true,
                 UseShellExecute = false,
             };
-            compiler.ArgumentList.Add(Path.Combine(sdkPath, "Roslyn", "bincore", "csc.dll"));
+            compiler.ArgumentList.Add(compilerPath);
             compiler.ArgumentList.Add("@" + response);
             using var process = Process.Start(compiler)!;
             var output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
@@ -63,5 +57,42 @@ public sealed class IdentityCompileNegativeTests
         {
             Directory.Delete(directory, recursive: true);
         }
+    }
+
+    [Fact]
+    public void CompilerSelectionRequiresTheExactPinnedSdkAmongInstalledVersions()
+    {
+        string[] sdks = ["10.0.401 [sdk-root]", "11.0.100 [sdk-root]", "11.0.101 [sdk-root]", "11.0.200-preview.1 [sdk-root]"];
+        Assert.Equal(Path.Combine("sdk-root", "11.0.100", "Roslyn", "bincore", "csc.dll"), CompileTestSdk.Select("11.0.100", sdks));
+        Assert.Throws<InvalidOperationException>(() => CompileTestSdk.Select("11.0.102", sdks));
+    }
+}
+
+internal static class CompileTestSdk
+{
+    internal static string Resolve(string host)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (!File.Exists(Path.Combine(directory.FullName, "global.json")) && directory.Parent is { } parent)
+            directory = parent;
+        using var configuration = JsonDocument.Parse(File.ReadAllText(Path.Combine(directory.FullName, "global.json")));
+        var version = configuration.RootElement.GetProperty("sdk").GetProperty("version").GetString()
+            ?? throw new InvalidOperationException("The repository must pin an SDK version.");
+        var query = new ProcessStartInfo(host) { RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
+        query.ArgumentList.Add("--list-sdks");
+        using var process = Process.Start(query)!;
+        var lines = process.StandardOutput.ReadToEnd().Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        process.WaitForExit();
+        Assert.Equal(0, process.ExitCode);
+        var compiler = Select(version, lines);
+        Assert.True(File.Exists(compiler), compiler);
+        return compiler;
+    }
+
+    internal static string Select(string version, IEnumerable<string> lines)
+    {
+        var sdk = lines.Select(line => line.Trim()).Single(line => line.StartsWith(version + " [", StringComparison.Ordinal));
+        var bracket = sdk.IndexOf('[', StringComparison.Ordinal);
+        return Path.Combine(sdk[(bracket + 1)..^1], version, "Roslyn", "bincore", "csc.dll");
     }
 }

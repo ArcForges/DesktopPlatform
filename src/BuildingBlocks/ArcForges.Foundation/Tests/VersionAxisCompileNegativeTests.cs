@@ -14,14 +14,8 @@ public sealed class VersionAxisCompileNegativeTests
     public async Task EveryOrderedAxisPairRejectsAssignment()
     {
         string[] axes = [nameof(AppVersion), nameof(ContractSet), nameof(CapabilityVersion), nameof(NativeFormatVersion), nameof(StorageSchemaVersion), nameof(NativeAbiVersion), nameof(PolicySchemaVersion), nameof(ExtensionProtocolVersion), nameof(PackageVersion)];
-        var sdkList = await RunAsync("dotnet", ["--list-sdks"]);
-        Assert.Equal(0, sdkList.ExitCode);
-        var sdk = sdkList.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).Last(line => line.TrimStart().StartsWith(Environment.Version.Major.ToString(CultureInfo.InvariantCulture) + ".", StringComparison.Ordinal));
-        var bracket = sdk.IndexOf('[', StringComparison.Ordinal);
-        var sdkRoot = sdk[(bracket + 1)..sdk.IndexOf(']', StringComparison.Ordinal)];
-        var sdkVersion = sdk[..bracket].Trim();
-        var compiler = Path.Combine(sdkRoot, sdkVersion, "Roslyn", "bincore", "csc.dll");
-        Assert.True(File.Exists(compiler));
+        var host = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
+        var compiler = CompileTestSdk.Resolve(host);
         var temporary = Path.Combine(Path.GetTempPath(), "arcforges-version-axis-" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture));
         Directory.CreateDirectory(temporary);
         try
@@ -39,7 +33,7 @@ public sealed class VersionAxisCompileNegativeTests
                 positive.Append(axes[index]).Append(" p").Append(index).Append(" = default(").Append(axes[index]).AppendLine(");");
             positive.AppendLine("} }");
             await File.WriteAllTextAsync(sourcePath, positive.ToString(), TestContext.Current.CancellationToken);
-            var control = await RunAsync("dotnet", [compiler, "@" + responsePath]);
+            var control = await RunAsync(host, [compiler, "@" + responsePath]);
             Assert.True(control.ExitCode == 0, control.Output);
 
             var negative = new StringBuilder("using ArcForges.Foundation.Versions;\npublic static class Vectors { public static void Check() {\n");
@@ -50,7 +44,7 @@ public sealed class VersionAxisCompileNegativeTests
                         negative.Append(target).Append(" p").Append(pair++).Append(" = default(").Append(source).AppendLine(");");
             negative.AppendLine("} }");
             await File.WriteAllTextAsync(sourcePath, negative.ToString(), TestContext.Current.CancellationToken);
-            var result = await RunAsync("dotnet", [compiler, "@" + responsePath]);
+            var result = await RunAsync(host, [compiler, "@" + responsePath]);
             Assert.NotEqual(0, result.ExitCode);
             var errors = result.Output.Split('\n').Where(line => line.Contains("error ", StringComparison.Ordinal)).ToArray();
             Assert.Equal(72, errors.Length);
