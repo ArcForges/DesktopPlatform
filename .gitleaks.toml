@@ -120,8 +120,11 @@ regexes = [
 ]
 
 [[allowlists]]
-description = "Exact ENV managed project digests in its successor receipt"
-paths = ['''^eng/policy/dependency-reviews/afv2-env-01-managed-r1[.]json$''']
+description = "Exact ENV managed project digests in named successor receipts"
+paths = [
+  '''^eng/policy/dependency-reviews/afv2-env-01-managed-r1[.]json$''',
+  '''^eng/policy/dependency-reviews/afv2-env-01-version-policy-r1[.]json$'''
+]
 regexTarget = "line"
 targetRules = ["generic-api-key"]
 condition = "AND"
