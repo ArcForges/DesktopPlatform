@@ -101,12 +101,13 @@ class ExistingVisualStudioSelection(unittest.TestCase):
             with self.assertRaises(ValueError):
                 native.visual_studio("14.50.1", instances=instances)
 
-    def test_windows_aot_keeps_all_publish_arguments_and_uses_the_reviewed_environment(self):
+    def test_windows_aot_cli_dispatch_keeps_publish_arguments_and_the_reviewed_environment(self):
         project = "tests/LocalRpcAotTests/LocalRpcAotTests.csproj"
         env = {"PATH": "selected-metadata-fixture"}
         with mock.patch.object(verify_local, "developer_environment", return_value=env) as select, \
-                mock.patch.object(verify_local, "run") as run:
-            verify_local.command_aot(type("Arguments", (), {"project": project})())
+                mock.patch.object(verify_local, "run") as run, \
+                mock.patch.object(sys, "argv", ["verify_local.py", "aot", "--project", project]):
+            self.assertEqual(0, verify_local.main())
         select.assert_called_once_with("14.51.36231")
         run.assert_called_once_with(["dotnet", "publish", project, "-c", "Release", "-r", "win-x64", "--no-restore",
                                      "-p:IlcUseEnvironmentalTools=true"], env=env)

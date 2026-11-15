@@ -439,7 +439,7 @@ def main() -> int:
     if os.environ.pop(OS_SECRET_STORE_OPT_IN, None) is not None:
         print(f"removed {OS_SECRET_STORE_OPT_IN} from the environment: every suite here is routine and never reaches a real OS "
               "secret store (only eng/os_secret_store_tier.py runs the tier)", flush=True)
-    commands = {"native": command_native, "stage": command_stage, "naming": command_naming, "hooks": command_hooks,
+    commands = {"native": command_native, "aot": command_aot, "stage": command_stage, "naming": command_naming, "hooks": command_hooks,
                 "managed-tests": command_managed_tests, "architecture": command_architecture, "pack": command_pack,
                 "packaging-tests": command_packaging_tests}
     try:
