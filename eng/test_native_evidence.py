@@ -10,12 +10,15 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 import verify_local
+sys.path.insert(0, str(verify_local.ROOT / "eng/packaging"))
+import native
 
 
 def git(cwd: Path, *args: str) -> str:
@@ -74,6 +77,39 @@ class NativeEvidence(unittest.TestCase):
             with self.assertRaisesRegex(verify_local.Failure, "is not the clean IDE licence evaluation of"):
                 self.collect()
         self.assertFalse((self.root / "artifacts/evidence/native-architecture").exists())
+
+
+class ExistingVisualStudioSelection(unittest.TestCase):
+    def test_newer_instance_without_reviewed_toolset_does_not_shadow_existing_inputs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            old, newer = root / "reviewed", root / "newer"
+            for name in ("cl.exe", "link.exe", "lib.exe"):
+                path = old / "VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64" / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b"metadata fixture; never executed")
+            (old / "VC/Redist/MSVC/14.51.36231/x64/Microsoft.VC145.CRT").mkdir(parents=True)
+            instance = {"installationPath": str(old), "isComplete": True, "isPrerelease": False, "isRebootRequired": False}
+            instances = [{**instance, "installationPath": str(newer)}, instance]
+            self.assertEqual(old, native.visual_studio("14.51.36231", instances=instances))
+            self.assertEqual(old, native.visual_studio(directory_version="14.51.36231", instances=instances))
+            for changed in ({"isComplete": False}, {"isPrerelease": True}, {"isRebootRequired": True}):
+                with self.subTest(changed=changed), self.assertRaises(ValueError):
+                    native.visual_studio("14.51.36231", instances=[{**instance, **changed}])
+            with self.assertRaises(ValueError):
+                native.visual_studio("14.51.36231", instances=[instance, instance])
+            with self.assertRaises(ValueError):
+                native.visual_studio("14.50.1", instances=instances)
+
+    def test_windows_aot_keeps_all_publish_arguments_and_uses_the_reviewed_environment(self):
+        project = "tests/LocalRpcAotTests/LocalRpcAotTests.csproj"
+        env = {"PATH": "selected-metadata-fixture"}
+        with mock.patch.object(verify_local, "developer_environment", return_value=env) as select, \
+                mock.patch.object(verify_local, "run") as run:
+            verify_local.command_aot(type("Arguments", (), {"project": project})())
+        select.assert_called_once_with("14.51.36231")
+        run.assert_called_once_with(["dotnet", "publish", project, "-c", "Release", "-r", "win-x64", "--no-restore",
+                                     "-p:IlcUseEnvironmentalTools=true"], env=env)
 
 
 if __name__ == "__main__":

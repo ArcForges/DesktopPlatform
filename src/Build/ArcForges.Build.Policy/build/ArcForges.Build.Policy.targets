@@ -7,7 +7,7 @@
       <_ArcForgesInlineVersion Include="@(PackageReference)"
         Condition="('%(PackageReference.Version)' != '' Or '%(PackageReference.VersionOverride)' != '') And '%(PackageReference.IsImplicitlyDefined)' != 'true'" />
       <_ArcForgesFloatingVersion Include="@(PackageVersion)"
-        Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageVersion.Version)', '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$'))" />
+        Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageVersion.Version)', '^\d+\.\d+\.\d+(\.\d+)?(-[0-9A-Za-z.-]+)?$'))" />
     </ItemGroup>
     <Error Code="AFP001" Condition="'$(ManagePackageVersionsCentrally)' != 'true'"
            Text="Enable ManagePackageVersionsCentrally in this repository's Directory.Packages.props." />
