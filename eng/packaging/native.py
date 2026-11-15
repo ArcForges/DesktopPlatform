@@ -138,12 +138,30 @@ def dependency_closure(database, roots, triplet):
     return sorted(result)
 
 
+def visual_studio(toolset=None, directory_version=None, *, instances=None):
+    """Select an existing complete stable instance containing the requested reviewed inputs."""
+    if instances is None:
+        vswhere = Path(os.environ["ProgramFiles(x86)"]) / "Microsoft Visual Studio/Installer/vswhere.exe"
+        instances = json.loads(subprocess.check_output([str(vswhere), "-all", "-products", "*", "-format", "json", "-utf8"], text=True))
+    candidates = []
+    for instance in instances:
+        if instance.get("isComplete") is not True or instance.get("isPrerelease") is not False or instance.get("isRebootRequired", False):
+            continue
+        root = Path(instance["installationPath"])
+        if toolset and not all((root / "VC/Tools/MSVC" / toolset / "bin/Hostx64/x64" / name).is_file()
+                               for name in ("cl.exe", "link.exe", "lib.exe")):
+            continue
+        if directory_version and not any(path.is_dir() for path in
+                (root / "VC/Redist/MSVC" / directory_version / "x64").glob("Microsoft.VC*.CRT")):
+            continue
+        candidates.append(root)
+    require(len(candidates) == 1, "The complete stable Visual Studio instance containing the reviewed MSVC/CRT is missing or ambiguous.")
+    return candidates[0]
+
+
 def vc_runtime(directory_version):
-    vswhere = Path(os.environ["ProgramFiles(x86)"]) / "Microsoft Visual Studio/Installer/vswhere.exe"
-    location = subprocess.check_output([str(vswhere), "-latest", "-products", "*", "-requires",
-                                       "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-property", "installationPath"], text=True).strip()
-    require(location, "Visual C++ installation was not found.")
-    directories = list((Path(location) / "VC/Redist/MSVC").glob("*/x64/Microsoft.VC*.CRT"))
+    location = visual_studio(directory_version=directory_version)
+    directories = list((location / "VC/Redist/MSVC").glob("*/x64/Microsoft.VC*.CRT"))
     directories = [p for p in directories if p.parents[1].name == directory_version]
     require(len(directories) == 1, "The reviewed Visual C++ x64 redistributable directory is missing or ambiguous.")
     return directories[0]

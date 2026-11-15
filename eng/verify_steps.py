@@ -181,14 +181,10 @@ def unittest(pattern: str, directory: str = "eng") -> str:
     return f"python -m unittest discover -s {directory} -p '{pattern}' -v"
 
 
-# The Native AOT linker locates MSVC through vswhere, which hosted Windows runners have on PATH.
-VSWHERE_ON_PATH = "$env:PATH = (Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\\Installer') + ';' + $env:PATH; "
-
-
 def aot_win(name: str, project: str) -> Step:
     return win(f"win-aot-{name}", pwsh(
-        VSWHERE_ON_PATH + f"dotnet restore {project} --locked-mode; if ($LASTEXITCODE) {{ exit $LASTEXITCODE }}; "
-        f"dotnet publish {project} -c Release -r {RID_WIN} --no-restore"), 900)
+        f"dotnet restore {project} --locked-mode; if ($LASTEXITCODE) {{ exit $LASTEXITCODE }}; "
+        f"python eng/verify_local.py aot --project {project}"), 900)
 
 
 def aot_linux(name: str, project: str) -> Step:

@@ -84,14 +84,13 @@ def run(argv: list[str], env: dict[str, str] | None = None, cwd: Path = ROOT, ca
 
 # ------------------------------------------------------------------------------------------------------------ Windows
 
-def visual_studio() -> Path:
-    vswhere = Path(os.environ["ProgramFiles(x86)"]) / "Microsoft Visual Studio/Installer/vswhere.exe"
-    path = subprocess.check_output([str(vswhere), "-latest", "-products", "*", "-requires",
-                                    "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-property", "installationPath"],
-                                   text=True).strip()
-    if not path:
-        raise Failure("Visual Studio with the MSVC x64 tools was not found.")
-    return Path(path)
+def visual_studio(toolset: str) -> Path:
+    sys.path.insert(0, str(ROOT / "eng/packaging"))
+    import native
+    try:
+        return native.visual_studio(toolset=toolset)
+    except ValueError as error:
+        raise Failure(str(error)) from error
 
 
 def vcpkg_root() -> Path:
@@ -105,10 +104,11 @@ def vcpkg_root() -> Path:
     return root
 
 
-def developer_environment(toolset: str, vcpkg: Path) -> dict[str, str]:
+def developer_environment(toolset: str, vcpkg: Path | None = None) -> dict[str, str]:
     """vcvars64 for the reviewed MSVC toolset, as the hosted step's `call vcvars64.bat -vcvars_ver=`. The pinned vcpkg
     and the dotnet selected before (the user-local SDK root of global.json) are put back, as the hosted step does."""
-    script = visual_studio() / "VC/Auxiliary/Build/vcvars64.bat"
+    selected = visual_studio(toolset)
+    script = selected / "VC/Auxiliary/Build/vcvars64.bat"
     output = subprocess.run(f'cmd /d /s /c ""{script}" -vcvars_ver={toolset} >nul && set"', capture_output=True,
                             text=True, shell=False)
     if output.returncode != 0:
@@ -118,10 +118,19 @@ def developer_environment(toolset: str, vcpkg: Path) -> dict[str, str]:
     if dotnet:
         env["PATH"] = str(Path(dotnet).parent) + os.pathsep + env.get("PATH", env.get("Path", ""))
         env.pop("Path", None)
-    env["VCPKG_ROOT"] = str(vcpkg)
+    if vcpkg is not None:
+        env["VCPKG_ROOT"] = str(vcpkg)
+    env["VCPKG_VISUAL_STUDIO_PATH"] = str(selected)
     env["SCCACHE_SERVER_PORT"] = SCCACHE_PORT
     env.setdefault("ARCFORGES_VERIFY", "1")
     return env
+
+
+def command_aot(args: argparse.Namespace) -> None:
+    profile = json.loads((ROOT / "eng/provenance/artifact-profiles/native-win-x64-r4.json").read_text(encoding="utf-8"))
+    env = developer_environment(profile["buildTools"]["msvcToolset"])
+    run(["dotnet", "publish", args.project, "-c", "Release", "-r", "win-x64", "--no-restore",
+         "-p:IlcUseEnvironmentalTools=true"], env=env)
 
 
 def vcpkg_toolchain(expected: str) -> dict[str, str]:
@@ -170,13 +179,13 @@ def command_native(_: argparse.Namespace) -> None:
     run(["python", "eng/licence_boundary.py", "--evaluate-ide", "--report", "artifacts/evidence/licence-ide.json"])
     profile = json.loads((ROOT / "eng/provenance/artifact-profiles/native-win-x64-r4.json").read_text(encoding="utf-8"))
     toolset = profile["buildTools"]["msvcToolset"]
+    env = developer_environment(toolset, vcpkg)
     # "Install native dependencies": classic mode into the checkout's installed root; the binary cache is the user's
     # default vcpkg archive cache (hosted CI restores its own with actions/cache).
     run([str(vcpkg / "vcpkg.exe"), "install", *[f"{port}:{TRIPLET}" for port in PORTS],
          f"--x-install-root={ROOT / 'artifacts/vcpkg-installed'}",
-         f"--overlay-triplets={ROOT / 'eng/native/vcpkg/triplets'}"])
+         f"--overlay-triplets={ROOT / 'eng/native/vcpkg/triplets'}"], env=env)
     vcpkg_toolchain(profile["buildTools"]["vcpkgCMake"])
-    env = developer_environment(toolset, vcpkg)
     run(["sccache", "--start-server"], env=env)
     try:
         run(["sccache", "--zero-stats"], env=env)
@@ -416,6 +425,7 @@ def main() -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     for name in ("native", "stage", "naming", "hooks", "architecture", "packaging-tests"):
         sub.add_parser(name)
+    sub.add_parser("aot").add_argument("--project", required=True)
     sub.add_parser("pack").add_argument("--base", required=True, help="the merge base ({base} of eng/verify_steps.py)")
     tests = sub.add_parser("managed-tests")
     tests.add_argument("--jobs", type=int, default=1)
@@ -429,7 +439,7 @@ def main() -> int:
     if os.environ.pop(OS_SECRET_STORE_OPT_IN, None) is not None:
         print(f"removed {OS_SECRET_STORE_OPT_IN} from the environment: every suite here is routine and never reaches a real OS "
               "secret store (only eng/os_secret_store_tier.py runs the tier)", flush=True)
-    commands = {"native": command_native, "stage": command_stage, "naming": command_naming, "hooks": command_hooks,
+    commands = {"native": command_native, "aot": command_aot, "stage": command_stage, "naming": command_naming, "hooks": command_hooks,
                 "managed-tests": command_managed_tests, "architecture": command_architecture, "pack": command_pack,
                 "packaging-tests": command_packaging_tests}
     try:
