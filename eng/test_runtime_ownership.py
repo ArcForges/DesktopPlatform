@@ -151,30 +151,30 @@ class RuntimeOwnershipTests(unittest.TestCase):
                                    ('<PublishAot Condition="false">true</PublishAot>', False),
                                    ('<PublishAot>true</PublishAot><IsAotCompatible>false</IsAotCompatible>', False)]:
             self.write(project, '<Project><PropertyGroup><TargetFramework>net11.0</TargetFramework>' + properties + '</PropertyGroup></Project>')
-            if passes: policy.check_managed(self.root, project, 'aot-host', self.files)
+            if passes: policy.check_managed(self.root, project, 'aot-host', self.files, owner='DesktopPlatform')
             else:
-                with self.assertRaises(ValueError): policy.check_managed(self.root, project, 'aot-host', self.files)
+                with self.assertRaises(ValueError): policy.check_managed(self.root, project, 'aot-host', self.files, owner='DesktopPlatform')
 
     def test_false_override_in_automatic_targets_is_not_hidden_by_true_project(self):
         self.write('src/Host.csproj', '<Project><PropertyGroup><PublishAot>true</PublishAot></PropertyGroup></Project>')
         self.write('Directory.Build.targets', '<Project><PropertyGroup Condition="false"><PublishAot>false</PublishAot></PropertyGroup></Project>')
         with self.assertRaisesRegex(ValueError, 'AOT property'):
-            policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files)
+            policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files, owner='DesktopPlatform')
 
     def test_imports_are_followed_and_cannot_escape_or_be_conditional(self):
         self.write('aot.props', '<Project><PropertyGroup><TargetFramework>net11.0</TargetFramework><PublishAot>true</PublishAot></PropertyGroup></Project>')
         self.write('src/Host.csproj', '<Project><Import Project="../aot.props" /></Project>')
-        policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files)
+        policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files, owner='DesktopPlatform')
         for imported in ('../../outside.props', '$(External)/aot.props', 'missing.props'):
             self.write('src/Host.csproj', '<Project><Import Project="' + imported + '" /></Project>')
-            with self.assertRaises(ValueError): policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files)
+            with self.assertRaises(ValueError): policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files, owner='DesktopPlatform')
         self.write('src/Host.csproj', '<Project><Import Project="../aot.props" Condition="false" /></Project>')
-        with self.assertRaises(ValueError): policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files)
+        with self.assertRaises(ValueError): policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files, owner='DesktopPlatform')
 
     def test_library_cannot_become_unassigned_executable(self):
         self.write('Library.csproj', '<Project><PropertyGroup><IsAotCompatible>true</IsAotCompatible><OutputType>Exe</OutputType></PropertyGroup></Project>')
         with self.assertRaisesRegex(ValueError, 'unassigned executable'):
-            policy.check_managed(self.root, 'Library.csproj', 'aot-library', self.files)
+            policy.check_managed(self.root, 'Library.csproj', 'aot-library', self.files, owner='DesktopPlatform')
         with self.assertRaisesRegex(ValueError, 'unassigned runtime host'):
             policy.role('Cloud', 'src/AnotherHost/AnotherHost.csproj')
 
@@ -186,30 +186,51 @@ class RuntimeOwnershipTests(unittest.TestCase):
                                     ('<IsTestProject Condition="false">true</IsTestProject>', False)]:
             self.write(project, '<Project><PropertyGroup><OutputType>Exe</OutputType>' + declaration + '</PropertyGroup></Project>')
             if passes:
-                policy.check_managed(self.root, project, 'test-or-build-tool', self.files)
+                policy.check_managed(self.root, project, 'test-or-build-tool', self.files, owner='DesktopPlatform')
             else:
                 with self.assertRaisesRegex(ValueError, 'IsTestProject'):
-                    policy.check_managed(self.root, project, 'test-or-build-tool', self.files)
+                    policy.check_managed(self.root, project, 'test-or-build-tool', self.files, owner='DesktopPlatform')
         self.assertEqual(policy.role('DesktopPlatform', 'src/BuildingBlocks/ArcForges.Foundation/Foundation.csproj'), 'aot-library')
 
     def test_existing_contract_cli_retains_explicit_tool_and_aot_identity(self):
         project = policy.CONTRACT_CLI
-        properties = '<TargetFramework>net11.0</TargetFramework><IsAotCompatible>true</IsAotCompatible><PackAsTool>true</PackAsTool><OutputType>Exe</OutputType>'
+        properties = '<TargetFramework>net10.0</TargetFramework><IsAotCompatible>true</IsAotCompatible><PackAsTool>true</PackAsTool><OutputType>Exe</OutputType>'
         self.assertEqual(policy.role('Contracts', project), 'test-or-build-tool')
         self.assertEqual(policy.role('Contracts', 'src/public/dotnet/Other/Other.csproj'), 'aot-library')
         self.write(project, '<Project><PropertyGroup>' + properties + '</PropertyGroup></Project>')
-        policy.check_managed(self.root, project, 'test-or-build-tool', self.files)
+        policy.check_managed(self.root, project, 'test-or-build-tool', self.files, owner='Contracts')
         for before, after in [('<PackAsTool>true</PackAsTool>', ''), ('<IsAotCompatible>true', '<IsAotCompatible>false'),
                               ('<PackAsTool>true', '<PackAsTool Condition="false">true'),
-                              ('net11.0', 'net10.0'), ('<OutputType>Exe', '<OutputType>Library')]:
+                              ('net10.0', 'net11.0'), ('<OutputType>Exe', '<OutputType>Library')]:
             self.write(project, '<Project><PropertyGroup>' + properties.replace(before, after) + '</PropertyGroup></Project>')
             with self.subTest(before=before, after=after), self.assertRaises(ValueError):
-                policy.check_managed(self.root, project, 'test-or-build-tool', self.files)
+                policy.check_managed(self.root, project, 'test-or-build-tool', self.files, owner='Contracts')
 
     def test_javascript_ide_never_inherits_managed_runtime(self):
         self.write('Web.esproj', '<Project><PropertyGroup><PublishAot>true</PublishAot></PropertyGroup></Project>')
         with self.assertRaisesRegex(ValueError, 'IDE adapter'):
-            policy.check_managed(self.root, 'Web.esproj', 'javascript-ide', self.files)
+            policy.check_managed(self.root, 'Web.esproj', 'javascript-ide', self.files, owner='Web')
+
+    def test_current_and_frozen_owners_require_their_exact_framework(self):
+        for owner in ('DesktopPlatform', 'Contracts', 'ArcScope', 'Cloud'):
+            expected = 'net11.0' if owner == 'DesktopPlatform' else 'net10.0'
+            for framework in ('net10.0', 'net11.0'):
+                with self.subTest(owner=owner, framework=framework):
+                    self.write('src/Host.csproj', '<Project><PropertyGroup><TargetFramework>' + framework
+                               + '</TargetFramework><PublishAot>true</PublishAot></PropertyGroup></Project>')
+                    if framework == expected:
+                        policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files, owner=owner)
+                    else:
+                        with self.assertRaisesRegex(ValueError, 'framework'):
+                            policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files, owner=owner)
+
+    def test_managed_framework_requires_a_registered_owner(self):
+        self.write('src/Host.csproj', '<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework>'
+                   '<PublishAot>true</PublishAot></PropertyGroup></Project>')
+        with self.assertRaisesRegex(ValueError, 'unknown managed source owner'):
+            policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files, owner='Unknown')
+        with self.assertRaisesRegex(ValueError, 'framework'):
+            policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files, owner='Web')
 
     def test_old_ui_and_database_manifests_fail(self):
         for xml, owner in [('<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly"/>', 'Web'),
@@ -266,22 +287,23 @@ class RuntimeOwnershipTests(unittest.TestCase):
         self.write('app/build.gradle.kts', '// applicationId = "io.github.arcforges.mobile"\n// compose = true\n')
         with self.assertRaisesRegex(ValueError, 'identity'): self.check('Mobile')
 
-    def fixture(self):
+    def fixture(self, owner='DesktopPlatform', framework='net11.0'):
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
-        subprocess.run(['git', '-C', str(self.root), 'remote', 'add', 'origin', 'https://github.com/ArcForges/DesktopPlatform.git'], check=True)
+        subprocess.run(['git', '-C', str(self.root), 'remote', 'add', 'origin', 'https://github.com/ArcForges/' + owner + '.git'], check=True)
         subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
                         '-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'fixture'], check=True)
         project = 'src/BuildingBlocks/Library/Library.csproj'
-        self.write(project, '<Project><PropertyGroup><TargetFramework>net11.0</TargetFramework><IsAotCompatible>true</IsAotCompatible><PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression><LicenceBoundary>AGPL</LicenceBoundary></PropertyGroup></Project>')
-        self.write('eng/policy/licence-boundary.json', {'schemaVersion': 1, 'repository': 'DesktopPlatform',
-                   'spdxLicense': 'AGPL-3.0-only', 'licenceBoundary': 'AGPL', 'projects': [{'path': project, 'kind': 'msbuild'}]})
-        self.register()
-        return {'repository': 'DesktopPlatform', 'runtime': policy.RUNTIMES['DesktopPlatform'],
+        licence, boundary = ('Apache-2.0', 'Apache') if owner == 'Contracts' else ('AGPL-3.0-only', 'AGPL')
+        self.write(project, '<Project><PropertyGroup><TargetFramework>' + framework + '</TargetFramework><IsAotCompatible>true</IsAotCompatible><PackageLicenseExpression>' + licence + '</PackageLicenseExpression><LicenceBoundary>' + boundary + '</LicenceBoundary></PropertyGroup></Project>')
+        self.write('eng/policy/licence-boundary.json', {'schemaVersion': 1, 'repository': owner,
+                   'spdxLicense': licence, 'licenceBoundary': boundary, 'projects': [{'path': project, 'kind': 'msbuild'}]})
+        self.register(owner)
+        return {'repository': owner, 'runtime': policy.RUNTIMES[owner],
                 'projects': [{'path': project, 'role': 'aot-library'}]}
 
-    def register(self):
+    def register(self, owner='DesktopPlatform'):
         self.files.add('eng/provenance/files.json')
-        self.write('eng/provenance/files.json', {'schemaVersion': 1, 'repository': 'DesktopPlatform',
+        self.write('eng/provenance/files.json', {'schemaVersion': 1, 'repository': owner,
                    'firstParty': sorted(self.files), 'reused': {}, 'artifacts': []})
 
     def test_real_git_inventory_rejects_new_unassigned_source(self):
@@ -290,11 +312,19 @@ class RuntimeOwnershipTests(unittest.TestCase):
         self.write('src/BuildingBlocks/Library/Unexpected.cs', 'class Unexpected {}')
         with self.assertRaisesRegex(ValueError, 'unassigned'): policy.audit(self.root, row)
 
+    def test_audit_preserves_frozen_contracts_framework(self):
+        row = self.fixture(owner='Contracts', framework='net10.0')
+        self.assertEqual(policy.audit(self.root, row)['result'], 'passed')
+        project = row['projects'][0]['path']
+        self.write(project, (self.root / project).read_text(encoding='utf-8').replace('net10.0', 'net11.0'))
+        with self.assertRaisesRegex(ValueError, 'framework'):
+            policy.audit(self.root, row)
+
     def test_aot_flag_does_not_allow_old_or_missing_framework(self):
         for framework in ('', '<TargetFramework>net8.0</TargetFramework>', '<TargetFrameworks>net11.0;net8.0</TargetFrameworks>'):
             self.write('Host.csproj', '<Project><PropertyGroup><PublishAot>true</PublishAot>' + framework + '</PropertyGroup></Project>')
             with self.assertRaisesRegex(ValueError, 'framework'):
-                policy.check_managed(self.root, 'Host.csproj', 'aot-host', self.files)
+                policy.check_managed(self.root, 'Host.csproj', 'aot-host', self.files, owner='DesktopPlatform')
 
     def test_retired_path_fails_even_if_inventory_claims_ownership(self):
         row = self.fixture()
