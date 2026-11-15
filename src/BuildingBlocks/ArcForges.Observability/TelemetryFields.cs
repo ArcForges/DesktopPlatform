@@ -161,7 +161,7 @@ internal static class TelemetryFields
     private static bool IsNativeAbiVersion(string value)
     {
         int dot = value.IndexOf('.', StringComparison.Ordinal);
-        return dot > 0 && dot == value.LastIndexOf('.') && IsDecimal(value.AsSpan(0, dot)) && IsDecimal(value.AsSpan(dot + 1));
+        return dot > 0 && dot == value.LastIndexOf('.', StringComparison.Ordinal) && IsDecimal(value.AsSpan(0, dot)) && IsDecimal(value.AsSpan(dot + 1));
     }
 
     private static bool IsDecimal(ReadOnlySpan<char> value) =>

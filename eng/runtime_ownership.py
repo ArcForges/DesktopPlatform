@@ -222,7 +222,7 @@ def check_managed(root, project, selected_role, files):
     framework = False
     for relative, element, conditional in rows:
         if (selected_role in {'aot-host', 'aot-library'} or packaged_cli) and element.tag in {'TargetFramework', 'TargetFrameworks'}:
-            require(element.tag == 'TargetFramework' and (element.text or '').strip() == 'net10.0' and not conditional,
+            require(element.tag == 'TargetFramework' and (element.text or '').strip() == 'net11.0' and not conditional,
                     'unregistered managed framework: ' + project)
             framework = True
         if selected_role == 'aot-host' and element.tag == 'IsAotCompatible':

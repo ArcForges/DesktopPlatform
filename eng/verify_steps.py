@@ -152,7 +152,7 @@ ACTIONLINT = (
     "echo \"$sum  $t.part\" | sha256sum --check --quiet; mv \"$t.part\" \"$t\"; fi; "
     "echo \"$sum  $t\" | sha256sum --check --quiet; "
     "mkdir -p \"$d/actionlint-$v\"; tar -xzf \"$t\" -C \"$d/actionlint-$v\" actionlint; "
-    "\"$d/actionlint-$v/actionlint\" -ignore 'unexpected key \"queue\" for \"concurrency\" section'"
+    "\"$d/actionlint-$v/actionlint\" -config-file eng/actionlint.yaml -ignore 'unexpected key \"queue\" for \"concurrency\" section'"
 )
 
 
@@ -199,6 +199,8 @@ def aot_linux(name: str, project: str) -> Step:
 VERSION_PROPERTIES = "-p:PackageVersion=1.0.0-ci.1.1 -p:Version=1.0.0-ci.1.1"  # eng/verify_local.py VERSION
 
 STEPS = [
+    win("win-toolchain", ["python", "eng/check_toolchain.py"], 120),
+    linux("linux-toolchain", "python eng/check_toolchain.py", 120),
     # native-abi.yml, native-win-x64 (the restore is the job's `dotnet restore DesktopPlatform.slnx --locked-mode`)
     win("win-restore", ["dotnet", "restore", "DesktopPlatform.slnx", "--locked-mode"], 600),
     win("win-native", ["python", "eng/verify_local.py", "native"], 5400),

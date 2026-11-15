@@ -94,7 +94,7 @@ internal sealed class ProjectGraph
             "-p:EmitCompilerGeneratedFiles=true",
             "-p:CompilerGeneratedFilesOutputPath=" + generatedSourceRoot,
             "-p:CustomAfterMicrosoftCommonTargets=" + forceCompile,
-            "-getProperty:TargetFramework,OutputType,PackageLicenseExpression,LicenceBoundary,IsAotCompatible,PublishAot,ManagePackageVersionsCentrally,RestorePackagesWithLockFile,NoWarn,SuppressTrimAnalysisWarnings,EnableTrimAnalyzer,EnableAotAnalyzer,MSBuildProjectFullPath,ProjectAssetsFile,DefineConstants,AssemblyName,CompilerGeneratedFilesOutputPath",
+            "-getProperty:TargetFramework,LangVersion,OutputType,PackageLicenseExpression,LicenceBoundary,IsAotCompatible,PublishAot,ManagePackageVersionsCentrally,RestorePackagesWithLockFile,NoWarn,SuppressTrimAnalysisWarnings,EnableTrimAnalyzer,EnableAotAnalyzer,MSBuildProjectFullPath,ProjectAssetsFile,DefineConstants,AssemblyName,CompilerGeneratedFilesOutputPath",
             "-getItem:Compile,ProjectReference,ReferencePath,PackageReference,PackageVersion",
         })
         {
@@ -142,7 +142,7 @@ internal sealed class ProjectGraph
                 continue;
             }
 
-            int separator = library.Name.LastIndexOf('/');
+            int separator = library.Name.AsSpan().LastIndexOf('/');
             if (separator < 1)
             {
                 throw new InvalidOperationException("Malformed resolved dependency identity: " + library.Name);
@@ -174,7 +174,13 @@ internal sealed class ProjectGraph
             throw new InvalidOperationException("Completed source/reference inputs are required: " + project.Classification.Path);
         }
 
-        var options = new CSharpParseOptions(LanguageVersion.CSharp14,
+        string declaredLanguage = project.Properties.GetValueOrDefault("LangVersion", "14");
+        if (declaredLanguage is not ("14" or "15") || !LanguageVersionFacts.TryParse(declaredLanguage, out var language))
+        {
+            throw new InvalidOperationException("Unsupported owning C# language version: " + declaredLanguage);
+        }
+
+        var options = new CSharpParseOptions(language,
             preprocessorSymbols: project.Properties.GetValueOrDefault("DefineConstants", "")
                 .Split(';', StringSplitOptions.RemoveEmptyEntries));
         var output = project.OutputType switch

@@ -184,7 +184,7 @@ public sealed partial class OsSecretStoreTierPolicyTests
 
         string[] lines = File.ReadAllLines(Path.Combine(Root, TierWorkflow));
         var settings = lines.Select((line, index) => (line, index))
-            .Where(item => item.line.Contains(OptIn, StringComparison.Ordinal) && !item.line.TrimStart().StartsWith('#')).ToList();
+            .Where(item => item.line.Contains(OptIn, StringComparison.Ordinal) && !item.line.TrimStart().StartsWith('#', StringComparison.Ordinal)).ToList();
         Xunit.Assert.Single(settings);
         var (setting, at) = settings[0];
         Xunit.Assert.Equal("          " + OptIn + ": '1'", setting);
@@ -207,7 +207,7 @@ public sealed partial class OsSecretStoreTierPolicyTests
         var conditions = JobCondition().Matches(workflow).Select(match => match.Groups["condition"].Value.Trim()).ToList();
         Xunit.Assert.NotEmpty(conditions);
         Xunit.Assert.All(conditions, condition => Xunit.Assert.Equal("${{ " + TierCondition + " }}", condition));
-        Xunit.Assert.Contains("runs-on: windows-latest", workflow, StringComparison.Ordinal);
+        Xunit.Assert.Contains("runs-on: windows-2025", workflow, StringComparison.Ordinal);
     }
 
     [Xunit.Fact]

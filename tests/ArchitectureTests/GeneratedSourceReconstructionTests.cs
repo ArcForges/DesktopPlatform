@@ -16,10 +16,10 @@ public sealed class GeneratedSourceReconstructionTests
     private const string Project = """
         <Project Sdk="Microsoft.NET.Sdk">
           <PropertyGroup>
-            <TargetFramework>net10.0</TargetFramework>
+            <TargetFramework>net11.0</TargetFramework>
             <OutputType>Library</OutputType>
             <AssemblyName>GeneratedRegexSubject</AssemblyName>
-            <LangVersion>14</LangVersion>
+            <LangVersion>15</LangVersion>
             <Nullable>enable</Nullable>
             <ImplicitUsings>disable</ImplicitUsings>
             <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -47,6 +47,7 @@ public sealed class GeneratedSourceReconstructionTests
     {
         using var subject = Subject.Create(Source);
         var facts = subject.Evaluate();
+        Xunit.Assert.Equal("15", facts.Properties["LangVersion"]);
 
         string generated = Xunit.Assert.Single(facts.Sources, path => IsGenerated(subject, path)
             && Path.GetFileName(path) == "RegexGenerator.g.cs");
@@ -58,6 +59,20 @@ public sealed class GeneratedSourceReconstructionTests
         var implementation = (IMethodSymbol)compilation.GetSemanticModel(declaration.SyntaxTree).GetDeclaredSymbol(declaration, Xunit.TestContext.Current.CancellationToken)!;
         Xunit.Assert.NotNull(implementation.PartialDefinitionPart);
         Xunit.Assert.Equal("System.Text.RegularExpressions.Regex", implementation.ReturnType.ToDisplayString());
+    }
+
+    [Xunit.Fact]
+    public void ReconstructionRefusesUnknownAndFloatingOwningLanguageVersions()
+    {
+        using var subject = Subject.Create(Source);
+        var facts = subject.Evaluate();
+        foreach (string version in new[] { "latest", "preview", "16" })
+        {
+            var properties = facts.Properties.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+            properties["LangVersion"] = version;
+            var failure = Xunit.Assert.Throws<InvalidOperationException>(() => ProjectGraph.ReadCompilation(facts with { Properties = properties }));
+            Xunit.Assert.Contains("Unsupported owning C# language version", failure.Message, StringComparison.Ordinal);
+        }
     }
 
     [Xunit.Fact]

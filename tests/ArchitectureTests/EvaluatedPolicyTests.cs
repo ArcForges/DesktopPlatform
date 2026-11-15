@@ -53,7 +53,7 @@ public sealed class EvaluatedPolicyTests
         var compilations = projects.ToDictionary(project => project.Classification.Path, ProjectGraph.ReadCompilation, StringComparer.Ordinal);
         using var dependency = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "eng/policy/dependency-policy.json")));
         var dependencyLicenses = dependency.RootElement.GetProperty("nugetClosure").EnumerateObject()
-            .GroupBy(package => package.Name[..package.Name.LastIndexOf('/')], StringComparer.OrdinalIgnoreCase)
+            .GroupBy(package => package.Name[..package.Name.LastIndexOf('/', StringComparison.Ordinal)], StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.Select(package => package.Value.GetProperty("licence").GetString()!)
                 .Distinct(StringComparer.Ordinal).Single(), StringComparer.OrdinalIgnoreCase);
         var hashes = dependency.RootElement.GetProperty("inputHashes").EnumerateObject()

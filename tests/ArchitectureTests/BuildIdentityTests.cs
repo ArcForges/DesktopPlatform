@@ -29,7 +29,7 @@ public sealed class BuildIdentityTests
         foreach (var project in solution.Descendants("Project"))
         {
             string name = Path.GetFileNameWithoutExtension(project.Attribute("Path")!.Value);
-            string path = Path.Combine(root.FullName, "artifacts", "bin", "dotnet", host, name, "Release", "net10.0", name + ".dll");
+            string path = Path.Combine(root.FullName, "artifacts", "bin", "dotnet", host, name, "Release", "net11.0", name + ".dll");
             using var stream = File.OpenRead(path);
             using var pe = new PEReader(stream);
             var reader = pe.GetMetadataReader();

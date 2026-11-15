@@ -138,7 +138,7 @@ public sealed class OwnAppNavigationRouter<TAccess>
         }
 
         var path = uri.AbsolutePath;
-        var segments = path.StartsWith('/')
+        var segments = path.StartsWith('/', StringComparison.Ordinal)
             ? path[1..].Split('/', StringSplitOptions.None)
             : Array.Empty<string>();
         if (segments.Length != 2 || !IsRouteId(segments[0]) || !IsTargetId(segments[1]))

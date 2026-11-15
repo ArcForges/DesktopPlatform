@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICY = 'eng/policy/dependency-policy.json'
+PYTHON_INPUTS = ('eng/requirements-ci.txt', 'eng/requirements-ci-build.txt', 'eng/requirements-ci-installer.txt')
 # Exact existing publication admitted only for FND.07's local acceptance consumer.
 FOUNDATION_ACCEPTANCE = {
     'arcforges.foundation/1.0.0-ci.29.1': 'P5FRjzq8/DOhNS4bI4PAtjjnkIN2XPufXV0vnfyRFyDN12A/QcV1nteBCu4q/Kxg9R0Enlftut9QxYNtMPzDTg==',
@@ -26,6 +27,13 @@ FOUNDATION_PUBLISHER = {
 UPGRADE_CHECKS = {'compilation', 'aot-trim', 'compatibility', 'licence-provenance',
                   'security-sbom', 'runtime-performance-migration', 'framework-runtime-posture'}
 
+# File-licensed native SQLite introduced by Microsoft.Data.Sqlite 11's closure.
+# This is one reviewed artifact, not permission for arbitrary LicenseRef packages
+# (in particular the separate commercial SQLite.Encrypted product).
+SQLITE_COORDINATE = 'sqlite/3.54.1'
+SQLITE_CONTENT_HASH = 'PVpXeQFwnsQ1vXFEiZR3JYYdzmsPLtxObig62uHVfeVOVX8hAemTpr3bRC1n+eVvrohV2BQ/fuQpXaj59uVnHw=='
+SQLITE_LICENCE_HASH = '99464c3a88df7b708ce59e462cdcb85f72dfc9b1335b4fcc68be56131b634b95'
+
 
 def require(value, message):
     if not value:
@@ -37,6 +45,13 @@ def exact(value):
             and 'SNAPSHOT' not in value, 'Floating or mutable version: ' + str(value))
 
 
+def exact_python(value):
+    # Python release segments are not NuGet's mandatory three-part SemVer;
+    # packaging 26.3 is an exact stable release. Keep selectors/prereleases out.
+    require(isinstance(value, str) and re.fullmatch(r'(?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*))+', value),
+            'Floating or non-stable Python version: ' + str(value))
+
+
 def files(root):
     return sorted(set(subprocess.check_output(['git', '-C', str(root), 'ls-files', '--cached',
                   '--others', '--exclude-standard'], text=True).splitlines()))
@@ -44,7 +59,7 @@ def files(root):
 
 def inputs(root):
     return [p for p in files(root) if p.endswith(('.csproj', '.props', '.targets', 'packages.lock.json'))
-            or p in {'global.json', 'NuGet.config', '.python-version', 'eng/requirements-ci.txt',
+            or p in {'global.json', 'NuGet.config', '.python-version', *PYTHON_INPUTS,
                      'eng/native-toolchain.json', 'eng/packaging/packages.json', 'eng/policy/naming-package.json',
                      'eng/acceptance/foundation/package.json', 'eng/acceptance/foundation/package-lock.json', 'vcpkg.json',
                      'vcpkg-configuration.json'}
@@ -73,6 +88,22 @@ def closure(root):
     return result
 
 
+def check_sqlite_licence(key, row):
+    evidence = row.get('licenceFileEvidence', {})
+    text = evidence.get('text')
+    require(key == SQLITE_COORDINATE
+            and row.get('contentHash') == SQLITE_CONTENT_HASH
+            and row.get('licence') == 'LicenseRef-SQLite-Public-Domain'
+            and row.get('source') == 'https://api.nuget.org/v3-flatcontainer/sqlite/3.54.1/sqlite.nuspec'
+            and row.get('nuspecSha256') == '233a22fd57afebe85e403cbfb6cb0c441b1f39c69ac743d096bc46f58a329a41'
+            and evidence.get('path') == 'LICENSE.txt'
+            and evidence.get('source') == 'https://api.nuget.org/v3-flatcontainer/sqlite/3.54.1/sqlite.3.54.1.nupkg'
+            and evidence.get('archiveSha512') == 'rXvPt6zM1qg3cdynrl/X+Bz7Idgpe4TL/v65t3XfcsQ1ZaktBxhJAJEWEj0C+j5NO75F49PGegoSM0c5xqyRDg=='
+            and evidence.get('sha256') == SQLITE_LICENCE_HASH
+            and isinstance(text, str) and hashlib.sha256(text.encode('utf-8')).hexdigest() == SQLITE_LICENCE_HASH,
+            'Forbidden or invalid exact SQLite public-domain admission: ' + key)
+
+
 def check_admission(policy, actual):
     admitted = policy['nugetClosure']
     require(set(actual) == set(admitted), 'Unadmitted dependency closure')
@@ -87,6 +118,8 @@ def check_admission(policy, actual):
                     and row.get('internalPublisher') == FOUNDATION_PUBLISHER
                     and row['source'] == f'https://api.nuget.org/v3-flatcontainer/{package}/{version}/{package}.nuspec',
                     'Forbidden or invalid exact Foundation acceptance admission: ' + key)
+        elif key == SQLITE_COORDINATE or row['licence'] == 'LicenseRef-SQLite-Public-Domain':
+            check_sqlite_licence(key, row)
         else:
             require(row['licence'] in {'MIT', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC'},
                     'Forbidden or unreviewed licence: ' + key)
@@ -105,22 +138,28 @@ def check_admission(policy, actual):
 
 
 def python_closure(root):
-    result, current = {}, None
-    for line in (root / 'eng/requirements-ci.txt').read_text().splitlines():
-        if not line.strip() or line.startswith('#'):
-            continue
-        match = re.fullmatch(r'([A-Za-z0-9_-]+)==([^\s]+)\s*\\?', line)
-        if match:
-            exact(match[2])
-            current = match[1].lower().replace('_', '-') + '/' + match[2]
-            require(current not in result, 'Duplicate Python requirement')
-            result[current] = []
-        else:
-            match = re.fullmatch(r'\s+--hash=sha256:([0-9a-f]{64})\s*\\?', line)
-            require(match and current, 'Floating Python requirement or missing checksum')
-            result[current].append(match[1])
-    require(result and all(result.values()), 'Incomplete Python checksum closure')
-    return {key: sorted(value) for key, value in result.items()}
+    result = {}
+    for name in PYTHON_INPUTS:
+        entries, current = {}, None
+        for line in (root / name).read_text().splitlines():
+            if not line.strip() or line.startswith('#'):
+                continue
+            match = re.fullmatch(r'([A-Za-z0-9_-]+)==([^\s]+)\s*\\?', line)
+            if match:
+                exact_python(match[2])
+                current = match[1].lower().replace('_', '-') + '/' + match[2]
+                require(current not in entries, 'Duplicate Python requirement')
+                entries[current] = []
+            else:
+                match = re.fullmatch(r'\s+--hash=sha256:([0-9a-f]{64})\s*\\?', line)
+                require(match and current, 'Floating Python requirement or missing checksum')
+                entries[current].append(match[1])
+        require(entries and all(entries.values()), 'Incomplete Python checksum closure')
+        for key, hashes in entries.items():
+            hashes = sorted(hashes)
+            require(key not in result or result[key] == hashes, 'Conflicting Python checksum inputs: ' + key)
+            result[key] = hashes
+    return result
 
 
 def check_python(policy, actual):
@@ -128,7 +167,8 @@ def check_python(policy, actual):
     for key, hashes in actual.items():
         row = policy['pythonClosure'][key]
         require(row['hashes'] == hashes, 'Mutable Python coordinate: ' + key)
-        require(row['licence'] in {'MIT', 'BSD-3-Clause', 'PSF-2.0'}, 'Forbidden Python licence')
+        require(row['licence'] in {'MIT', 'BSD-3-Clause', 'PSF-2.0', 'Apache-2.0', 'Apache-2.0 OR BSD-2-Clause'},
+                'Forbidden Python licence')
         require(row['evidence'] and all(re.fullmatch('[0-9a-f]{64}', e['sha256']) and e['source']
                                       for e in row['evidence']), 'Missing Python licence evidence')
 

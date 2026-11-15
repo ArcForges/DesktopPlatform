@@ -793,7 +793,9 @@ internal static class WrongUserHelperProcess
 
             return "end-of-input";
         });
-        var winner = await Task.WhenAny(reading, Task.Delay(ServeBound)).ConfigureAwait(false);
+        using var delayCancellation = new CancellationTokenSource();
+        var winner = await Task.WhenAny(reading, Task.Delay(ServeBound, delayCancellation.Token)).ConfigureAwait(false);
+        await delayCancellation.CancelAsync().ConfigureAwait(false);
         return winner == reading ? await reading.ConfigureAwait(false) : "bound";
     }
 

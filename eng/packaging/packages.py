@@ -212,7 +212,7 @@ def pack(directory, package_version, native_directory=ROOT / "artifacts/native-p
                     metadata.remove(dependencies)
                 if pins:
                     dependencies = ET.SubElement(metadata, f"{{{namespace}}}dependencies")
-                    group = ET.SubElement(dependencies, f"{{{namespace}}}group", targetFramework="net10.0")
+                    group = ET.SubElement(dependencies, f"{{{namespace}}}group", targetFramework="net11.0")
                     for dependency, pin in pins.items():
                         ET.SubElement(group, f"{{{namespace}}}dependency", id=dependency, version=f"[{pin}]")
                 contents[index] = (info, ET.tostring(specification, encoding="utf-8", xml_declaration=True))
@@ -314,7 +314,7 @@ def smoke_policy(directory, package_version):
         consumer.mkdir()
         project = consumer / "Consumer.csproj"
         project_text = f'''<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup>
+  <PropertyGroup><TargetFramework>net11.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup><PackageReference Include="{entry['id']}" PrivateAssets="all" /></ItemGroup>
 </Project>
 '''
@@ -333,7 +333,7 @@ Console.WriteLine("package-consumer-ok");
         env["CI"] = "true"
         run("dotnet", "restore", str(project), "--locked-mode", "--configfile", str(temporary_root / "NuGet.config"), cwd=consumer, env=env)
         run("dotnet", "build", str(project), "-c", "Release", "--no-restore", cwd=consumer, env=env)
-        output = run("dotnet", str(consumer / "bin/Release/net10.0/Consumer.dll"), cwd=consumer, env=env)
+        output = run("dotnet", str(consumer / "bin/Release/net11.0/Consumer.dll"), cwd=consumer, env=env)
         require("package-consumer-ok" in output, "Consumer did not execute.")
         # Actual SDK operations against the installed package, not source-text tests.
         project.write_text(project_text.replace('PrivateAssets="all"', 'PrivateAssets="all" VersionOverride="1.0.0"'), encoding="utf-8")

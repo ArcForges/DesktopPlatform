@@ -12,9 +12,31 @@ import tomllib
 import unittest
 from unittest.mock import patch
 
-from dependency_policy import ROOT, POLICY, audit, check_admission, check_history, check_python, closure, exact, framework_upgrade, hashes, python_closure
+from dependency_policy import ROOT, POLICY, PYTHON_INPUTS, audit, check_admission, check_history, check_python, check_sqlite_licence, closure, exact, exact_python, framework_upgrade, hashes, python_closure
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'packaging'))
 from release_channels import authorized, bound_candidate, publication, selected, verified_tag
+
+
+class PythonInputTests(unittest.TestCase):
+    def test_python_release_segments_do_not_relax_nuget_or_allow_prereleases(self):
+        for version in ('26.3', '3.3.1', '84.2.1'):
+            exact_python(version)
+        with self.assertRaises(ValueError):
+            exact('26.3')
+        for version in ('26.*', '>=26.3', '26.3rc1', '26.3.dev0', '26.3+local', '026.3'):
+            with self.subTest(version=version), self.assertRaises(ValueError):
+                exact_python(version)
+
+    def test_installer_build_and_runtime_locks_must_agree_on_shared_coordinates(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'eng').mkdir()
+            for name in PYTHON_INPUTS:
+                (root / name).write_text('packaging==26.3 \\\n    --hash=sha256:' + 'a' * 64 + '\n')
+            self.assertEqual({'packaging/26.3': ['a' * 64]}, python_closure(root))
+            (root / PYTHON_INPUTS[1]).write_text('packaging==26.3 \\\n    --hash=sha256:' + 'b' * 64 + '\n')
+            with self.assertRaisesRegex(ValueError, 'Conflicting Python checksum'):
+                python_closure(root)
 
 
 class SecretScanAllowlistTests(unittest.TestCase):
@@ -549,7 +571,7 @@ class AdmissionTests(unittest.TestCase):
             def git(*args):
                 subprocess.run(['git', '-C', str(root), *args], check=True, capture_output=True)
             git('init', '-b', 'main')
-            for name in ['global.json', 'NuGet.config', 'eng/requirements-ci.txt']:
+            for name in ['global.json', 'NuGet.config', *PYTHON_INPUTS]:
                 target = root / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes((ROOT / name).read_bytes())
@@ -577,6 +599,29 @@ class AdmissionTests(unittest.TestCase):
         next(iter(self.policy['nugetClosure'].values()))['licence'] = 'GPL-3.0-only'
         with self.assertRaisesRegex(ValueError, 'Forbidden'):
             check_admission(self.policy, self.actual)
+
+    def test_sqlite_file_licence_is_bound_to_one_package_and_exact_evidence(self):
+        key = 'sqlite/3.54.1'
+        row = self.policy['nugetClosure'][key]
+        check_sqlite_licence(key, row)
+        for replacement in ['sqlite/3.54.2', 'sqlite.encrypted/3.54.1', 'unreviewed/3.54.1']:
+            with self.subTest(coordinate=replacement), self.assertRaises(ValueError):
+                check_sqlite_licence(replacement, row)
+        for field in ['contentHash', 'licence', 'source', 'nuspecSha256']:
+            modified = copy.deepcopy(row)
+            modified[field] = 'changed'
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                check_sqlite_licence(key, modified)
+        for field in ['path', 'source', 'archiveSha512', 'sha256', 'text']:
+            modified = copy.deepcopy(row)
+            modified['licenceFileEvidence'][field] = 'changed'
+            with self.subTest(evidence=field), self.assertRaises(ValueError):
+                check_sqlite_licence(key, modified)
+        for field in ['licenceFileEvidence', 'licence']:
+            modified = copy.deepcopy(row)
+            del modified[field]
+            with self.subTest(missing=field), self.assertRaises(ValueError):
+                check_sqlite_licence(key, modified)
 
     def test_exact_foundation_acceptance_refuses_changed_boundary(self):
         key = 'arcforges.foundation/1.0.0-ci.29.1'

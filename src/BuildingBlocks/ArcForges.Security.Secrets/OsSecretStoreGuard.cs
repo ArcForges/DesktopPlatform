@@ -79,7 +79,7 @@ public static class OsSecretStoreGuard
         if (path is null) return true;
         var userBuses = new List<string>();
         if (userId is { } uid) userBuses.Add("/run/user/" + uid.ToString(System.Globalization.CultureInfo.InvariantCulture) + "/bus");
-        if (!string.IsNullOrEmpty(runtimeDirectory) && runtimeDirectory.StartsWith('/')) userBuses.Add(Path.Join(runtimeDirectory, "bus"));
+        if (!string.IsNullOrEmpty(runtimeDirectory) && runtimeDirectory.StartsWith('/', StringComparison.Ordinal)) userBuses.Add(Path.Join(runtimeDirectory, "bus"));
         if (!string.IsNullOrWhiteSpace(sessionBusVariable))
         {
             foreach (string entry in sessionBusVariable.Split(';'))
@@ -99,7 +99,7 @@ public static class OsSecretStoreGuard
         if (buses.Contains(normalized) || buses.Contains(real)) return true;
         if (!File.Exists(real) && !Directory.Exists(real)) return false;
         string temporary = ResolveLinks(Normalize(temporaryDirectory)) ?? Normalize(temporaryDirectory);
-        int slash = real.LastIndexOf('/');
+        int slash = real.LastIndexOf('/', StringComparison.Ordinal);
         string parent = slash <= 0 ? "/" : real[..slash];
         return string.Equals(parent, temporary, StringComparison.Ordinal) || !real.StartsWith(temporary + "/", StringComparison.Ordinal);
     }
@@ -131,7 +131,7 @@ public static class OsSecretStoreGuard
                 }
 
                 if (++links > MaximumLinks) return null;
-                string absolute = target.StartsWith('/') ? target : current + "/" + target;
+                string absolute = target.StartsWith('/', StringComparison.Ordinal) ? target : current + "/" + target;
                 pending.InsertRange(0, absolute.Split('/', StringSplitOptions.RemoveEmptyEntries));
                 current = "/";
             }
@@ -180,7 +180,7 @@ public static class OsSecretStoreGuard
             }
         }
 
-        return path is { Length: > 1 } && path.StartsWith('/') ? path : null;
+        return path is { Length: > 1 } && path.StartsWith('/', StringComparison.Ordinal) ? path : null;
     }
 
     private static string Normalize(string path)

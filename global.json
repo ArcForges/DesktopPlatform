@@ -1,11 +1,11 @@
 {
   "sdk": {
-    "version": "10.0.400",
+    "version": "11.0.100",
     "rollForward": "disable",
     "allowPrerelease": false
   },
   "test": {
     "runner": "Microsoft.Testing.Platform"
   },
-  "workloadVersion": "10.0.400"
+  "workloadVersion": "11.0.100"
 }

@@ -1041,7 +1041,15 @@
     "eng/policy/dependency-reviews/os-secret-store-guard-r1.json",
     "eng/policy/dependency-reviews/afv2-env-01-csharp15-bootstrap-r1.json",
     "eng/test_native_evidence.py",
-    "tests/tooling/test_verify_install.py"
+    "tests/tooling/test_verify_install.py",
+    "docs/dependency-upgrade/afv2-env-01-managed.json",
+    "docs/dependency-upgrade/afv2-env-01-managed.md",
+    "eng/actionlint.yaml",
+    "eng/check_toolchain.py",
+    "eng/policy/dependency-reviews/afv2-env-01-managed-r1.json",
+    "eng/requirements-ci-build.txt",
+    "eng/requirements-ci-installer.txt",
+    "tests/tooling/test_toolchain.py"
   ],
   "reused": {
     "LICENSE": "canonical-agpl-legal-r1",

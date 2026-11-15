@@ -2,7 +2,7 @@
 
 Use an isolated `.worktree/` branch and the [README verification commands](README.md#build-and-verify).
 Shared mechanism changes belong here; product rules and business RPC schemas belong to their owners.
-Keep C# 14, C++20, explicit source provenance, committed dependency locks and warnings-as-errors.
+Keep C# 15, C++20, explicit source provenance, committed dependency locks and warnings-as-errors.
 
 PR CI compiles/stages Windows native outputs and builds, tests and packages the managed solution on Windows next
 to that stage; Linux builds and tests the platform independently. It runs targeted offline architecture/policy tests,

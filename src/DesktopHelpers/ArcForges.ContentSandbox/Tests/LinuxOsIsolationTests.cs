@@ -696,7 +696,7 @@ internal sealed class LinuxOsHarness : IDisposable
         }
 
         var open = text.IndexOf('(', StringComparison.Ordinal);
-        var close = text.LastIndexOf(')');
+        var close = text.LastIndexOf(')', StringComparison.Ordinal);
         if (open < 0 || close < open || close + 2 > text.Length)
         {
             return null;

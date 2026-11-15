@@ -22,14 +22,16 @@ concurrency:
 jobs:
   allocate-version:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.version.outputs.value }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
       - id: version
         env:
           REQUESTED_VERSION: ${{ inputs.version }}
@@ -54,9 +56,9 @@ jobs:
     uses: ./.github/workflows/native-abi.yml
   secret-scan:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
@@ -73,14 +75,16 @@ jobs:
             --volume "${GITHUB_WORKSPACE}:/repo" \
             "ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f" \
             detect --source=/repo --no-banner --redact --config=/repo/.gitleaks.toml
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
       - name: Bind successful existing secret gate to architecture source
         env:
           SECRET_SCAN_OUTCOME: ${{ steps.secret_scan.outcome }}
         run: python eng/architecture_evidence.py secret --output artifacts/evidence/secret-architecture.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: architecture-secret-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/secret-architecture.json
@@ -89,57 +93,68 @@ jobs:
 
   repository-hooks:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
       - name: Install pre-commit
-        run: python -m pip install --disable-pip-version-check --require-hashes -r eng/requirements-ci.txt
+        run: |
+          python -m pip install --disable-pip-version-check --require-hashes -r eng/requirements-ci-installer.txt
+          python -m pip install --disable-pip-version-check --require-hashes --build-constraint eng/requirements-ci-build.txt -r eng/requirements-ci.txt
+          python -m pip check
       - name: Run repository hooks
         run: pre-commit run --all-files --show-diff-on-failure --color=always
 
   design-policy:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
       - name: Reject source, export, citation and dependency drift
         run: python -m unittest discover -s eng -p test_design_policy.py -v
       - name: Reject aliased version axes and invalid build identities
         run: python -m unittest discover -s eng -p test_build_identity.py -v
       - name: Verify exports against an isolated immutable Design checkout
         run: python eng/design_policy.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: design-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
+          name: design-policy-ubuntu-26.04-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/design-policy.json
           if-no-files-found: error
           retention-days: 30
 
   licence-policy:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           global-json-file: global.json
-      - uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
+      - name: Verify effective managed toolchain
+        run: python eng/check_toolchain.py --tools python dotnet
+      - uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # v4.5.0
         with:
           cmakeVersion: '4.3.3'
           ninjaVersion: '1.13.1'
@@ -153,52 +168,58 @@ jobs:
         run: python -m unittest discover -s eng -p test_licence_boundary.py -v
       - name: Verify actual managed build declarations
         run: python eng/licence_boundary.py --evaluate-managed --report artifacts/evidence/licence-managed.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: licence-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
+          name: licence-policy-ubuntu-26.04-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/licence-*.json
           if-no-files-found: error
           retention-days: 30
 
   reference-policy:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
       - name: Reject invalid registrations and exercise real Git drift
         run: python -m unittest discover -s eng -p test_reference_baselines.py -v
       - name: Resolve all immutable Design and reference commits
         run: python eng/reference_baselines.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: reference-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
+          name: reference-policy-ubuntu-26.04-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/reference-baselines.json
           if-no-files-found: error
           retention-days: 30
 
   runtime-policy:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           global-json-file: global.json
+      - name: Verify effective managed toolchain
+        run: python eng/check_toolchain.py --tools python dotnet
       - name: Reject runtime, assignment and retired-scaffold drift
         run: python -m unittest discover -s eng -p test_runtime_ownership.py -v
       - name: Verify current owner and immutable family snapshots
@@ -207,56 +228,60 @@ jobs:
         run: python -m unittest discover -s eng -p test_architecture_evidence.py -v
       - name: Reuse canonical naming result and exercise every forbidden-term fixture
         run: python eng/architecture_evidence.py naming --runtime-report artifacts/evidence/runtime-ownership.json --assets artifacts/naming-assets --output artifacts/evidence/naming-architecture.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: architecture-naming-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/naming-architecture.json
           if-no-files-found: error
           retention-days: 30
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: runtime-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
+          name: runtime-policy-ubuntu-26.04-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/runtime-ownership.json
           if-no-files-found: error
           retention-days: 30
 
   reconciliation-policy:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
       - name: Reject incomplete inventory and linked source
         run: python -m unittest discover -s eng -p test_reconciliation.py -v
       - name: Verify historical and current immutable project trees
         run: python eng/reconciliation.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: reconciliation-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
+          name: reconciliation-policy-ubuntu-26.04-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/reconciliation.json
           if-no-files-found: error
           retention-days: 30
 
   provenance-policy:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
       - name: Reject incomplete records, history mutation and altered native closure
         run: python -m unittest discover -s tests/tooling -p 'test_*.py' -v
       - name: Verify actual source inventory and active native registrations
@@ -266,10 +291,10 @@ jobs:
           if ($LASTEXITCODE) { throw 'Source provenance check failed.' }
           python eng/native_provenance.py
           if ($LASTEXITCODE) { throw 'Native provenance registration failed.' }
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: provenance-policy-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
+          name: provenance-policy-ubuntu-26.04-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/provenance.json
           if-no-files-found: error
           retention-days: 30
@@ -277,7 +302,7 @@ jobs:
   ci:
     if: ${{ always() && !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
     needs: [allocate-version, managed-packages, native, secret-scan, repository-hooks, design-policy, licence-policy, provenance-policy, reference-policy, runtime-policy, reconciliation-policy, stage-integration]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       CI_NEEDS: ${{ toJSON(needs) }}
     steps:
@@ -290,23 +315,25 @@ jobs:
 
   stage-integration:
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'deku2026') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version-file: .python-version
+      - name: Verify effective Python selection
+        run: python eng/check_toolchain.py --tools python
       - name: Reject forbidden cross-repository edges with offline fixtures
         run: python -m unittest discover -s eng/stage_integration -p 'test_*.py' -v
       - name: Verify the committed published-metadata snapshot of the seven repositories
         run: python eng/stage_integration/stage_integration.py verify --report artifacts/evidence/stage-integration.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: stage-integration-ubuntu-latest-${{ github.run_id }}-${{ github.run_attempt }}
+          name: stage-integration-ubuntu-26.04-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/evidence/stage-integration.json
           if-no-files-found: error
           retention-days: 30

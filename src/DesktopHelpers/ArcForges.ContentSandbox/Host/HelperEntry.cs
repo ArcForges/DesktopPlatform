@@ -148,7 +148,7 @@ internal static class HelperEntry
         var handle = new SafePipeHandle((nint)Require(frame, role), true);
         try
         {
-            return new NamedPipeClientStream(PipeDirection.InOut, true, true, handle);
+            return new NamedPipeClientStream(PipeDirection.InOut, true, handle);
         }
         catch (ArgumentException exception)
         {

@@ -273,7 +273,7 @@ public sealed class LocalRpcLaunchDirectoryTests
                 foreach (var entry in Directory.EnumerateDirectories(world.Root))
                 {
                     var name = Path.GetFileName(entry);
-                    if (name.Length == 12 && !name.StartsWith('.') && LaunchDirectory.ReadRecord(LaunchDirectory.RecordPath(entry)) is null && Directory.Exists(entry))
+                    if (name.Length == 12 && !name.StartsWith('.', StringComparison.Ordinal) && LaunchDirectory.ReadRecord(LaunchDirectory.RecordPath(entry)) is null && Directory.Exists(entry))
                     {
                         lock (violations)
                         {

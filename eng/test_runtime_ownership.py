@@ -150,7 +150,7 @@ class RuntimeOwnershipTests(unittest.TestCase):
                                    ('<PublishAot>false</PublishAot>', False),
                                    ('<PublishAot Condition="false">true</PublishAot>', False),
                                    ('<PublishAot>true</PublishAot><IsAotCompatible>false</IsAotCompatible>', False)]:
-            self.write(project, '<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework>' + properties + '</PropertyGroup></Project>')
+            self.write(project, '<Project><PropertyGroup><TargetFramework>net11.0</TargetFramework>' + properties + '</PropertyGroup></Project>')
             if passes: policy.check_managed(self.root, project, 'aot-host', self.files)
             else:
                 with self.assertRaises(ValueError): policy.check_managed(self.root, project, 'aot-host', self.files)
@@ -162,7 +162,7 @@ class RuntimeOwnershipTests(unittest.TestCase):
             policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files)
 
     def test_imports_are_followed_and_cannot_escape_or_be_conditional(self):
-        self.write('aot.props', '<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework><PublishAot>true</PublishAot></PropertyGroup></Project>')
+        self.write('aot.props', '<Project><PropertyGroup><TargetFramework>net11.0</TargetFramework><PublishAot>true</PublishAot></PropertyGroup></Project>')
         self.write('src/Host.csproj', '<Project><Import Project="../aot.props" /></Project>')
         policy.check_managed(self.root, 'src/Host.csproj', 'aot-host', self.files)
         for imported in ('../../outside.props', '$(External)/aot.props', 'missing.props'):
@@ -194,14 +194,14 @@ class RuntimeOwnershipTests(unittest.TestCase):
 
     def test_existing_contract_cli_retains_explicit_tool_and_aot_identity(self):
         project = policy.CONTRACT_CLI
-        properties = '<TargetFramework>net10.0</TargetFramework><IsAotCompatible>true</IsAotCompatible><PackAsTool>true</PackAsTool><OutputType>Exe</OutputType>'
+        properties = '<TargetFramework>net11.0</TargetFramework><IsAotCompatible>true</IsAotCompatible><PackAsTool>true</PackAsTool><OutputType>Exe</OutputType>'
         self.assertEqual(policy.role('Contracts', project), 'test-or-build-tool')
         self.assertEqual(policy.role('Contracts', 'src/public/dotnet/Other/Other.csproj'), 'aot-library')
         self.write(project, '<Project><PropertyGroup>' + properties + '</PropertyGroup></Project>')
         policy.check_managed(self.root, project, 'test-or-build-tool', self.files)
         for before, after in [('<PackAsTool>true</PackAsTool>', ''), ('<IsAotCompatible>true', '<IsAotCompatible>false'),
                               ('<PackAsTool>true', '<PackAsTool Condition="false">true'),
-                              ('net10.0', 'net9.0'), ('<OutputType>Exe', '<OutputType>Library')]:
+                              ('net11.0', 'net10.0'), ('<OutputType>Exe', '<OutputType>Library')]:
             self.write(project, '<Project><PropertyGroup>' + properties.replace(before, after) + '</PropertyGroup></Project>')
             with self.subTest(before=before, after=after), self.assertRaises(ValueError):
                 policy.check_managed(self.root, project, 'test-or-build-tool', self.files)
@@ -272,7 +272,7 @@ class RuntimeOwnershipTests(unittest.TestCase):
         subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
                         '-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'fixture'], check=True)
         project = 'src/BuildingBlocks/Library/Library.csproj'
-        self.write(project, '<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework><IsAotCompatible>true</IsAotCompatible><PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression><LicenceBoundary>AGPL</LicenceBoundary></PropertyGroup></Project>')
+        self.write(project, '<Project><PropertyGroup><TargetFramework>net11.0</TargetFramework><IsAotCompatible>true</IsAotCompatible><PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression><LicenceBoundary>AGPL</LicenceBoundary></PropertyGroup></Project>')
         self.write('eng/policy/licence-boundary.json', {'schemaVersion': 1, 'repository': 'DesktopPlatform',
                    'spdxLicense': 'AGPL-3.0-only', 'licenceBoundary': 'AGPL', 'projects': [{'path': project, 'kind': 'msbuild'}]})
         self.register()
@@ -291,7 +291,7 @@ class RuntimeOwnershipTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unassigned'): policy.audit(self.root, row)
 
     def test_aot_flag_does_not_allow_old_or_missing_framework(self):
-        for framework in ('', '<TargetFramework>net8.0</TargetFramework>', '<TargetFrameworks>net10.0;net8.0</TargetFrameworks>'):
+        for framework in ('', '<TargetFramework>net8.0</TargetFramework>', '<TargetFrameworks>net11.0;net8.0</TargetFrameworks>'):
             self.write('Host.csproj', '<Project><PropertyGroup><PublishAot>true</PublishAot>' + framework + '</PropertyGroup></Project>')
             with self.assertRaisesRegex(ValueError, 'framework'):
                 policy.check_managed(self.root, 'Host.csproj', 'aot-host', self.files)

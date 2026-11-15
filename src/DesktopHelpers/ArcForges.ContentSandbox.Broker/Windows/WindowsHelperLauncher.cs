@@ -288,7 +288,9 @@ internal sealed class WindowsHelperLauncher : IContentSandboxProcessLauncher
                 return string.Empty;
             }
 
-            _ = await Task.WhenAny(_exited.Task, Task.Delay(TimeSpan.FromSeconds(2))).ConfigureAwait(false);
+            using var delayCancellation = new CancellationTokenSource();
+            _ = await Task.WhenAny(_exited.Task, Task.Delay(TimeSpan.FromSeconds(2), delayCancellation.Token)).ConfigureAwait(false);
+            await delayCancellation.CancelAsync().ConfigureAwait(false);
             await Task.Delay(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
             return _exited.Task.IsCompletedSuccessfully ? " (exit " + await _exited.Task.ConfigureAwait(false) + "; output: " + HelperText.Sanitise(DiagnosticTail) + ")" : string.Empty;
         }

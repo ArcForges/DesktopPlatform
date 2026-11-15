@@ -97,41 +97,41 @@ internal sealed class ConsoleObserver(TextWriter output) : RealtimeObserver
 
     public override async Task ConnectionChangedAsync(ConnectionState state, string detail, CancellationToken cancellationToken)
     {
-        await _output.WriteLineAsync($"state: {state} ({detail})").ConfigureAwait(false);
+        await _output.WriteLineAsync($"state: {state} ({detail})".AsMemory(), cancellationToken).ConfigureAwait(false);
     }
 
     public override async Task HintAsync(Event hint, CancellationToken cancellationToken)
     {
         Hints++;
-        await _output.WriteLineAsync($"hint: seq={hint.Seq} payload={hint.PayloadCase}").ConfigureAwait(false);
+        await _output.WriteLineAsync($"hint: seq={hint.Seq} payload={hint.PayloadCase}".AsMemory(), cancellationToken).ConfigureAwait(false);
     }
 
     public override async Task GapAsync(SequenceGap gap, CancellationToken cancellationToken)
     {
         Gaps++;
-        await _output.WriteLineAsync($"gap: expected={gap.Expected} actual={gap.Actual}; the owner RPC must be re-read").ConfigureAwait(false);
+        await _output.WriteLineAsync($"gap: expected={gap.Expected} actual={gap.Actual}; the owner RPC must be re-read".AsMemory(), cancellationToken).ConfigureAwait(false);
     }
 
     public override async Task SnapshotRequiredAsync(string reason, CancellationToken cancellationToken)
     {
         Snapshots++;
-        await _output.WriteLineAsync($"snapshot required: {reason}; the probe has no owner RPC to read, so this only records the obligation").ConfigureAwait(false);
+        await _output.WriteLineAsync($"snapshot required: {reason}; the probe has no owner RPC to read, so this only records the obligation".AsMemory(), cancellationToken).ConfigureAwait(false);
     }
 
     public override async Task OutputAsync(OutputChunk chunk, CancellationToken cancellationToken)
     {
         Chunks++;
-        await _output.WriteLineAsync($"output: offset={chunk.Offset} bytes={chunk.Data.Length}").ConfigureAwait(false);
+        await _output.WriteLineAsync($"output: offset={chunk.Offset} bytes={chunk.Data.Length}".AsMemory(), cancellationToken).ConfigureAwait(false);
     }
 
     public override async Task OutputResetAsync(string reason, CancellationToken cancellationToken)
     {
-        await _output.WriteLineAsync($"output reset: {reason}").ConfigureAwait(false);
+        await _output.WriteLineAsync($"output reset: {reason}".AsMemory(), cancellationToken).ConfigureAwait(false);
     }
 
     public override async Task TerminalAsync(ExecutionOutput terminal, CancellationToken cancellationToken)
     {
-        await _output.WriteLineAsync("terminal outcome confirmed by an authoritative read").ConfigureAwait(false);
+        await _output.WriteLineAsync("terminal outcome confirmed by an authoritative read".AsMemory(), cancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -163,12 +163,12 @@ internal static class LiveRun
         }
 
         WatchResult events1 = await eventRun.ConfigureAwait(false);
-        await output.WriteLineAsync($"events run ended: {events1.Reason} ({events1.Detail}); hints={observer.Hints} gaps={observer.Gaps} snapshots={observer.Snapshots}").ConfigureAwait(false);
+        await output.WriteLineAsync($"events run ended: {events1.Reason} ({events1.Detail}); hints={observer.Hints} gaps={observer.Gaps} snapshots={observer.Snapshots}".AsMemory(), cancellationToken).ConfigureAwait(false);
         int exit = events1.Reason == StopReason.Cancelled ? 0 : 1;
         if (outputRun is not null)
         {
             WatchResult output1 = await outputRun.ConfigureAwait(false);
-            await output.WriteLineAsync($"output run ended: {output1.Reason} ({output1.Detail}); chunks={observer.Chunks}").ConfigureAwait(false);
+            await output.WriteLineAsync($"output run ended: {output1.Reason} ({output1.Detail}); chunks={observer.Chunks}".AsMemory(), cancellationToken).ConfigureAwait(false);
             exit = output1.Reason is StopReason.Cancelled or StopReason.Completed ? exit : 1;
         }
 
