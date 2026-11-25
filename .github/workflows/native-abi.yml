@@ -33,7 +33,7 @@ jobs:
           global-json-file: global.json
       - name: Verify effective managed toolchain
         run: python eng/check_toolchain.py --tools python dotnet
-      - uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # v4.5.0
+      - uses: lukka/get-cmake@a1a8216777d3cbbf5602c73b9ddd3e98257ecdc4 # v4.5.1
         with:
           cmakeVersion: '4.3.3'
           ninjaVersion: '1.13.1'
@@ -91,7 +91,7 @@ jobs:
           restore-keys: |
             vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-${{ env.VCPKG_WINDOWS_X64_GRAPH_REVISION }}-
             vcpkg-classic-${{ runner.os }}-${{ runner.arch }}-${{ steps.vcpkg-toolchain.outputs.fingerprint }}-${{ env.VCPKG_COMMIT }}-runtime-gpu-and-static-shims-v1-
-      - uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # v4.5.0
+      - uses: lukka/get-cmake@a1a8216777d3cbbf5602c73b9ddd3e98257ecdc4 # v4.5.1
         with:
           cmakeVersion: '4.4.0'
           ninjaVersion: '1.13.1'
@@ -110,7 +110,7 @@ jobs:
             "--x-install-root=${{ github.workspace }}/artifacts/vcpkg-installed" `
             "--overlay-triplets=${{ github.workspace }}/eng/native/vcpkg/triplets"
           if ($LASTEXITCODE) { throw 'vcpkg install failed.' }
-      - uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # v4.5.0
+      - uses: lukka/get-cmake@a1a8216777d3cbbf5602c73b9ddd3e98257ecdc4 # v4.5.1
         with:
           cmakeVersion: '4.3.3'
           ninjaVersion: '1.13.1'
